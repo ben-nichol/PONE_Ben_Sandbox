@@ -71,25 +71,12 @@ def defaultWeighter(weightingParam):
 # 
 # @Return: 
 # A boolean variable indicating whether the DOM passed or not
-def passDOM(mcpeList, hitThresh, maxResidual, position, track):
+def passDOM(mcpeList, hitThresh):
     # length has to be at least equal to hitThresh
     if len(mcpeList) < hitThresh:
         return False
 
-    timeList = [mcpe.time for mcpe in mcpeList]
-    timeList.sort()
-
-    # if entire list is within 20ns and smallest time has small enough residual, pass the DOM
-    if timeList[len(timeList) - 1] - timeList[0] < 20 and I3Calculator.time_residual(track, position, timeList[0]) < maxResidual:
-        return True
-
-    # check if any sequence matches criteria
-    for i in range(len(timeList) - hitThresh):
-        residual = I3Calculator.time_residual(track, position, timeList[i])
-        if timeList[i+hitThresh-1] - timeList[i] < 20 and residual < maxResidual:
-            return True 
-        
-    return False
+    return True
 
 # A function that determines whether a frame passes the cut or not. The
 # function checks whether a threshold number of DOMs passed given a 
@@ -108,14 +95,10 @@ def passDOM(mcpeList, hitThresh, maxResidual, position, track):
 # 
 # @Return: 
 # A boolean variable indicating whether the frame passed or not
-def passFrame(frame, domsUsed, hitThresh, domThresh, maxResidual, geoMap):
+def passFrame(frame, domsUsed, hitThresh, domThresh, geoMap):
     if frame.Stop != I3Frame.DAQ:
         return False
-    
-    primary = frame["NuGPrimary"]
-    mctree = frame["I3MCTree"]
-    track = dataclasses.I3MCTree.first_child(mctree, primary)
-    track.shape = dataclasses.I3Particle.InfiniteTrack
+
     mcpeMap = frame["MCPESeriesMap"]
     
     domCount = 0
@@ -123,7 +106,7 @@ def passFrame(frame, domsUsed, hitThresh, domThresh, maxResidual, geoMap):
         position = geoMap[dom].position
         if dom not in mcpeMap:
             continue
-        if passDOM(mcpeMap[dom], hitThresh, maxResidual, position, track):
+        if passDOM(mcpeMap[dom], hitThresh):
             domCount += 1
         
         if domCount >= domThresh:
@@ -159,12 +142,12 @@ def passFrame(frame, domsUsed, hitThresh, domThresh, maxResidual, geoMap):
 # 
 # @Return: 
 # A number representing the weighted frame total
-def calculateRetainedFrames(infileList, domsUsed, hitThresh, domThresh, maxResidual, geoMap, energyWeighting = defaultWeighter, zenithWeighting = defaultWeighter):
+def calculateRetainedFrames(infileList, domsUsed, hitThresh, domThresh, geoMap, energyWeighting = defaultWeighter, zenithWeighting = defaultWeighter):
     retainedFrames = 0
     for infile in infileList:
         infile.rewind()
         for frame in infile:
-            if passFrame(frame, domsUsed, hitThresh, domThresh, maxResidual, geoMap):
+            if passFrame(frame, domsUsed, hitThresh, domThresh, geoMap):
                 retainedFrames += 1 * weightE(frame, energyWeighting) * weightZenith(frame, zenithWeighting)
 
     return retainedFrames
@@ -256,19 +239,16 @@ def getSignificantMCPEs(mcpeList, hitThresh):
 # @Return: 
 # The frame inputted to the function after the significant MCPESeriesMap object
 # was appended to it with the key word "MCPESerieMap_significant_hits" 
-def writeSigHitsMapToFrame(frame, domsUsed, hitThresh, domThresh, maxResidual, geoMap):
+def writeSigHitsMapToFrame(frame, domsUsed, hitThresh, domThresh, geoMap):
 
-    primary = frame["NuGPrimary"]
-    mctree = frame["I3MCTree"]
-    track = dataclasses.I3MCTree.first_child(mctree, primary)
-    track.shape = dataclasses.I3Particle.InfiniteTrack
+    
     mcpeMap = frame["MCPESeriesMap"]
     significantMCPEMap = simclasses.I3MCPESeriesMap()
     for omkey in domsUsed:
         position = geoMap[omkey].position
         if omkey not in mcpeMap:
             continue
-        if passDOM(mcpeMap[omkey], hitThresh, maxResidual, position, track):
+        if passDOM(mcpeMap[omkey], hitThresh):
             significantMCPEMap[omkey] = getSignificantMCPEs(mcpeMap[omkey], hitThresh)  
     
     # sanity check
@@ -418,7 +398,7 @@ def getEffectiveAreaData(infileList, domsUsed, hitThresh, domThresh, maxResidual
     binsDict = {}
     for infile in infileList:
         for frame in infile:
-            if passFrame(frame, domsUsed, hitThresh, domThresh, maxResidual, geoMap):
+            if passFrame(frame, domsUsed, hitThresh, domThresh, geoMap):
                 primary = frame["NuGPrimary"]
                 logEnergy.append(np.log10(primary.energy))
                 cosZenith.append(np.cos(primary.dir.zenith))
