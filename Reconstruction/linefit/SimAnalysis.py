@@ -398,7 +398,7 @@ def getEffectiveAreaData(infileList, domsUsed, hitThresh, domThresh, maxResidual
     binsDict = {}
     for infile in infileList:
         for frame in infile:
-            if passFrame(frame, domsUsed, hitThresh, domThresh, geoMap):
+            if passFrame(frame, domsUsed, hitThresh, domThresh, maxResidual, geoMap):
                 primary = frame["NuGPrimary"]
                 logEnergy.append(np.log10(primary.energy))
                 cosZenith.append(np.cos(primary.dir.zenith))
