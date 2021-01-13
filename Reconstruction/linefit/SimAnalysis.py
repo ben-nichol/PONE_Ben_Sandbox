@@ -6,8 +6,6 @@ scripts to analyze results from simulation sets. Mainly, it allows
 to easily decompose geometries into smaller sets by specifying a list
 of omkeys, and allows to impose harder cuts on simulations so that different
 geometries/cuts could be tried out without running the simulation again.
-
-To import make sure that P_ONE_dvirhilu/src is in PYTHONPATH
 '''
 
 from icecube import dataclasses, dataio, icetray, simclasses
@@ -16,163 +14,172 @@ import numpy as np
 from numpy import linalg as la
 from icecube.phys_services import I3Calculator
 
-# A function that determines whether a DOM passes the cut or not. The
-# function checks whether a threshold number of hits was registered in a 20ns
-# time window (any 20ns window counts)    
-# 
-# @Param:
-# mcpeList:         The list of hits the DOM registered   
-# hitThresh:        The number of hits required in the window for the DOM to
-#                   be passed   
-# maxResidual:      Maximum time residual allowed for a hit to be considered
-# position:         an I3Position object representing the DOMs position
-# track:            An I3Particle object representing the muon track for the 
-#                   event. NOTE: muon.shape must be I3Particle.InfiniteTrack 
-# 
-# @Return: 
-# A boolean variable indicating whether the DOM passed or not
-def passDOM(mcpeList, hitThresh):
-    # length has to be at least equal to hitThresh
-    if len(mcpeList) < hitThresh:
-        return False
+class LineFitReco(icetray.I3ConditionalModule):
+"""
+Line fit track reconstruction.
+"""
 
-    return True
+    def __init__(self, context):
+        icetray.I3ConditionalModule.__init__(self, context)
+        self.AddParameter("GCDFile","GCD to be simulated",'')
+        self.AddParameter("inputseries","GCD to be simulated","MCPESeriesMap")
+        self.AddParameter("output","GCD to be simulated","linefit")
+        self.AddParameter("hitThresh","Name of the Physics I3MCTree name",1)
+        self.AddParameter("domThresh","Name of the Physics I3MCTree name",10)
 
-# A function that determines whether a frame passes the cut or not. The
-# function checks whether a threshold number of DOMs passed given a 
-# threshold number of hits needed in the 20ns window and a threshold
-# residual to count the hits 
-# 
-# @Param:
-# frame:            The frame in question   
-# domsUsed:         List of omkeys used for the analysis. Allows to look 
-#                   at smaller geometries from a larger geometry sim file
-# hitThresh:        Hit threshold for a single DOM
-# domThresh:        Number of passed DOMs needed to pass the frame 
-# maxResidual:      Maximum time residual allowed for a DOM to be considered
-# GeoMap:           An I3OMGeoMap object that maps the omkeys in the
-#                   geometries to their I3OMGeo objects 
-# 
-# @Return: 
-# A boolean variable indicating whether the frame passed or not
-def passFrame(frame, domsUsed, hitThresh, domThresh, geoMap):
-    if frame.Stop != I3Frame.DAQ:
-        return False
+        self.AddOutBox("OutBox")
 
-    mcpeMap = frame["MCPESeriesMap"]
-    
-    domCount = 0
-    for dom in domsUsed:
-        position = geoMap[dom].position
-        if dom not in mcpeMap:
-            continue
-        if passDOM(mcpeMap[dom], hitThresh):
-            domCount += 1
+    def Configure(self):
+
+        self.gcdFile = self.GetParameter("GCDFile")
+        self.hitThresh = self.GetParameter("hitThresh")
+        self.domThresh = self.GetParameter("domThresh")
+        self.input = self.GetParameter("inputseries")
+        self.output = self.GetParameter("output")
+        self.geometry = self.gcdFile.pop_frame()["I3Geometry"]
+        self.domsUsed = self.geometry.omgeo.keys()
         
-        if domCount >= domThresh:
-            return True
+
+    # A function that determines whether a frame passes the cut or not. The
+    # function checks whether a threshold number of DOMs passed given a 
+    # threshold number of hits needed in the 20ns window and a threshold
+    # residual to count the hits 
+    # 
+    # @Param:
+    # frame:            The frame in question   
+    # domsUsed:         List of omkeys used for the analysis. Allows to look 
+    #                   at smaller geometries from a larger geometry sim file
+    # hitThresh:        Hit threshold for a single DOM
+    # domThresh:        Number of passed DOMs needed to pass the frame 
+    # maxResidual:      Maximum time residual allowed for a DOM to be considered
+    # GeoMap:           An I3OMGeoMap object that maps the omkeys in the
+    #                   geometries to their I3OMGeo objects 
+    # 
+    # @Return: 
+    # A boolean variable indicating whether the frame passed or not
+    def passFrame(frame):
+        if frame.Stop != I3Frame.DAQ:
+            return False
+        geoMap = self.geometry.omgeo
+        mcpeMap = frame["MCPESeriesMap"]
     
-    return False
-
-
-# parses the hit information requires for the linefit reconstruction and returns
-# a list of tuples containing the required hit information
-# NOTE: function assumes the frame already contains the significant MCPESeriesMap
-#       and tries to call on the "MCPESeriesMap_significant_hits" key. If the key
-#       does not exist, the function will raise a ValueError. It is much more  
-#       efficient to have the significant hits MCPESeriesMap to use rather than
-#       having to search for the significant hits every time, so most methods rely
-#       on the frame key being there.   
-#
-# @Param:
-# frame:            The frame containing the event information   
-# geometry:         An I3Geometry object from the gcd file used to produce the
-#                   simulation data 
-# hitThresh:        Hit threshold for a single DOM
-#
-# @Return: 
-# A list of tuples. Each tuple contains information for a single hit (x,y,z,t)
-def getLinefitDataPoints(frame, geometry):
-    if not frame.Has("MCPESeriesMap_significant_hits"):
-        raise ValueError("Frame does not contain the MCPESeriesMap_significant_hits. Make sure to run the writeSigHitsToFrame function")
-
-    mcpeMap = frame["MCPESeriesMap_significant_hits"]
-    geoMap = geometry.omgeo
-    data = []
-    for omkey, mcpeList in mcpeMap:
-        timeList = [mcpe.time for mcpe in mcpeList]
-        npeList = [mcpe.npe for mcpe in mcpeList]
-        time = min(timeList)
-        charge = sum(npeList)
-        position = geoMap[omkey].position
-        for i in range(len(timeList)):
-            data.append( (position.x, position.y, position.z, time, charge) )
+        domCount = 0
+        for dom in self.domsUsed:
+            position = geoMap[dom].position
+            if dom not in mcpeMap:
+                continue
+            if len(mcpeMap[dom]) >= self.hitThresh:
+                domCount += 1
+        
+            if domCount >= self.domThresh:
+                return True
     
-    return data
+        return False
 
-# Given a list of x and y points, computes the parameters of a least squares fit
-# line
-#  
-# @Param:
-# x:                The x component of points in the fit   
-# y:                The y component of points in the fit
-# @Return: 
-# A tuple containing the slope and y intercept of least squares fit line
-def fitLeastSquaresLine(x, y):
-    # for a given system X*c = y 
-    # where X is a truncated Vandermond matrix (truncated in this case to be degree 1)
-    #       c is the vector containing the polyniomial coefficients
-    #       y is the vector containing all y values
-    # The least squares solution is given as c = (X.T * X)^(-1) * (X.T * y)
-    xMatrix = np.column_stack( (x, np.ones(len(x))) )
-    yVector = np.array(y).T
-    leastSquaresMatrix = np.matmul(xMatrix.T, xMatrix)
-    if la.det(leastSquaresMatrix) == 0:
-        print leastSquaresMatrix, xMatrix
-    leastSquaresVector = np.matmul(xMatrix.T, yVector)
-    fitCoefficients = np.matmul( la.inv(leastSquaresMatrix), leastSquaresVector)
 
-    slope = fitCoefficients[0]
-    intercept = fitCoefficients[1]
+    # parses the hit information requires for the linefit reconstruction and returns
+    # a list of tuples containing the required hit information
+    # NOTE: function assumes the frame already contains the significant MCPESeriesMap
+    #       and tries to call on the "MCPESeriesMap_significant_hits" key. If the key
+    #       does not exist, the function will raise a ValueError. It is much more  
+    #       efficient to have the significant hits MCPESeriesMap to use rather than
+    #       having to search for the significant hits every time, so most methods rely
+    #       on the frame key being there.   
+    #
+    # @Param:
+    # frame:            The frame containing the event information   
+    # geometry:         An I3Geometry object from the gcd file used to produce the
+    #                   simulation data 
+    # hitThresh:        Hit threshold for a single DOM
+    #
+    # @Return: 
+    # A list of tuples. Each tuple contains information for a single hit (x,y,z,t)
+    def getLinefitDataPoints(frame, geometry):
+        if not frame.Has("MCPESeriesMap_significant_hits"):
+            raise ValueError("Frame does not contain the MCPESeriesMap_significant_hits. Make sure to run the writeSigHitsToFrame function")
 
-    return slope, intercept
-
-# Given datapoints containing the hit informations (from getLineFitDatapoints),
-# the function computes the parameters for the linefit reconstruction of the 
-# particle 
-# 
-# @Param:
-# datapoints:       A list of tuples. Each tuple contains hit information in the
-#                   format (x,y,z,t,charge) 
-# 
-# @Return: 
-# A tuple containing the reconstructed particle's information. This is in the
-# of an I3Direction object for the particle's direction, a double for the particle's
-# speed, and an I3Position object for the particle vertex (position at t=0)  
-def linefitParticleParams(datapoints):
-    x = [data[0] for data in datapoints]
-    y = [data[1] for data in datapoints]
-    z = [data[2] for data in datapoints]
-    t = [data[3] for data in datapoints]
-    charge = [data[4] for data in datapoints]
-
-    weighted_time = np.sum(np.array(t) * np.array(charge))/np.sum(np.array(charge))
-
-    xVelocity, x = fitLeastSquaresLine(t, x)
-    yVelocity, y = fitLeastSquaresLine(t, y)
-    zVelocity, z = fitLeastSquaresLine(t, z)
-
-    direction = dataclasses.I3Direction(xVelocity, yVelocity, zVelocity)
-    speed = np.sqrt(xVelocity**2 + yVelocity**2 + zVelocity**2)
-    vertex = dataclasses.I3Position(x,y,z)
+        mcpeMap = frame["MCPESeriesMap_significant_hits"]
+        geoMap = geometry.omgeo
+        data = []
+        for omkey, mcpeList in mcpeMap:
+            timeList = [mcpe.time for mcpe in mcpeList]
+            npeList = [mcpe.npe for mcpe in mcpeList]
+            time = min(timeList)
+            charge = sum(npeList)
+            position = geoMap[omkey].position
+            for i in range(len(timeList)):
+                data.append( (position.x, position.y, position.z, time, charge) )
     
-    linefit = dataclasses.I3Particle()
-    linefit.shape = dataclasses.I3Particle.InfiniteTrack
-    linefit.dir = direction                                                                                                                  
-    linefit.speed = speed
-    linefit.pos = vertex        
-    linefit.time = weighted_time
+        return data
 
-    return linefit
+    # Given a list of x and y points, computes the parameters of a least squares fit
+    # line
+    #  
+    # @Param:
+    # x:                The x component of points in the fit   
+    # y:                The y component of points in the fit
+    # @Return: 
+    # A tuple containing the slope and y intercept of least squares fit line
+    def fitLeastSquaresLine(x, y):
+        # for a given system X*c = y 
+        # where X is a truncated Vandermond matrix (truncated in this case to be degree 1)
+        #       c is the vector containing the polyniomial coefficients
+        #       y is the vector containing all y values
+        # The least squares solution is given as c = (X.T * X)^(-1) * (X.T * y)
+        xMatrix = np.column_stack( (x, np.ones(len(x))) )
+        yVector = np.array(y).T
+        leastSquaresMatrix = np.matmul(xMatrix.T, xMatrix)
+        if la.det(leastSquaresMatrix) == 0:
+            print leastSquaresMatrix, xMatrix
+        leastSquaresVector = np.matmul(xMatrix.T, yVector)
+        fitCoefficients = np.matmul( la.inv(leastSquaresMatrix), leastSquaresVector)
+
+        slope = fitCoefficients[0]
+        intercept = fitCoefficients[1]
+
+        return slope, intercept
+
+    # Given datapoints containing the hit informations (from getLineFitDatapoints),
+    # the function computes the parameters for the linefit reconstruction of the 
+    # particle 
+    # 
+    # @Param:
+    # datapoints:       A list of tuples. Each tuple contains hit information in the
+    #                   format (x,y,z,t,charge) 
+    # 
+    # @Return: 
+    # A tuple containing the reconstructed particle's information. This is in the
+    # of an I3Direction object for the particle's direction, a double for the particle's
+    # speed, and an I3Position object for the particle vertex (position at t=0)  
+    def DAQ(self,frame):
+        if not passFrame(frame,self.domsUsed)
+            return False
+        datapoints = getLinefitDataPoints(frame, self.geometry)
+        x = [data[0] for data in datapoints]
+        y = [data[1] for data in datapoints]
+        z = [data[2] for data in datapoints]
+        t = [data[3] for data in datapoints]
+        charge = [data[4] for data in datapoints]
+
+        weighted_time = np.sum(np.array(t) * np.array(charge))/np.sum(np.array(charge))
+
+        xVelocity, x = fitLeastSquaresLine(t, x)
+        yVelocity, y = fitLeastSquaresLine(t, y)
+        zVelocity, z = fitLeastSquaresLine(t, z)
+
+        direction = dataclasses.I3Direction(xVelocity, yVelocity, zVelocity)
+        speed = np.sqrt(xVelocity**2 + yVelocity**2 + zVelocity**2)
+        vertex = dataclasses.I3Position(x,y,z)
+    
+        linefit = dataclasses.I3Particle()
+        linefit.shape = dataclasses.I3Particle.InfiniteTrack
+        linefit.dir = direction                                                                                                                  
+        linefit.speed = speed
+        linefit.pos = vertex        
+        linefit.time = weighted_time
+
+        frame[self.output] = linefit
+
+        return linefit
 
 
