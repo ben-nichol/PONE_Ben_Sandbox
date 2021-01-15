@@ -32,11 +32,11 @@ parser.add_option("-t", action="store_true",  dest="GPU", default=True ,help="Ru
 
 (options,args) = parser.parse_args()
 if len(args) != 0:
-        crap = "Got undefined options:"
+        error_message = "Got undefined options:"
         for a in args:
-                crap += a
-                crap += " "
-        parser.error(crap)
+                error_message += a
+                error_message += " "
+        parser.error(error_message)
 
 options.FILENR=int(options.FILENR)
 options.RUNNUMBER=int(options.RUNNUMBER)
