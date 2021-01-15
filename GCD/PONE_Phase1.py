@@ -9,7 +9,7 @@ import sys
 import gcdHelpers
 
 outfileName = "PONE_Phase1.i3.gz"
-outfile = dataio.I3File('/home/users/akatil/P-ONE/GCD_files/' + outfileName, 'w')
+outfile = dataio.I3File(outfileName, 'w')
 numberOfCircles = 2
 domsPerString  = 20
 stringsPerCircle = ([7, 3])

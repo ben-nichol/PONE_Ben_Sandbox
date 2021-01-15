@@ -25,19 +25,21 @@ class likelihoodreco(icetray.I3ConditionalModule):
     def __init__(self, context):
         icetray.I3ConditionalModule.__init__(self, context)
 
-        self.AddParameter("MergedMCPETreeName","Name of the Merged MCPE tree name","MergedSeriesMap")
-        self.AddParameter("TimeShiftedMCPE","Name of the I3MCTree containing time shifted MCPEs starting at 7200 ns","TimeShiftedMCPEMap")
+        self.AddParameter("pulseseries","Name of the Merged MCPE tree name","MergedSeriesMap")
+        self.AddParameter("seedtrack","Track to seed fit","linefit")
+
         self.AddOutBox("OutBox")
 
     def Configure(self):
 
-        self.mergedSeriesName = self.GetParameter("MergedMCPETreeName")
+        self.pulseseries = self.GetParameter("MergedMCPETreeName")
         self.tShiftSeriesName = self.GetParameter("TimeShiftedMCPE")
-
+        self.seedtrack = self.GetParameter("seedtrack")
+        self.gcdfile = 
         self.geometry = self.gcdfile.pop_frame()["I3Geometry"]
         self.domsUsed = self.geometry.omgeo.keys()
 
-        ,seedtrack,pulseseries,gcdfile,vertRadius=550.
+        ,gcdfile,vertRadius=550.
 
         # Some quantities that are environment dependent
         self.c = 0.299792458                                 # speed of light 
