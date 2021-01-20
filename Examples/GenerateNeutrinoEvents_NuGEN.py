@@ -5,20 +5,23 @@ from icecube.icetray import I3Units, I3Frame
 from icecube.dataclasses import I3Particle
 from icecube.simclasses import I3MMCTrack
 from icecube import PROPOSAL
+import os
 from os.path import expandvars
 import numpy as np
 import argparse
 
 parser = argparse.ArgumentParser(description = "A scripts to run the neutrino generation simulation step using Neutrino Generator")
 
-parser.add_argument('-emin', '--energyMin', default = 5.0, help = "the minimum energy")
-parser.add_argument('-emax', '--energyMax', default = 8.0, help = "the maximum energy")
-parser.add_argument('-n', '--numEvents', default = 100, help = "number of events produced by the simulation")
-parser.add_argument('-o', '--outfile', help="name and path of output file")
-parser.add_argument('-r', '--runNum', help="run Number")
-parser.add_argument("-a", "--ratios",default="1.0:1.0:1.0:1.0", help="ratio of input neutrino")
-parser.add_argument("-t", "--types",default="NuE:NuEBar:NuTau:NuTauBar", help="type of input neutrino")
-parser.add_argument("-g", "--gcd",default="", help="gdc file")
+parser.add_argument('-emin', '--energyMin', default = 5.0,                                            help="the minimum energy")
+parser.add_argument('-emax', '--energyMax', default = 8.0,                                            help="the maximum energy")
+parser.add_argument('-n',    '--numEvents', default = 100,                                            help="number of events produced by the simulation")
+parser.add_argument('-o',    '--outfile',   default = "output.i3",                                    help="name and path of output file")
+parser.add_argument('-r',    '--runNum',    default = 0,                                              help="run Number")
+parser.add_argument("-a",    "--ratios",    default="1.0:1.0:1.0:1.0",                                help="ratio of input neutrino")
+parser.add_argument("-t",    "--types",     default="NuE:NuEBar:NuTau:NuTauBar",                      help="type of input neutrino")
+parser.add_argument("-g",    "--gcd",       default=os.getenv('PONESRCDIR')+"/GCD/PONE_Phase1.i3.gz", help="gdc file")
+parser.add_argument("-c",    "--crossdir",  default=os.getenv('PONESRCDIR')+"/CrossSectionModels",    help='path to cross section models')
+parser.add_argument("-m",    "--crossmodel",default='csms_differential_v1.0',                         help='cross section model')
 
 args = parser.parse_args()
 
@@ -98,8 +101,8 @@ tray.Add("I3NuGDiffuseSource","diffusesource",
 tray.Add("I3NuGInteractionInfoDifferentialFactory", "interaction",
                 RandomService = randomService,
                 SteeringName = "steering",
-                TablesDir = "/home/users/akatil/P-ONE/git/PONE_NuTau/NuTau_Simulation/CrossSectionModels",
-                CrossSectionModel = "csms_differential_v1.0"
+                TablesDir = args.crossdir,
+                CrossSectionModel = args.crossmodel
               )
 
 tray.Add("I3NeutrinoGenerator","generator",

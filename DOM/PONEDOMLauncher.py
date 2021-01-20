@@ -1,120 +1,149 @@
-from icecube import icetray
-from icecube import dataclasses
-from icecube.icetray import I3Units
+from icecube import icetray, dataclasses, dataio, simclasses
+from icecube.icetray import I3Units, OMKey, I3Frame
+from icecube.dataclasses import ModuleKey
+import numpy as np
 
 class SimpleDOMSimulation(icetray.I3ConditionalModule):
-    """
-    Simple Implementation of the PMT response.
-    """
+  """
+  Simple Implementation of the PMT response.
+  """
 
-    def __init__(self, context):
-        icetray.I3ConditionalModule.__init__(self, context)
-        self.AddParameter("GCDFile","GCD to be simulated",'')
-        self.AddParameter("inputmap","Name of the Physics I3MCTree name","I3MCPulseSeriesMap")
-        self.AddParameter("outputmap","Name of the noise I3MCTree name","I3RecoPulseSeriesMap")
-        self.AddParameter("PMT_tts","Noise Hits for mDOMs to be injected",1.0)
-        self.AddParameter("PMT_ts","Noise Hits for mDOMs to be injected",25.0)
-        self.AddParameter("chargesigma","Noise Hits for mDOMs to be injected",0.5)
-        self.AddParameter("chargemean","Noise Hits for mDOMs to be injected",1.0)
-        self.AddParameter("DNprob"," for mDOMs to be injected",0.000001)
-        self.AddParameter("APprob"," for mDOMs to be injected",0.15)
-        self.AddParameter("APmeantime_1"," for mDOMs to be injected",2000.)
-        self.AddParameter("APtimesigma_1"," for mDOMs to be injected",1000.)
-        self.AddParameter("APmeantime_2"," for mDOMs to be injected",8000.)
-        self.AddParameter("APtimesigma_2"," for mDOMs to be injected",2000.)
-        self.AddParameter("APComponetRatio"," for mDOMs to be injected",0.3)
-        self.AddParameter("LPprob"," for mDOMs to be injected",0.01)
-        self.AddParameter("minTsep"," for mDOMs to be injected",10.0)
-        self.AddParameter("PEthreshold"," for mDOMs to be injected",0.25)
-        self.AddParameter("PEsaturation"," for mDOMs to be injected",100.0)
+  def __init__(self, context):
+    icetray.I3ConditionalModule.__init__(self, context)
+    self.AddParameter("GCDFile","GCD to be simulated",'')
+    self.AddParameter("inputmap","Name of the Physics I3MCTree name","I3MCPulseSeriesMap")
+    self.AddParameter("outputmap","Name of the noise I3MCTree name","I3RecoPulseSeriesMap")
+    self.AddParameter("PMT_tts","Transit time spread of PMT",1.0)
+    self.AddParameter("PMT_ts","Transit time of PMT",25.0)
+    self.AddParameter("chargesigma","Sigma of charge distribution",0.3)
+    self.AddParameter("chargemean","Mean of Charge distribution ",1.0)
+    self.AddParameter("DNprob","Dark Noise rate (pulses per ns)",0.000001)
+    self.AddParameter("APprob","Total AP probability",0.15)
+    self.AddParameter("APmeantime_1","Mean of early time AP distribution",2000.)
+    self.AddParameter("APtimesigma_1","Sigma of early time AP distribution",1000.)
+    self.AddParameter("APmeantime_2"," mean of late time AP distribution",8000.)
+    self.AddParameter("APtimesigma_2"," sigma of late time AP distribution",2000.)
+    self.AddParameter("APComponetRatio","fraction of AP in early time component",0.3)
+    self.AddParameter("LPprob","Probability for a late pulse",0.01)
+    self.AddParameter("minTsep"," minimum time for a separated pulse.",3.0)
+    self.AddParameter("PEthreshold"," Pulse charge threshold",0.25)
+    self.AddParameter("PEsaturation"," Saturation threshold for PMT",100.0)
+    self.AddParameter("RandomService","Random Service")
+    self.AddOutBox("OutBox")
 
-        self.AddOutBox("OutBox")
+  def Configure(self):
 
-    def Configure(self):
+    self.gcdFile = self.GetParameter("GCDFile")
+    self.inputmap = self.GetParameter("inputmap")
+    self.outputmap = self.GetParameter("outputmap")
+    self.PMT_tts = self.GetParameter("PMT_tts")
+    self.PMT_ts = self.GetParameter("PMT_ts")
+    self.chargesigma = self.GetParameter("chargesigma")
+    self.chargemean = self.GetParameter("chargemean")
+    self.DNprob = self.GetParameter("DNprob")
+    self.APprob = self.GetParameter("APprob")
+    self.APmeantime_1 = self.GetParameter("APmeantime_1")
+    self.APtimesigma_1 = self.GetParameter("APtimesigma_1")
+    self.APmeantime_2 = self.GetParameter("APmeantime_2")
+    self.APtimesigma_2 = self.GetParameter("APtimesigma_2")
+    self.APComponetRatio = self.GetParameter("APComponetRatio")
+    self.LPprob = self.GetParameter("LPprob")
+    self.minTsep = self.GetParameter("minTsep")
+    self.PEthreshold = self.GetParameter("PEthreshold")
+    self.PEsaturation = self.GetParameter("PEsaturation")
+    self.randomService = self.GetParameter("RandomService") 
 
-        self.gcdFile = self.GetParameter("GCDFile")
-        self.inputmap = self.GetParameter("inputmap")
-        self.outputmap = self.GetParameter("outputmap")
-        self.PMT_tts = self.GetParameter("PMT_tts")
-        self.PMT_ts = self.GetParameter("PMT_ts")
-        self.chargesigma = self.GetParameter("chargesigma")
-        self.chargemean = self.GetParameter("chargemean")
-        self.DNprob = self.GetParameter("DNprob")
-        self.APprob = self.GetParameter("APprob")
-        self.APmeantime_1 = self.GetParameter("APmeantime_1")
-        self.APtimesigma_1 = self.GetParameter("APtimesigma_1")
-        self.APmeantime_2 = self.GetParameter("APmeantime_2")
-        self.APtimesigma_2 = self.GetParameter("APtimesigma_2")
-        self.APComponetRatio = self.GetParameter("APComponetRatio")
-        self.LPprob = self.GetParameter("LPprob")
-        self.minTsep = self.GetParameter("minTsep")
-        self.PEthreshold = self.GetParameter("PEthreshold")
-        self.PEsaturation = self.GetParameter("PEsaturation")
+  def DAQ(self,frame) :
 
-	def DAQ(self,frame) :
+    #print("new event")
 
-		outputpulsemap = dataclasses.I3RecoPulseSeriesMap()
-		mcpulsemap = frame[self.inputmap]
-		pulsetimelist = []
-		sqrt2 = 1.414213562373095
+    random_service = self.randomService
+    outputpulsemap = dataclasses.I3RecoPulseSeriesMap()
+    mcpulsemap = frame[self.inputmap]
+    mcpulseOMKeys = mcpulsemap.keys()
+    sqrt2 = 1.414213562373095
 
-		for omkey, pulses in mcpulsemap:
-			recopulsemap[omkey] = dataclasses.I3RecoPulseSeries()
-			#trueHists
-			i=0
-			for pulse in pulses:
-				time = random_service.gaus(pulse.time,self.PMT_tts*I3Units.ns)
-				if random_service.uniform() < self.LPprob :
-					time += random_service.gaus(self.PMT_ts,sqrt2*self.PMT_tts*I3Units.ns)
-				pulsetimelist.append(time)
-				
-			#darkhits
-			max_pt = max(pulsetimelist) - 1000.
-			min_pt = min(pulsetimelist) + 1000.
-			ndarkhists = random_service.poisson((max_pt-min_pt)*self.DNprob)
-			for i in range(ndarkhists) :
-				time = random_service.uniform(min_pt,max_pt)
-				pulsetimelist.append(time)
+    #print("nOMkeys = "+str(len(mcpulseOMKeys)))
 
-			for time in pulsetimelist :
-				if random_service.uniform() < self.APprob :
-					if random_service.uniform() < self.APComponetRatio :
-						time = time + random_service.gaus(self.APmeantime_1*I3Units.ns,self.APtimesigma_1*I3Units.ns)
-						pulsetimelist.append(time)
-					else :
-						time = time + random_service.gaus(self.APmeantime_2*I3Units.ns,self.APtimesigma_2*I3Units.ns)
-						pulsetimelist.append(time)
-			
-			if len(pulsetimelist)<1 :
-				frame[self.outputmap] = outputpulsemap
-				return
+    for omkey in mcpulseOMKeys:
+      pulsetimelist = []
+      #print(omkey)
+      pulseseries = dataclasses.I3RecoPulseSeries()
+      #trueHists
+      i=0
+      #print("npulses = "+str(len(mcpulsemap[omkey])))
+      for pulse in mcpulsemap[omkey]:
+        time = random_service.gaus(pulse.time,self.PMT_tts*I3Units.ns)
+        if random_service.uniform(0.0,1.0) < self.LPprob :
+          time += random_service.gaus(self.PMT_ts,sqrt2*self.PMT_tts*I3Units.ns)
+        pulsetimelist.append(time)
+      #print("true pulse only = " + str(len(pulsetimelist)))
+      #print('step 1')
+      #darkhits
+      max_pt = max(pulsetimelist) - 1000.
+      min_pt = min(pulsetimelist) + 1000.
+      
+      ndarkhists = random_service.poisson((max_pt-min_pt)*self.DNprob)
+      #print("ndarkhits = " + str(ndarkhists))
+      for i in range(ndarkhists) :
+        time = random_service.uniform(min_pt,max_pt)
+        pulsetimelist.append(time)
+      #print("post DN = " + str(len(pulsetimelist)))
+      #print('step 2')
+      nAP = 0
+      for time in pulsetimelist :
+        if random_service.uniform(0.0,1.0) < self.APprob :
+          nAP+=1
+          if random_service.uniform(0.0,1.0) < self.APComponetRatio :
+            time = time + random_service.gaus(self.APmeantime_1*I3Units.ns,self.APtimesigma_1*I3Units.ns)
+            pulsetimelist.append(time)
+          else :
+            time = time + random_service.gaus(self.APmeantime_2*I3Units.ns,self.APtimesigma_2*I3Units.ns)
+            pulsetimelist.append(time)
+      #print("nAP = " + str(nAP))
+      #print("post AP = " + str(len(pulsetimelist)))
+      #print('step 3')
+      if len(pulsetimelist)<1 :
+        frame[self.outputmap] = outputpulsemap
+        return
+      #print('step 4')
+      #time  order pulse
+      pulsetimelist.sort()
+      #print('step 5')
+      pulsechargelist = []
+      #combine pulses that are too close
+      #print("post DN and AP = " + str(len(pulsetimelist)))
+      charge = 0.0
+      for i in range(len(pulsetimelist)-1) :
+        charge += 1.0
+        if (pulsetimelist[-1-i]-pulsetimelist[-2-i]) < self.minTsep :
+          charge += 1.0
+          pulsechargelist.append(0.0)
+        else :
+          pulsechargelist.append(charge)
+          charge = 0.0
+      pulsechargelist.append(charge+1.0)
+      #note charge list backwards from time list
+      for i in range(len(pulsechargelist)) :
+        if pulsechargelist[i]>0.0 :
+          pulsechargelist[i] = random_service.gaus(self.chargemean*pulsechargelist[i],np.sqrt(pulsechargelist[i])*self.chargesigma)
+      #print('step 6')
+      for i in range(len(pulsetimelist)):
+        #remove pulses with too low charge.
+        if pulsechargelist[-1-i]<self.PEthreshold :
+          continue
+        rpulse = dataclasses.I3RecoPulse()
+        rpulse.time = pulsetimelist[i]
+        #saturate pulses with too much charge.
+        if pulsechargelist[-1-i] > self.PEsaturation :
+          rpulse.charge = self.PEsaturation
+          rpulse.charge += (pulsechargelist[-1-i]-self.PEsaturation)*(self.PEsaturation/pulsechargelist[-1-i])
+        else :
+          rpulse.charge = pulsechargelist[-1-i]
+        pulseseries.append(rpulse)
+      newomkey = OMKey(omkey.string, omkey.om, 0)
+      outputpulsemap[newomkey]=pulseseries 
+      #print('step 7')
+    frame[self.outputmap] = outputpulsemap
 
-			#time  order pulse
-			sort(pulsetimelist)
-			pulsechargelist = []
-			#combine pulses that are too close
-			for i in range(pulsetimelist):
-				pulsechargelist.append(random_service.gaus(chargemean,chargesigma))
-				j = i-1
-				k = i+1
-			while k<(len(pulsetimelist)-1) and pulsetimelist[k]-pulsetimelist[k-1] < minTsep :
-				pulsechargelist[i] += random_service.gaus(chargemean,chargesigma)
-				pulsechargelist.append(0.0)
-				k+=1
-			i=k-1
 
-			for i in range(pulsetimelist):
-				#remove pulses with too low charge.
-				if pulsechargelist[i]<self.PEthreshold :
-					continue
-				rpulse = dataclasses.I3RecoPulse()
-				rpulse.time = pulsetimelist[i]
-				#saturate pulses with too much charge.
-				if pulsechargelist[i] > self.PEsaturation :
-					rpulse.charge = self.PEsaturation
-					rpulse.charge += (pulsechargelist[i]-self.PEsaturation)*(self.PEsaturation/pulsechargelist[i])
-				else :
-					rpulse.charge = pulsechargelist[i]
-				outputpulsemap[omkey].append(rpulse)
-
-		frame[self.outputmap] = outputpulsemap

@@ -1,0 +1,31 @@
+#
+# Cross section and Final Interaction Table list file
+# first column is fixed label. All list file have to fill
+# labels listed below.
+#
+CC_NuBar_n_xsec       css/css_cc_nubar.data
+CC_NuBar_p_xsec       css/css_cc_nubar.data
+CC_NuBar_iso_xsec     css/css_cc_nubar.data
+NC_NuBar_n_xsec       css/css_nc_nubar.data
+NC_NuBar_p_xsec       css/css_nc_nubar.data
+NC_NuBar_iso_xsec     css/css_nc_nubar.data
+CC_Nu_n_xsec          css/css_cc_nu.data
+CC_Nu_p_xsec          css/css_cc_nu.data
+CC_Nu_iso_xsec        css/css_cc_nu.data
+NC_Nu_n_xsec          css/css_nc_nu.data
+NC_Nu_p_xsec          css/css_nc_nu.data
+NC_Nu_iso_xsec        css/css_nc_nu.data
+CC_NuBar_n_final      cteq5/final_cteq5_cc_nubar.data
+CC_NuBar_p_final      cteq5/final_cteq5_cc_nubar.data
+CC_NuBar_iso_final    cteq5/final_cteq5_cc_nubar.data
+NC_NuBar_n_final      cteq5/final_cteq5_nc_nubar.data
+NC_NuBar_p_final      cteq5/final_cteq5_nc_nubar.data
+NC_NuBar_iso_final    cteq5/final_cteq5_nc_nubar.data
+CC_Nu_n_final         cteq5/final_cteq5_cc_nu.data
+CC_Nu_p_final         cteq5/final_cteq5_cc_nu.data
+CC_Nu_iso_final       cteq5/final_cteq5_cc_nu.data
+NC_Nu_n_final         cteq5/final_cteq5_nc_nu.data
+NC_Nu_p_final         cteq5/final_cteq5_nc_nu.data
+NC_Nu_iso_final       cteq5/final_cteq5_nc_nu.data
+Tau_Decay             decay/tau_decay_tauola.dat
+

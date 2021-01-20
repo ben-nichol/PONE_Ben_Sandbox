@@ -1,4 +1,5 @@
-#!/usr/bin/env python
+#!/bin/sh /cvmfs/icecube.opensciencegrid.org/py2-v3.1.1/icetray-start
+#METAPROJECT combo/V00-00-04
 
 from optparse import OptionParser
 from os.path import expandvars
@@ -11,24 +12,15 @@ import os, sys, random
 
 usage = "usage: %prog [options]"
 parser = OptionParser(usage)
-parser.add_option("-o", "--outfile",default="./test_output.i3",
-                  dest="OUTFILE", help="Write output to OUTFILE (.i3{.gz} format)")
-parser.add_option("-i", "--infile",default="./test_input.i3",
-                  dest="INFILE", help="Read input from INFILE (.i3{.gz} format)")
-parser.add_option("-r", "--runnumber", type="string", default="1",
-                  dest="RUNNUMBER", help="The run/dataset number for this simulation, is used as seed for random generator")
-parser.add_option("-l", "--filenr",type="string",default="1",
-                   dest="FILENR", help="File number, stream of I3SPRNGRandomService")
-parser.add_option("-g", "--gcdfile", default=os.getenv('GCDfile'),
-		  dest="GCDFILE", help="Read in GCD file")
-parser.add_option("-e","--efficiency", type="float",default=1.2, # Using efficiency > 1 as default so we can support systematics sets
-                  dest="EFFICIENCY",help="DOM Efficiency ... the same as UnshadowedFraction")
-parser.add_option("-m","--icemodel", default="spice_3.2.1",
-                  dest="ICEMODEL",help="Ice model (spice_mie, spice_lea, etc)")
-parser.add_option("-c","--crossenergy", type="float",default=200.0,
-                  dest="CROSSENERGY",help="The cross energy where the hybrid clsim approach will be used")
+parser.add_option("-o", "--outfile",default="./test_output.i3", dest="OUTFILE", help="Write output to OUTFILE (.i3{.gz} format)")
+parser.add_option("-i", "--infile",default="./test_input.i3", dest="INFILE", help="Read input from INFILE (.i3{.gz} format)")
+parser.add_option("-r", "--runnumber", type="string", default="1", dest="RUNNUMBER", help="The run/dataset number for this simulation, is used as seed for random generator")
+parser.add_option("-l", "--filenr",type="string",default="1", dest="FILENR", help="File number, stream of I3SPRNGRandomService")
+parser.add_option("-g", "--gcdfile",default=os.getenv('PONESRCDIR')+"/GCD/PONE_Phase1.i3.gz", dest="GCDFILE", help="Read in GCD file")
+parser.add_option("-e","--efficiency", type="float",default=1.0, dest="EFFICIENCY",help="DOM Efficiency ... the same as UnshadowedFraction")
+parser.add_option("-m","--icemodel", default="spice_3.2.1", dest="ICEMODEL",help="Ice model (spice_mie, spice_lea, etc)")
+parser.add_option("-c","--crossenergy", type="float",default=200.0, dest="CROSSENERGY",help="The cross energy where the hybrid clsim approach will be used")
 parser.add_option("-t", action="store_true",  dest="GPU", default=True ,help="Run on GPUs or CPUs")
-
 
 (options,args) = parser.parse_args()
 if len(args) != 0:
@@ -96,16 +88,16 @@ print "Using GPUs ", options.GPU
 gcd_file = dataio.I3File(options.GCDFILE)
 
 tray.AddSegment(clsim.I3CLSimMakePhotons, 'goCLSIM',
-                UseCPUs=CPU,
-                UseGPUs=options.GPU,
+                UseCPUs=True,#CPU,
+                UseGPUs=False,#options.GPU,
                 MCTreeName="I3MCTree",
                 OutputMCTreeName="I3MCTree_clsim",
                 FlasherInfoVectName=None,
-                MMCTrackListName=None,
+                #MMCTrackListName=None,
                 PhotonSeriesName=photon_series,
-                ParallelEvents=1000,
+                #ParallelEvents=1000,
                 RandomService=randomService,
-                IceModelLocation=icemodel_path,
+                #IceModelLocation=icemodel_path,
                 UseGeant4=False,
                 CrossoverEnergyEM=0.1,
 		            CrossoverEnergyHadron=float(options.CROSSENERGY),
@@ -113,12 +105,12 @@ tray.AddSegment(clsim.I3CLSimMakePhotons, 'goCLSIM',
                 DoNotParallelize=False,
                 DOMOversizeFactor=1.,
                 UnshadowedFraction=options.EFFICIENCY,
-                GCDFile=gcd_file,
-                ExtraArgumentsToI3CLSimModule={
-                    "DoublePrecision":False, #will impact performance if true
-                    "StatisticsName":"clsim_stats",
-                    "IgnoreDOMIDs":[],
-                    }
+                GCDFile=options.GCDFILE,#gcd_file,
+                #ExtraArgumentsToI3CLSimModule={
+                #    "DoublePrecision":False, #will impact performance if true
+                #    "StatisticsName":"clsim_stats",
+                #    "IgnoreDOMIDs":[],
+                #    }
                 )
 
 
