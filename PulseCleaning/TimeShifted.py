@@ -8,7 +8,7 @@ from os.path import expandvars
 
 class timeShift(icetray.I3ConditionalModule):
     """
-    Dhiting the timestamps of I3MCPEs to start at 7200 ns
+    Shifting the timestamps of I3MCPEs to start at 7200 ns
     """
 
     def __init__(self, context):
@@ -20,31 +20,43 @@ class timeShift(icetray.I3ConditionalModule):
         self.AddParameter("TimeShiftedMCPE",
                           "Name of the I3MCTree containing time shifted MCPEs starting at 7200 ns",
                           "TimeShiftedMCPEMap")
+        self.AddParameter("MinTime","Time offset for the pulses.",7200)
         self.AddOutBox("OutBox")
 
     def Configure(self):
 
         self.mergedSeriesName = self.GetParameter("MergedMCPETreeName")
         self.tShiftSeriesName = self.GetParameter("TimeShiftedMCPE")
+        self.mintime = self.GetParameter("MinTime")
 
     def DAQ(self, frame):
 
         mcpeMap = frame[self.mergedSeriesName]
         mcpeOMKeys = mcpeMap.keys()
-        timeShiftedMap = simclasses.I3MCPESeriesMap()
+        timeShiftedMap = simclasses.I3CompressedPhotonSeriesMap()
+
+        timeList = []
 
         for omkey in mcpeOMKeys:
-            newMCPEList = simclasses.I3MCPESeries()
             mcpeList = mcpeMap[omkey]
-            timeList = np.array([mcpe.time for mcpe in mcpeList])
+            timeList.extend([mcpe.time for mcpe in mcpeList])
 
-            if len(timeList) != 0:
-                min_time = min(timeList)
-                for mcpe in mcpeList:
-                    mcpe.time = (mcpe.time - min_time) + 7200 #[Units: ns]
-                    newMCPEList.append(mcpe)
+        min_time = 0.0
+        if len(timeList) != 0:
+          min_time = min(timeList)
+        else :
+          frame[self.tShiftSeriesName] = mcpeMap
+          return
 
-                timeShiftedMap[omkey] = newMCPEList
+        for omkey in mcpeOMKeys:                                                
+          newMCPEList = simclasses.I3CompressedPhotonSeries()                             
+          mcpeList = mcpeMap[omkey]
+          
+          for mcpe in mcpeList:
+            mcpe.time = (mcpe.time - min_time) + self.mintime*I3Units.ns #[Units: ns]
+            newMCPEList.append(mcpe)
+
+          timeShiftedMap[omkey] = newMCPEList
 
         frame[self.tShiftSeriesName] = timeShiftedMap
 

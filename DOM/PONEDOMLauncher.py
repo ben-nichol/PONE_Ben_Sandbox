@@ -55,41 +55,30 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
 
   def DAQ(self,frame) :
 
-    #print("new event")
-
     random_service = self.randomService
     outputpulsemap = dataclasses.I3RecoPulseSeriesMap()
     mcpulsemap = frame[self.inputmap]
     mcpulseOMKeys = mcpulsemap.keys()
     sqrt2 = 1.414213562373095
 
-    #print("nOMkeys = "+str(len(mcpulseOMKeys)))
-
     for omkey in mcpulseOMKeys:
       pulsetimelist = []
-      #print(omkey)
       pulseseries = dataclasses.I3RecoPulseSeries()
       #trueHists
       i=0
-      #print("npulses = "+str(len(mcpulsemap[omkey])))
       for pulse in mcpulsemap[omkey]:
         time = random_service.gaus(pulse.time,self.PMT_tts*I3Units.ns)
         if random_service.uniform(0.0,1.0) < self.LPprob :
           time += random_service.gaus(self.PMT_ts,sqrt2*self.PMT_tts*I3Units.ns)
         pulsetimelist.append(time)
-      #print("true pulse only = " + str(len(pulsetimelist)))
-      #print('step 1')
       #darkhits
-      max_pt = max(pulsetimelist) - 1000.
-      min_pt = min(pulsetimelist) + 1000.
+      max_pt = max(pulsetimelist) + 1000.
+      min_pt = 0.0 #min(pulsetimelist) + 1000.
       
       ndarkhists = random_service.poisson((max_pt-min_pt)*self.DNprob)
-      #print("ndarkhits = " + str(ndarkhists))
       for i in range(ndarkhists) :
         time = random_service.uniform(min_pt,max_pt)
-        pulsetimelist.append(time)
-      #print("post DN = " + str(len(pulsetimelist)))
-      #print('step 2')
+        pulsetimelist.append(time*I3Units.ns)
       nAP = 0
       for time in pulsetimelist :
         if random_service.uniform(0.0,1.0) < self.APprob :
@@ -100,19 +89,13 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
           else :
             time = time + random_service.gaus(self.APmeantime_2*I3Units.ns,self.APtimesigma_2*I3Units.ns)
             pulsetimelist.append(time)
-      #print("nAP = " + str(nAP))
-      #print("post AP = " + str(len(pulsetimelist)))
-      #print('step 3')
       if len(pulsetimelist)<1 :
         frame[self.outputmap] = outputpulsemap
-        return
-      #print('step 4')
+        return 
       #time  order pulse
       pulsetimelist.sort()
-      #print('step 5')
       pulsechargelist = []
       #combine pulses that are too close
-      #print("post DN and AP = " + str(len(pulsetimelist)))
       charge = 0.0
       for i in range(len(pulsetimelist)-1) :
         charge += 1.0
@@ -127,7 +110,6 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
       for i in range(len(pulsechargelist)) :
         if pulsechargelist[i]>0.0 :
           pulsechargelist[i] = random_service.gaus(self.chargemean*pulsechargelist[i],np.sqrt(pulsechargelist[i])*self.chargesigma)
-      #print('step 6')
       for i in range(len(pulsetimelist)):
         #remove pulses with too low charge.
         if pulsechargelist[-1-i]<self.PEthreshold :
@@ -143,7 +125,7 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
         pulseseries.append(rpulse)
       newomkey = OMKey(omkey.string, omkey.om, 0)
       outputpulsemap[newomkey]=pulseseries 
-      #print('step 7')
     frame[self.outputmap] = outputpulsemap
-
+    
+    self.PushFrame(frame) 
 

@@ -4,6 +4,7 @@
 from os.path import expandvars
 import os, sys, random
 from DOM.PONEDOMLauncher import SimpleDOMSimulation 
+from PulseCleaning.TimeShifted import timeShift
 from I3Tray import *                                                            
 import random                                                                   
 from icecube import icetray, dataclasses, dataio, simclasses                    
@@ -41,9 +42,15 @@ tray.AddModule('I3Reader', 'reader',
 
 gcd_file = dataio.I3File(args.gcdfile)
 
+tray.AddModule(timeShift,"MCtimeShift",
+              MergedMCPETreeName = photon_series,
+              TimeShiftedMCPE = "TimeShiftedMCPEMap",
+              MinTime = 7200
+              )
+
 tray.AddModule(SimpleDOMSimulation, 'DOMLauncher',
                GCDFile=gcd_file,
-               inputmap = photon_series,
+               inputmap = photon_series,#"TimeShiftedMCPEMap",
                outputmap = "I3Photons_PMTResponse",
                RandomService = randomService
               )
