@@ -15,17 +15,14 @@ from numpy import linalg as la
 from icecube.phys_services import I3Calculator
 
 class LineFitReco(icetray.I3ConditionalModule):
-"""
-Line fit track reconstruction.
-"""
 
     def __init__(self, context):
         icetray.I3ConditionalModule.__init__(self, context)
-        self.AddParameter("GCDFile","GCD to be simulated",'')
-        self.AddParameter("inputseries","GCD to be simulated","MCPESeriesMap")
-        self.AddParameter("output","GCD to be simulated","linefit")
-        self.AddParameter("hitThresh","Name of the Physics I3MCTree name",1)
-        self.AddParameter("domThresh","Name of the Physics I3MCTree name",10)
+        self.AddParameter("GCDFile","GCD to be simulated")
+        self.AddParameter("inputseries","Input pulse series","MCPESeriesMap")
+        self.AddParameter("output","Output track name.","linefit")
+        self.AddParameter("hitThresh","Threshold for number of pulses in DOM",1)
+        self.AddParameter("domThresh","Threshold for number of DOMs",10)
 
         self.AddOutBox("OutBox")
 
@@ -57,7 +54,7 @@ Line fit track reconstruction.
     # 
     # @Return: 
     # A boolean variable indicating whether the frame passed or not
-    def passFrame(frame):
+    def passFrame(self,frame):
         if frame.Stop != I3Frame.DAQ:
             return False
         geoMap = self.geometry.omgeo
@@ -94,16 +91,17 @@ Line fit track reconstruction.
     #
     # @Return: 
     # A list of tuples. Each tuple contains information for a single hit (x,y,z,t)
-    def getLinefitDataPoints(frame, geometry):
-        if not frame.Has("MCPESeriesMap_significant_hits"):
-            raise ValueError("Frame does not contain the MCPESeriesMap_significant_hits. Make sure to run the writeSigHitsToFrame function")
-
-        mcpeMap = frame["MCPESeriesMap_significant_hits"]
-        geoMap = geometry.omgeo
+    def getLinefitDataPoints(self,frame):
+        if not frame.Has(self.input):
+            raise ValueError("Frame does not contain " + self.input)
+        mcpeMap = frame[self.input]
+        geoMap = self.geometry.omgeo
         data = []
         for omkey, mcpeList in mcpeMap:
             timeList = [mcpe.time for mcpe in mcpeList]
-            npeList = [mcpe.npe for mcpe in mcpeList]
+            npeList = [mcpe.charge for mcpe in mcpeList]
+            if len(timeList)<1 or len(npeList)<1 :
+              continue
             time = min(timeList)
             charge = sum(npeList)
             position = geoMap[omkey].position
@@ -120,7 +118,7 @@ Line fit track reconstruction.
     # y:                The y component of points in the fit
     # @Return: 
     # A tuple containing the slope and y intercept of least squares fit line
-    def fitLeastSquaresLine(x, y):
+    def fitLeastSquaresLine(self,x, y):
         # for a given system X*c = y 
         # where X is a truncated Vandermond matrix (truncated in this case to be degree 1)
         #       c is the vector containing the polyniomial coefficients
@@ -152,34 +150,33 @@ Line fit track reconstruction.
     # of an I3Direction object for the particle's direction, a double for the particle's
     # speed, and an I3Position object for the particle vertex (position at t=0)  
     def DAQ(self,frame):
-        if not passFrame(frame,self.domsUsed)
-            return False
-        datapoints = getLinefitDataPoints(frame, self.geometry)
-        x = [data[0] for data in datapoints]
-        y = [data[1] for data in datapoints]
-        z = [data[2] for data in datapoints]
-        t = [data[3] for data in datapoints]
-        charge = [data[4] for data in datapoints]
+      if not self.passFrame(frame) :
+        return
+      datapoints = self.getLinefitDataPoints(frame)
+      x = [data[0] for data in datapoints]
+      y = [data[1] for data in datapoints]
+      z = [data[2] for data in datapoints]
+      t = [data[3] for data in datapoints]
+      charge = [data[4] for data in datapoints]
 
-        weighted_time = np.sum(np.array(t) * np.array(charge))/np.sum(np.array(charge))
+      weighted_time = np.sum(np.array(t) * np.array(charge))/np.sum(np.array(charge))
 
-        xVelocity, x = fitLeastSquaresLine(t, x)
-        yVelocity, y = fitLeastSquaresLine(t, y)
-        zVelocity, z = fitLeastSquaresLine(t, z)
+      xVelocity, x = self.fitLeastSquaresLine(t, x)
+      yVelocity, y = self.fitLeastSquaresLine(t, y)
+      zVelocity, z = self.fitLeastSquaresLine(t, z)
 
-        direction = dataclasses.I3Direction(xVelocity, yVelocity, zVelocity)
-        speed = np.sqrt(xVelocity**2 + yVelocity**2 + zVelocity**2)
-        vertex = dataclasses.I3Position(x,y,z)
+      direction = dataclasses.I3Direction(xVelocity, yVelocity, zVelocity)
+      speed = np.sqrt(xVelocity**2 + yVelocity**2 + zVelocity**2)
+      vertex = dataclasses.I3Position(x,y,z)
     
-        linefit = dataclasses.I3Particle()
-        linefit.shape = dataclasses.I3Particle.InfiniteTrack
-        linefit.dir = direction                                                                                                                  
-        linefit.speed = speed
-        linefit.pos = vertex        
-        linefit.time = weighted_time
+      linefit = dataclasses.I3Particle()
+      linefit.shape = dataclasses.I3Particle.InfiniteTrack
+      linefit.dir = direction                                                                                                                  
+      linefit.speed = speed
+      linefit.pos = vertex        
+      linefit.time = weighted_time
 
-        frame[self.output] = linefit
-
-        return linefit
+      frame[self.output] = linefit
+      self.PushFrame(frame)  
 
 

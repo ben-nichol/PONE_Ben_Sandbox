@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 '''
-Pulse Cleaning method pulled from Dvir Hilu's original SimAnalysis.py script.
 
 '''
 
@@ -10,31 +9,26 @@ from icecube.icetray import I3Units, I3Frame
 import numpy as np
 from numpy import linalg as la
 from icecube.phys_services import I3Calculator
+import operator
 
 class SignificantHitPulseCleaning(icetray.I3ConditionalModule):
-"""
-Line fit track reconstruction.
-"""
 
     def __init__(self, context):
         icetray.I3ConditionalModule.__init__(self, context)
         self.AddParameter("GCDFile","GCD to be simulated",'')
         self.AddParameter("inputseries","GCD to be simulated","MCPESeriesMap")
         self.AddParameter("output","GCD to be simulated","linefit")
-        self.AddParameter("hitThresh","Name of the Physics I3MCTree name",1)
-        self.AddParameter("domThresh","Name of the Physics I3MCTree name",10)
-
+        self.AddParameter("window","Window used to decide most sig window.",200)
         self.AddOutBox("OutBox")
 
     def Configure(self):
 
         self.gcdFile = self.GetParameter("GCDFile")
-        self.hitThresh = self.GetParameter("hitThresh")
-        self.domThresh = self.GetParameter("domThresh")
         self.input = self.GetParameter("inputseries")
         self.output = self.GetParameter("output")
         self.geometry = self.gcdFile.pop_frame()["I3Geometry"]
         self.domsUsed = self.geometry.omgeo.keys()
+        self.window = self.GetParameter("window")
 
     # A modified binary search algorithm to find all hits within a 20ns time 
     # window. Takes entire list of MCPE hits, finds a 20ns window where the
@@ -52,53 +46,33 @@ Line fit track reconstruction.
     # 
     # @Return: 
     # An MCPESeries object with all the hits that were within the time window
-    def getSignificantMCPEs(mcpeList):
-        timeList = [mcpe.time for mcpe in mcpeList]
-        timeList.sort()
-        highIndex = 0
-        lowIndex = 0
-        significantMCPEList = simclasses.I3MCPESeries()
+    def getSignificantMCPEs(self,mcpeList):
+        significantMCPEList = dataclasses.I3RecoPulseSeries()
 
-        for mcpe in mcpeList:
+        window_integral = {}
 
-            lowest = 0
-            highest = len(timeList)-1
-            while(lowest <= highest):
-                middle = int((lowest+highest)/2)
-                # if mcpe.time is greater than or equal to timeList[middle],  
-                # then search in timeList[middle + 1 to highest]
-                if(timeList[middle] <= mcpe.time + 20): 
-                    lowest = middle + 1 
-                else: 
-                # else search in timeList[llowest to middle-1] 
-                    highest = middle - 1
-        
-            highIndex = highest
+        if len(mcpeList) < 5 :
+          return  mcpeList
 
-            lowest = 0
-            while(lowest <= highest):
-                middle = int((lowest+highest)/2)
-                # if mcpe.time is greater than or equal to timeList[middle],  
-                # then search in timeList[middle + 1 to highest]
-                if(timeList[middle] < mcpe.time): 
-                    lowest = middle + 1 
-                else: 
-                # else search in timeList[lowest to middle-1] 
-                    highest = middle - 1
-        
-            lowIndex = highest + 1
+        for pulse in mcpeList:
 
-            if highIndex - lowIndex >= self.hitThresh - 1:
-                break
-    
-        for mcpe in mcpeList:
-            if mcpe.time >= timeList[lowIndex] and mcpe.time <= timeList[highIndex]:
-                significantMCPEList.append(mcpe)
+          time_index = pulse.time / self.window
+          time_index = time_index*5
+          time_index = int(time_index)
 
-        # sanity check
-        if len(significantMCPEList) < hitThresh:
-            raise ValueError("There are not enough hits in this list. Make sure to filter with passDOM before calling this function")
-    
+          for i in range(time_index-2,time_index+3) :
+            if i in window_integral :
+              window_integral[i] = window_integral[i] + pulse.charge
+            else :
+              window_integral[i] = pulse.charge
+
+        max_index = int(max(window_integral.iteritems(), key=operator.itemgetter(1))[0])
+
+        time_index = self.window*float(max_index)/5.0
+        for pulse in mcpeList:
+          if pulse.time >  time_index - 2000. and pulse.time <  time_index + 2000. :
+            significantMCPEList.append(pulse)
+
         return significantMCPEList
 
     # Converts the MCPESeriesMap to one that contains siginficant hits. Significant
@@ -126,18 +100,14 @@ Line fit track reconstruction.
     def DAQ(self,frame):
 
         mcpeMap = frame[self.input]
-        significantMCPEMap = simclasses.I3MCPESeriesMap()
+        significantMCPEMap = dataclasses.I3RecoPulseSeriesMap()
+
         for omkey in self.domsUsed:
-            position = self.geoMap[omkey].position
             if omkey not in mcpeMap:
-                continue
-            if len(mcpeList) >= self.hitThresh :
-                significantMCPEMap[omkey] = getSignificantMCPEs(mcpeMap[omkey])  
-    
-        # sanity check
-        if len(mcpeMap) < self.domThresh:
-            return False
+              continue
+            if len(mcpeMap[omkey]) < 1 :
+              continue
+            significantMCPEMap[omkey] = self.getSignificantMCPEs(mcpeMap[omkey])  
     
         frame[self.output] = significantMCPEMap
-
-        return True
+        self.PushFrame(frame)

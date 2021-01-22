@@ -10,6 +10,8 @@ import random
 from icecube import icetray, dataclasses, dataio, simclasses                    
 from icecube import phys_services, sim_services           
 import argparse  
+from Reconstruction.linefit.SimAnalysis import LineFitReco
+from PulseCleaning.SignificantHitPulseCleaning import SignificantHitPulseCleaning
 
 # This script will perform a hybridCLSim propagation.
 #
@@ -50,9 +52,22 @@ tray.AddModule(timeShift,"MCtimeShift",
 
 tray.AddModule(SimpleDOMSimulation, 'DOMLauncher',
                GCDFile=gcd_file,
-               inputmap = photon_series,#"TimeShiftedMCPEMap",
+               inputmap = "TimeShiftedMCPEMap",
                outputmap = "I3Photons_PMTResponse",
                RandomService = randomService
+              )
+
+tray.AddModule(SignificantHitPulseCleaning,"SignificantHit",
+              GCDFile=gcd_file,
+              inputseries = "I3Photons_PMTResponse",
+              output = "SignificanHits",
+              window = 1000
+              )
+
+tray.AddModule(LineFitReco, "LineFit",
+              GCDFile=gcd_file, 
+              inputseries = "SignificanHits",
+              output = "linefit"
               )
 
 tray.AddModule("I3Writer","writer",
