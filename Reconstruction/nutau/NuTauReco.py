@@ -13,10 +13,11 @@ import math as m
 
 def amplitude(dist) :
 
+    dist = max(dist,1.0)
     absorbtion = 50.0
     lambda_s = 120.
     atten = np.sqrt(lambda_s**2.0 + absorbtion**2.0)
-    return np.exp(-dist/atten)
+    return np.exp(-dist/atten)*(1./dist**2.0)
 
 def cpandel(t, d, sigma = 2.0, lambda_s = 120., rho = 0.004):
     xi = d/lambda_s
