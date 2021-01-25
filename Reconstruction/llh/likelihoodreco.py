@@ -9,13 +9,13 @@ from icecube import dataclasses, dataio, simclasses
 from icecube.icetray import I3Units, I3Frame  
 from icecube.dataclasses import I3Particle 
 import numpy as np                 
-from reco_pdfs import log_cpandel as pdf               # This module is used to store the pdf
+from Reconstruction.llh.reco_pdfs import log_cpandel as pdf               # This module is used to store the pdf
 from scipy import special as sp                        # For the Gamma function 
 import sys
 from iminuit import Minuit
 import argparse
 import math as m
-from ChargeLikelihood import nLogLikelihood
+from Reconstruction.llh.ChargeLikelihood import nLogLikelihood
 
 class likelihoodreco(icetray.I3ConditionalModule):
     """
@@ -25,21 +25,23 @@ class likelihoodreco(icetray.I3ConditionalModule):
     def __init__(self, context):
         icetray.I3ConditionalModule.__init__(self, context)
 
+        self.AddParameter("GCDFile","GCD file.")
         self.AddParameter("pulseseries","Name of the Merged MCPE tree name","MergedSeriesMap")
         self.AddParameter("seedtrack","Track to seed fit","linefit")
+        self.AddParameter("output","Track to store fit.","llnfit")
+        self.AddParameter("vertexRad","Radius to put vertex at",500.)
 
         self.AddOutBox("OutBox")
 
     def Configure(self):
 
         self.pulseseries = self.GetParameter("MergedMCPETreeName")
-        self.tShiftSeriesName = self.GetParameter("TimeShiftedMCPE")
         self.seedtrack = self.GetParameter("seedtrack")
-        self.gcdfile = 
+        self.output = self.GetParameter("output")
+        self.gcdfile = self.GetParameter("GCDFile")
         self.geometry = self.gcdfile.pop_frame()["I3Geometry"]
         self.domsUsed = self.geometry.omgeo.keys()
-
-        ,gcdfile,vertRadius=550.
+        self.vertexRad = sef.GetParameter("vertexRad")
 
         # Some quantities that are environment dependent
         self.c = 0.299792458                                 # speed of light 
@@ -65,9 +67,9 @@ class likelihoodreco(icetray.I3ConditionalModule):
             # The computations from here on require we find the time and distance of closest approach, d_i,c and t_i,c
             def closestApproach(vtheta, vphi, theta, phi):
                 # Compute vec{r} - vec{x}
-                vx = vertrad*np.cos(vphi)*np.sin(vtheta)
-                vy = vertrad*np.sin(vphi)*np.sin(vtheta)
-                vz = vertrad*np.cos(vtheta)
+                vx = self.vertexRad*np.cos(vphi)*np.sin(vtheta)
+                vy = self.vertexRad*np.sin(vphi)*np.sin(vtheta)
+                vz = self.vertexRad*np.cos(vtheta)
                 x = pmt[:,0] - vx
                 y = pmt[:,1] - vy
                 z = pmt[:,2] - vz
@@ -106,9 +108,9 @@ class likelihoodreco(icetray.I3ConditionalModule):
                 mean_y = mean_y/sum_charge                                                    
                 mean_z = mean_z/sum_charge                                                    
                             
-                vx = vertrad*np.cos(vphi)*np.sin(vtheta)                                
-                vy = vertrad*np.sin(vphi)*np.sin(vtheta)                                
-                vz = vertrad*np.cos(vtheta)  
+                vx = self.vertexRad*np.cos(vphi)*np.sin(vtheta)                                
+                vy = self.vertexRad*np.sin(vphi)*np.sin(vtheta)                                
+                vz = self.vertexRad*np.cos(vtheta)  
 
             dist_phot = 0.0                                                               
                                                                                          
@@ -139,9 +141,9 @@ class likelihoodreco(icetray.I3ConditionalModule):
         def likelihoodFunction(vtheta, vphi, theta, phi, t0): 
             dc, tc = closestApproach(vtheta, vphi, theta, phi)
             d, t = computeResiduals(dc, tc, t0)
-            vx = vertrad*np.sin(vtheta)*np.cos(vphi)
-            vy = vertrad*np.sin(vtheta)*np.sin(vphi)
-            vz = vertrad*np.cos(vtheta)
+            vx = self.vertexRad*np.sin(vtheta)*np.cos(vphi)
+            vy = self.vertexRad*np.sin(vtheta)*np.sin(vphi)
+            vz = self.vertexRad*np.cos(vtheta)
             charge_out = nLogLikelihood(pmt,charge,vx,vy,vz,theta,phi)
             out = pdf(t,d)
             return np.sum(out) + charge_out
@@ -152,12 +154,12 @@ class likelihoodreco(icetray.I3ConditionalModule):
     def DAQ(self,frame): 
         
 
-        data = frame[pulseseries]
+        data = frame[self.pulseseries]
         # Clean the data to get rid of repeated events
         #data = clean_data(data)
-        linefit = frame[seedtrack]
+        linefit = frame[self.seedtrack]
           
-        qFunctor = LikelihoodFunctor(data, pdf, VertRadius) 
+        qFunctor = self.LikelihoodFunctor(data) 
         vr = np.sqrt(linefit.pos.x**2.+linefit.pos.y**2.0+linefit.pos.z**2.0)
         VTheta = np.arccos(linefit.pos.z/vr)
         VPhi = 0.0
@@ -165,7 +167,6 @@ class likelihoodreco(icetray.I3ConditionalModule):
             VPhi = np.arccos(linefit.pos.x/(vr*np.sin(VTheta)))   
         T0 = qFunctor.GetVertexTime(VTheta,VPhi)
           
-
         minimizer = Minuit(qFunctor, 
                         t0=T0,
                         error_t0=1.0,
@@ -189,9 +190,9 @@ class likelihoodreco(icetray.I3ConditionalModule):
         solution = minimizer.values
             
         # For likelihood
-        vx = VertRadius*np.sin(solution['vtheta'])*np.cos(solution['vphi'])
-        vy = VertRadius*np.sin(solution['vtheta'])*np.sin(solution['vphi'])
-        vz = VertRadius*np.cos(solution['vtheta'])
+        vx = self.vertexRad*np.sin(solution['vtheta'])*np.cos(solution['vphi'])
+        vy = self.vertexRad*np.sin(solution['vtheta'])*np.sin(solution['vphi'])
+        vz = self.vertexRad*np.cos(solution['vtheta'])
         q = dataclasses.I3Position(vx,vy,vz)
         phi = solution['phi'] 
         theta = solution['theta']
@@ -214,7 +215,6 @@ class likelihoodreco(icetray.I3ConditionalModule):
         recoParticle.time = 0
             
         # include both linefit and improved recos for comparison
-        frame['LlhFitRecoParticle'] =  recoParticle        
-    
-        return True
+        frame[self.output] = recoParticle        
+        self.push_frame(frame)    
 

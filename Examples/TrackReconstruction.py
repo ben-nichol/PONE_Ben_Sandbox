@@ -11,6 +11,7 @@ from icecube import icetray, dataclasses, dataio, simclasses
 from icecube import phys_services, sim_services           
 import argparse  
 from Reconstruction.linefit.SimAnalysis import LineFitReco
+from Reconstruction.llh.likelihoodreco import likelihoodreco
 from PulseCleaning.SignificantHitPulseCleaning import SignificantHitPulseCleaning
 
 # This script will perform a hybridCLSim propagation.
@@ -69,6 +70,14 @@ tray.AddModule(LineFitReco, "LineFit",
               inputseries = "SignificanHits",
               output = "linefit"
               )
+
+tray.AddModule(likelihoodreco,"likelihoodreco",
+               GCDFile = gcd_file,                               
+               pulseseries = "SignificanHits",
+               seedtrack = "linefit",
+               output = "llhfit"
+              ) 
+
 
 tray.AddModule("I3Writer","writer",
                Filename = args.outfile,
