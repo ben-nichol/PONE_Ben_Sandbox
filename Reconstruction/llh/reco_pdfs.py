@@ -53,7 +53,7 @@ def cpandel(t, d, sigma = 10., lambda_s = 120., rho = 0.004):
 def log_cpandel(t, d, sigma = 10, lambda_s = 120., rho = 0.004):
     xi = d/lambda_s
     eta = rho*sigma - (t/sigma)
-    darkprob = -np.log(1./10000.)   
+    darkprob = 1./10000.   
 
     # Define our region dependent approximations of the CPandel function
     def region1(time, dist, eta_in, xi_in):
