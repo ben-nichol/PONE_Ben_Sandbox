@@ -66,7 +66,7 @@ class SignificantHitPulseCleaning(icetray.I3ConditionalModule):
             else :
               window_integral[i] = pulse.charge
 
-        max_index = int(max(window_integral.iteritems(), key=operator.itemgetter(1))[0])
+        max_index = int(max(window_integral.items(), key=operator.itemgetter(1))[0])
 
         time_index = self.window*float(max_index)/5.0
         for pulse in mcpeList:

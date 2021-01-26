@@ -107,7 +107,7 @@ class nutaureco(icetray.I3ConditionalModule):
 
             nloglike = 0.0
 
-            for dom in pulse_series :
+            for dom in pulse_series.keys() :
 
                 pmt_x = self.domsUsed[dom].position.x
                 pmt_y = self.domsUsed[dom].position.y
@@ -146,14 +146,13 @@ class nutaureco(icetray.I3ConditionalModule):
         V1x = 0.0
         V1y = 0.0
         V1z = 0.0
-        
-        for dom in data :
 
+        for dom in data.keys() :
             pmt_x = self.domsUsed[dom].position.x
             pmt_y = self.domsUsed[dom].position.y
             pmt_z = self.domsUsed[dom].position.z
 
-            for pulse in pulse_series[dom] :
+            for pulse in data[dom] :
                     T0 += pulse.time*pulse.charge
                     V1x += pmt_x*pulse.charge
                     V1y += pmt_y*pulse.charge

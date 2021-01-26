@@ -127,8 +127,8 @@ class LineFitReco(icetray.I3ConditionalModule):
         xMatrix = np.column_stack( (x, np.ones(len(x))) )
         yVector = np.array(y).T
         leastSquaresMatrix = np.matmul(xMatrix.T, xMatrix)
-        if la.det(leastSquaresMatrix) == 0:
-            print leastSquaresMatrix, xMatrix
+        #if la.det(leastSquaresMatrix) == 0:
+        #    print leastSquaresMatrix, xMatrix
         leastSquaresVector = np.matmul(xMatrix.T, yVector)
         fitCoefficients = np.matmul( la.inv(leastSquaresMatrix), leastSquaresVector)
 
