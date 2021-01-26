@@ -65,6 +65,57 @@ def cpandel(t, d, sigma = 2.0, lambda_s = 120., rho = 0.004):
     print("error, no condition met")
     return 0.0
 
+def LikelihoodFunctor(data,domsUsed):
+                
+    pulse_series = data
+    geo_doms = domsUsed
+
+    c = 0.299792458                                 # speed of light 
+    n = 1.34                                        # 1.33 is the refractive index of water at 20 degrees C
+    c_n = c/n                                       # light in water
+    theta_c = np.arccos(1./n)                       # Cherenkov angle in water in radians
+    lambda_s = 120.                                 # scattering length of light for violet light
+    lambda_a = 15.                                  # absorption length of light for violet light
+    tau = 557                                       # time parameter that has to be fit using simulations or data      
+
+    # uses the prior defined functions to build a likelihood function that when given a track (linefit) will produce a negative loglikelihood value
+    def likelihoodFunction(t0,dt,v1x,v1y,v1z,dtheta,dphi,br):
+        v2x = v1x + c*dt*np.cos(dphi)*np.sin(dtheta)
+        v2y = v1y + c*dt*np.sin(dphi)*np.sin(dtheta)
+        v2z = v1z + c*dt*np.cos(dtheta) 
+        darkrate = 1./10000.
+
+        nloglike = 0.0
+
+        for dom in pulse_series :
+
+            pmt_x = geo_doms[dom].position.x
+            pmt_y = geo_doms[dom].position.y
+            pmt_z = geo_doms[dom].position.z
+
+            for pulse in pulse_series[dom] :
+                t = pulse.time
+                charge = pulse.charge
+                #vertex 1 
+                distance = np.sqrt((v1x-pmt_x)**2.0 + (v1y-pmt_y)**2.0 + (v1z-pmt_z)**2.0) 
+                amp =  amplitude(distance)
+                t_trav = distance/c_n
+                prob = br*amp*cpandel(t-to-t_trav,distance)
+
+                #vertex2
+                distance = np.sqrt((v2x-pmt_x)**2.0 + (v2y-pmt_y)**2.0 + (v2z-pmt_z)**2.0) 
+                amp =  amplitude(distance)
+                t_trav = distance/c_n
+                prob += (1.-br)*amp*cpandel(t-to-dt-t_trav,distance)
+
+                prob += darkrate
+
+                nloglike += -charge*np.log(prob)
+
+        return nloglike
+
+    return likelihoodFunction
+
 class nutaureco(icetray.I3ConditionalModule):
 
     def __init__(self, context):
@@ -82,57 +133,15 @@ class nutaureco(icetray.I3ConditionalModule):
         self.output = self.GetParameter("output")
         self.gcdfile = self.GetParameter("GCDFile")
         self.geometry = self.gcdfile.pop_frame()["I3Geometry"]
-        self.domsUsed = self.geometry.omgeo
+        self.domsUsed = self.geometry.omgeo.items()   
 
-        # Some quantities that are environment dependent
         self.c = 0.299792458                                 # speed of light 
         self.n = 1.34                                        # 1.33 is the refractive index of water at 20 degrees C
         self.c_n = self.c/self.n                                       # light in water
+        self.theta_c = np.arccos(1./self.n)                       # Cherenkov angle in water in radians
         self.lambda_s = 120.                                 # scattering length of light for violet light
         self.lambda_a = 15.                                  # absorption length of light for violet light
         self.tau = 557                                       # time parameter that has to be fit using simulations or data      
-
-    # Functional that is fed data from InitialGuess for PMT locations and the PDF we wish to use. Uses those locations to build a Pandel Function for a given track
-    def LikelihoodFunctor(self,data, prnt = False):
-
-                
-        pulse_series = data
-
-        # uses the prior defined functions to build a likelihood function that when given a track (linefit) will produce a negative loglikelihood value
-        def likelihoodFunction(t0,dt,v1x,v1y,v1z,dtheta,dphi,br):
-            v2x = v1x + self.c*dt*np.cos(dphi)*np.sin(dtheta)
-            v2y = v1y + self.c*dt*np.sin(dphi)*np.sin(dtheta)
-            v2z = v1z + self.c*dt*np.cos(dtheta) 
-            darkrate = 1./10000.
-
-            nloglike = 0.0
-
-            for dom in pulse_series.keys() :
-
-                pmt_x = self.domsUsed[dom].position.x
-                pmt_y = self.domsUsed[dom].position.y
-                pmt_z = self.domsUsed[dom].position.z
-
-                for pulse in pulse_series[dom] :
-                    t = pulse.time
-                    charge = pulse.charge
-                    #vertex 1 
-                    distance = np.sqrt((v1x-pmt_x)**2.0 + (v1y-pmt_y)**2.0 + (v1z-pmt_z)**2.0) 
-                    amp =  amplitude(distance)
-                    t_trav = distance/(self.c_n)
-                    prob = br*amp*cpandel(t-to-t_trav,distance)
-
-                    #vertex2
-                    distance = np.sqrt((v2x-pmt_x)**2.0 + (v2y-pmt_y)**2.0 + (v2z-pmt_z)**2.0) 
-                    amp =  amplitude(distance)
-                    t_trav = distance/(self.c_n)
-                    prob += (1.-br)*amp*cpandel(t-to-dt-t_trav,distance)
-
-                    nloglike += -charge*np.log(prob+darkrate)
-
-            return nloglike
-
-            return likelihoodFunction
 
     # Main function of this file. Structured this way so that it can be easily imported aswell in any other implementation.                                   
     def DAQ(self,frame): 
@@ -146,8 +155,9 @@ class nutaureco(icetray.I3ConditionalModule):
         V1x = 0.0
         V1y = 0.0
         V1z = 0.0
-
+        
         for dom in data.keys() :
+            
             pmt_x = self.domsUsed[dom].position.x
             pmt_y = self.domsUsed[dom].position.y
             pmt_z = self.domsUsed[dom].position.z
@@ -169,7 +179,7 @@ class nutaureco(icetray.I3ConditionalModule):
         Dphi = 0.0
         Br = 1.0
 
-        qFunctor = self.LikelihoodFunctor(data)   
+        qFunctor = LikelihoodFunctor(data,self.domsUsed)   
           
         minimizer = Minuit(qFunctor, 
                             t0=T0,
