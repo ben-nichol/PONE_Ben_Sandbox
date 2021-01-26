@@ -82,7 +82,7 @@ class nutaureco(icetray.I3ConditionalModule):
         self.output = self.GetParameter("output")
         self.gcdfile = self.GetParameter("GCDFile")
         self.geometry = self.gcdfile.pop_frame()["I3Geometry"]
-        self.domsUsed = self.geometry.omgeo.keys()
+        self.domsUsed = self.geometry.omgeo
 
         # Some quantities that are environment dependent
         self.c = 0.299792458                                 # speed of light 
@@ -94,14 +94,9 @@ class nutaureco(icetray.I3ConditionalModule):
 
     # Functional that is fed data from InitialGuess for PMT locations and the PDF we wish to use. Uses those locations to build a Pandel Function for a given track
     def LikelihoodFunctor(self,data, prnt = False):
-        # turn PMT locations and time hits into numpy arrays for easier numpy algebra
-        data = np.array(data)
-        pmt = data[:,0:3]
-        pmt_x = pmt[:,0]
-        pmt_y = pmt[:,1]
-        pmt_z = pmt[:,2]
-        time = data[:,3]
-        charge = data[:,4]                # Not used just yet
+
+                
+        pulse_series = data
 
         # uses the prior defined functions to build a likelihood function that when given a track (linefit) will produce a negative loglikelihood value
         def likelihoodFunction(t0,dt,v1x,v1y,v1z,dtheta,dphi,br):
@@ -112,21 +107,28 @@ class nutaureco(icetray.I3ConditionalModule):
 
             nloglike = 0.0
 
-            for i in len(pmt_x) :
+            for dom in pulse_series :
 
-                #vertex 1 
-                distance = np.sqrt((v1x-pmt_x[i])**2.0 + (v1y-pmt_y[i])**2.0 + (v1z-pmt_z[i])**2.0) 
-                amp =  amplitude(distance)
-                t_trav = distance/(self.c_n)
-                prob = br*amp*cpandel(t-to-t_trav,distance)
+                pmt_x = self.domsUsed[dom].position.x
+                pmt_y = self.domsUsed[dom].position.y
+                pmt_z = self.domsUsed[dom].position.z
 
-                #vertex2
-                distance = np.sqrt((v2x-pmt_x[i])**2.0 + (v2y-pmt_y[i])**2.0 + (v2z-pmt_z[i])**2.0) 
-                amp =  amplitude(distance)
-                t_trav = distance/(self.c_n)
-                prob += (1.-br)*amp*cpandel(t-to-dt-t_trav,distance)
+                for pulse in pulse_series[dom] :
+                    t = pulse.time
+                    charge = pulse.charge
+                    #vertex 1 
+                    distance = np.sqrt((v1x-pmt_x)**2.0 + (v1y-pmt_y)**2.0 + (v1z-pmt_z)**2.0) 
+                    amp =  amplitude(distance)
+                    t_trav = distance/(self.c_n)
+                    prob = br*amp*cpandel(t-to-t_trav,distance)
 
-                nloglike += -charge[i]*np.log(prob+darkrate)
+                    #vertex2
+                    distance = np.sqrt((v2x-pmt_x)**2.0 + (v2y-pmt_y)**2.0 + (v2z-pmt_z)**2.0) 
+                    amp =  amplitude(distance)
+                    t_trav = distance/(self.c_n)
+                    prob += (1.-br)*amp*cpandel(t-to-dt-t_trav,distance)
+
+                    nloglike += -charge*np.log(prob+darkrate)
 
             return nloglike
 
