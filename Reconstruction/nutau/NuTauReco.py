@@ -139,18 +139,36 @@ class nutaureco(icetray.I3ConditionalModule):
         
 
         data = frame[self.pulseseries]
-       
-       #step 1 collect all the time information and pickout bestburst of charge.
-       #step 2 fit for t0 + vertex1 + directin and time to vertex 2 and relative brightness (9 parameters)
 
-        T0 = 7800
-        dT = 1000
+        sumcharge = 0.0
+
+        T0 = 0.0
         V1x = 0.0
         V1y = 0.0
         V1z = 0.0
+        
+        for dom in data :
+
+            pmt_x = self.domsUsed[dom].position.x
+            pmt_y = self.domsUsed[dom].position.y
+            pmt_z = self.domsUsed[dom].position.z
+
+            for pulse in pulse_series[dom] :
+                    T0 += pulse.time*pulse.charge
+                    V1x += pmt_x*pulse.charge
+                    V1y += pmt_y*pulse.charge
+                    V1z += pmt_z*pulse.charge
+                    sumcharge += pulse.charge
+        
+        T0 = T0/sumcharge
+        V1x = V1x/sumcharge
+        V1y = V1y/sumcharge
+        V1z = V1z/sumcharge
+
+        dT = 0.0
         Dtheta = 0.0
         Dphi = 0.0
-        Br = 0.9
+        Br = 1.0
 
         qFunctor = self.LikelihoodFunctor(data)   
           
@@ -176,32 +194,60 @@ class nutaureco(icetray.I3ConditionalModule):
                             error_dphi=1.0,
                             limit_dphi=(0.0,2.0*np.pi),
                             br=Br,
-                            error_br=0.5,
+                            error_br=1.0,
                             limit_br=(0.0,1.0),
                             errordef=0.5,
                             print_level=3
                            )
 
+        minimizer.fixed["dt"]=True
+        minimizer.fixed["dtheta"]=True
+        minimizer.fixed["dphi"]=True
+        minimizer.fixed["br"]=True
+
         minimizer.migrad()
 
-        solution = minimizer.values
+        solution_single = minimizer.values
+        loglikelihood_single = minimizer.fval
+
+        v0x = solution_single['v1x']
+        v0y = solution_single['v1y']
+        v0z = solution_single['v1z']
+
+        v0 = dataclasses.I3Position(v0x,v0y,v0z)
+        recoParticle_cascade = dataclasses.I3Particle()
+        recoParticle_cascade.shape = dataclasses.I3Particle.InfiniteTrack
+        recoParticle_cascade.dir = dataclasses.I3Direction(0.0,0.0,0.0)
+        recoParticle_cascade.speed = c
+        recoParticle_cascade.pos = v0
+        recoParticle_cascade.time = solution_double['t0']
+
+        minimizer.fixed["dt"]=False
+        minimizer.fixed["dtheta"]=False
+        minimizer.fixed["dphi"]=False
+        minimizer.fixed["br"]=False
+
+        minimizer.migrad()
+
+        solution_double = minimizer.values
+        loglikelihood_double = minimizer.fval
             
         # For likelihood
-        v1x = solution['v1x']
-        v1y = solution['v1y']
-        v1z = solution['v1z']
+        v1x = solution_double['v1x']
+        v1y = solution_double['v1y']
+        v1z = solution_double['v1z']
 
-        v2x = v1x + self.c*dt*np.cos(solution['dphi'])*np.sin(solution['dtheta'])
-        v2y = v1y + self.c*dt*np.sin(solution['dphi'])*np.sin(solution['dtheta'])
-        v2z = v1z + self.c*dt*np.cos(solution['dtheta'])
+        v2x = v1x + self.c*dt*np.cos(solution_double['dphi'])*np.sin(solution_double['dtheta'])
+        v2y = v1y + self.c*dt*np.sin(solution_double['dphi'])*np.sin(solution_double['dtheta'])
+        v2z = v1z + self.c*dt*np.cos(solution_double['dtheta'])
       
         v1 = dataclasses.I3Position(v1x,v1y,v1z)
         v2 = dataclasses.I3Position(v2x,v2y,v2z)
-        phi = solution['dphi'] 
-        theta = solution['dtheta']
+        phi = solution_double['dphi'] 
+        theta = solution_double['dtheta']
         u = dataclasses.I3Direction(np.sin(theta)*np.cos(phi), np.sin(theta)*np.sin(phi), np.cos(theta))
 
-        intensity = solutions['br']
+        intensity = solutions_double['br']
 
         # Record the final result
         recoParticle_create = dataclasses.I3Particle()
@@ -209,19 +255,23 @@ class nutaureco(icetray.I3ConditionalModule):
         recoParticle_create.dir = u
         recoParticle_create.speed = c
         recoParticle_create.pos = v1
-        recoParticle_create.time = solution['t0']
+        recoParticle_create.time = solution_double['t0']
 
         recoParticle_decay = dataclasses.I3Particle()
         recoParticle_decay.shape = dataclasses.I3Particle.InfiniteTrack                        
         recoParticle_decay.dir = u
         recoParticle_decay.speed = c
         recoParticle_decay.pos = v2
-        recoParticle_decay.time = solution['t0']+solution['dt']
+        recoParticle_decay.time = solution_double['t0']+solution_double['dt']
 
             
         # include both linefit and improved recos for comparison
-        frame[self.output+"v1"] = recoParticle_create
-        frame[self.output+"v2"] = recoParticle_decay 
-        frame[self.output+"intensity"] = dataclasses.I3Double(intensity)       
+        frame[self.output+"_double_v1"] = recoParticle_create
+        frame[self.output+"_double_v2"] = recoParticle_decay 
+        frame[self.output+"_double_t0"] = dataclasses.I3Double(intensity)
+        frame[self.output+"_double_intensity"] = dataclasses.I3Double(intensity)
+        frame[self.output+"_double_nlogl"] =  dataclasses.I3Double(loglikelihood_double)
+        frame[self.output+"_single_v0"] = recoParticle_cascade
+        frame[self.output+"_single_nlogl"] =  dataclasses.I3Double(loglikelihood_single)
         self.push_frame(frame)    
 
