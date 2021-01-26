@@ -35,7 +35,7 @@ class likelihoodreco(icetray.I3ConditionalModule):
 
     def Configure(self):
 
-        self.pulseseries = self.GetParameter("MergedMCPETreeName")
+        self.pulseseries = self.GetParameter("pulseseries")
         self.seedtrack = self.GetParameter("seedtrack")
         self.output = self.GetParameter("output")
         self.gcdfile = self.GetParameter("GCDFile")

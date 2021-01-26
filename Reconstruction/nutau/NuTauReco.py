@@ -59,7 +59,6 @@ def cpandel(t, d, sigma = 2.0, lambda_s = 120., rho = 0.004):
         return -(first + U + second)
 
     if xi<=1. and eta>=(rho*sigma + 5.) :
-   
         return -(xi*np.log(rho*sigma) - 0.5*np.log(2*np.pi*sigma**2) -
             xi*np.log(eta) - (t**2)/(2*sigma**2)) 
 
@@ -73,15 +72,13 @@ class nutaureco(icetray.I3ConditionalModule):
 
         self.AddParameter("GCDFile","GCD file.")
         self.AddParameter("pulseseries","Name of the Merged MCPE tree name","MergedSeriesMap")
-        self.AddParameter("seedtrack","Track to seed fit","linefit")
         self.AddParameter("output","Track to store fit.","taufit")
 
         self.AddOutBox("OutBox")
 
     def Configure(self):
 
-        self.pulseseries = self.GetParameter("MergedMCPETreeName")
-        self.seedtrack = self.GetParameter("seedtrack")
+        self.pulseseries = self.GetParameter("pulseseries")
         self.output = self.GetParameter("output")
         self.gcdfile = self.GetParameter("GCDFile")
         self.geometry = self.gcdfile.pop_frame()["I3Geometry"]
@@ -157,31 +154,32 @@ class nutaureco(icetray.I3ConditionalModule):
         qFunctor = self.LikelihoodFunctor(data)   
           
         minimizer = Minuit(qFunctor, 
-                        t0=T0,
-                        error_t0=1.0,
-                        dt=dT,
-                        error_dt=1.0,
-                        limit_dt=(0.0,10000.0),
-                        v1x=V1x,
-                        error_v1x=1.0,
-                        limit_v1x=(-500.,500.),
-                        v1y=V1y,
-                        error_v1y=1.0,
-                        limit_v1y=(-500.,500.),
-                        v1z=V1z,
-                        error_v1z=1.0,
-                        limit_v1z=(-500.,500.),
-                        dtheta=Dtheta,
-                        error_dtheta=1.0,
-                        limit_dtheta=(0.0,np.pi),
-                        dphi=Dphi,
-                        error_dphi=1.0,
-                        limit_dphi=(0.0,2.0*np.pi),
-                        br=Br,
-                        error_br=0.5,
-                        limit_br=(0.0,1.0),
-                        errordef=0.5,
-                        print_level=3)
+                            t0=T0,
+                            error_t0=1.0,
+                            dt=dT,
+                            error_dt=1.0,
+                            limit_dt=(0.0,10000.0),
+                            v1x=V1x,
+                            error_v1x=1.0,
+                            limit_v1x=(-500.,500.),
+                            v1y=V1y,
+                            error_v1y=1.0,
+                            limit_v1y=(-500.,500.),
+                            v1z=V1z,
+                            error_v1z=1.0,
+                            limit_v1z=(-500.,500.),
+                            dtheta=Dtheta,
+                            error_dtheta=1.0,
+                            limit_dtheta=(0.0,np.pi),
+                            dphi=Dphi,
+                            error_dphi=1.0,
+                            limit_dphi=(0.0,2.0*np.pi),
+                            br=Br,
+                            error_br=0.5,
+                            limit_br=(0.0,1.0),
+                            errordef=0.5,
+                            print_level=3
+                           )
 
         minimizer.migrad()
 
@@ -222,7 +220,7 @@ class nutaureco(icetray.I3ConditionalModule):
             
         # include both linefit and improved recos for comparison
         frame[self.output+"v1"] = recoParticle_create
-        frame[self.output+"v1"] = recoParticle_decay 
+        frame[self.output+"v2"] = recoParticle_decay 
         frame[self.output+"intensity"] = dataclasses.I3Double(intensity)       
         self.push_frame(frame)    
 
