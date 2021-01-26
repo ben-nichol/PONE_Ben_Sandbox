@@ -1,7 +1,7 @@
 #!/usr/bin/env python                                                                                                
  
 # Import some useful ICECUBE modules                                                                                  
-from icecube import dataclasses, dataio, simclasses
+from icecube import icetray, dataclasses, dataio, simclasses
 from icecube.icetray import I3Units, I3Frame  
 from icecube.dataclasses import I3Particle 
 import numpy as np                 
@@ -87,8 +87,7 @@ class nutaureco(icetray.I3ConditionalModule):
         # Some quantities that are environment dependent
         self.c = 0.299792458                                 # speed of light 
         self.n = 1.34                                        # 1.33 is the refractive index of water at 20 degrees C
-        self.c_n = c/n                                       # light in water
-        self.theta_c = np.arccos(1./n)                       # Cherenkov angle in water in radians
+        self.c_n = self.c/self.n                                       # light in water
         self.lambda_s = 120.                                 # scattering length of light for violet light
         self.lambda_a = 15.                                  # absorption length of light for violet light
         self.tau = 557                                       # time parameter that has to be fit using simulations or data      

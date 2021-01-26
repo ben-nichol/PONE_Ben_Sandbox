@@ -5,7 +5,7 @@
 # The time residuals are computed by myself though. The techniques used are detailed in a text document I have somewhere -dg
  
 # Import some useful ICECUBE modules                                                                                  
-from icecube import dataclasses, dataio, simclasses
+from icecube import icetray, dataclasses, dataio, simclasses
 from icecube.icetray import I3Units, I3Frame  
 from icecube.dataclasses import I3Particle 
 import numpy as np                 

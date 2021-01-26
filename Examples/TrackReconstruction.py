@@ -12,6 +12,7 @@ from icecube import phys_services, sim_services
 import argparse  
 from Reconstruction.linefit.SimAnalysis import LineFitReco
 from Reconstruction.llh.likelihoodreco import likelihoodreco
+from Reconstruction.nutau.NuTauReco import nutaureco
 from PulseCleaning.SignificantHitPulseCleaning import SignificantHitPulseCleaning
 
 # This script will perform a hybridCLSim propagation.
@@ -65,18 +66,24 @@ tray.AddModule(SignificantHitPulseCleaning,"SignificantHit",
               window = 1000
               )
 
-tray.AddModule(LineFitReco, "LineFit",
-              GCDFile=gcd_file, 
-              inputseries = "SignificanHits",
-              output = "linefit"
-              )
+#tray.AddModule(LineFitReco, "LineFit",
+#              GCDFile=gcd_file, 
+#              inputseries = "SignificanHits",
+#              output = "linefit"
+#              )
 
-tray.AddModule(likelihoodreco,"likelihoodreco",
-               GCDFile = gcd_file,                               
-               pulseseries = "SignificanHits",
-               seedtrack = "linefit",
-               output = "llhfit"
-              ) 
+#tray.AddModule(likelihoodreco,"likelihoodreco",
+#               GCDFile = gcd_file,                               
+#               pulseseries = "SignificanHits",
+#               seedtrack = "linefit",
+#               output = "llhfit"
+#              ) 
+
+tray.AddModule(nutaureco,"NuTauReconstructin",
+              GCDFile = gcd_file, 
+              pulseseries = "SignificanHits",
+              output = "NuTau_"
+              )
 
 
 tray.AddModule("I3Writer","writer",
