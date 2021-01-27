@@ -17,50 +17,63 @@ def amplitude(dist) :
     absorbtion = 50.0
     lambda_s = 120.
     atten = np.sqrt(lambda_s**2.0 + absorbtion**2.0)
+    return (1./dist**2.0)
     return np.exp(-dist/atten)*(1./dist**2.0)
 
 def cpandel(t, d, sigma = 2.0, lambda_s = 120., rho = 0.004):
     xi = d/lambda_s
     eta = rho*sigma - (t/sigma)   
 
-    if xi <= 5. and (rho*sigma - (300)/sigma <= eta and eta < (rho*sigma+5.) ) :
+    if t<-25.*sigma or t>3500. :
+      return 0.0
+
+    if (t>-5.0*sigma and t<30.0*sigma) and xi<5.0 :
     # Define our region dependent approximations of the CPandel function
-        first = xi*np.log(rho) + (xi - 1.)*np.log(sigma) - (t**2)/(2.*sigma**2) - ((1. + xi)/2.)*np.log(2)
-        frac_1 = sp.hyp1f1(0.5*xi,0.5,0.5*eta**2)/sp.gamma(0.5*(xi + 1.))
-        frac_2 = sp.hyp1f1(0.5*(xi+1.),1.5,0.5*eta**2)/sp.gamma(0.5*xi)
-        second = np.log(frac_1 - np.sqrt(2.)*eta*frac_2)
-        return -(first + second)
+        pdf = sp.hyp1f1(0.5*xi,0.5,0.5*eta**2)/sp.gamma(0.5*(xi + 1.))
+        pdf -= np.sqrt(2.)*eta*sp.hyp1f1(0.5*(xi+1.),1.5,0.5*eta**2)/sp.gamma(0.5*xi) 
+        pdf *= (rho**xi)*(sigma**(xi - 1.))*np.exp(-(t**2)/(2.*sigma**2))
+        pdf /= 2.**((1.+xi)/2.)
+        return pdf
 
-    if xi <= 1. and eta < (rho*sigma - (300)/sigma) :
-        first = (rho**2)*(sigma**2)/2.
-        second = xi*np.log(rho) + (xi - 1.)*np.log(t) - np.log(xi) - rho*t - sp.gamma(xi)
-        return -(first + second)  
+    if xi <= 1. and t > 30.*sigma :
+        pdf = np.exp((rho**2)*(sigma**2)/2.)
+        pdf *= (rho**xi)*(t**(xi-1.))*np.exp(-rho*t)
+        pdf /= sp.gamma(xi)
+        return pdf
 
-    if (xi>5. and eta<0.) or (xi>1. and eta<(rho*sigma-(300)/sigma)) :
-        z = -eta/np.sqrt(4*xi - 2.)
+    if xi>1.0 and t>(rho*(sigma**2.0)) :
+        z = max(0.0,-eta/np.sqrt(4*xi - 2.))
         k = 0.5*(z*np.sqrt(1. + z**2) + np.log(z + np.sqrt(1. + z**2)))
-        beta = 0.5*((z/(np.sqrt(1. + z**2)) - 1.))
+        beta = 0.5*((z/np.sqrt(1. + z**2)) - 1.)
         N1 = (beta/12.)*(20*beta**2 + 30*beta + 9.)
-        N2 = ((beta**2)/(288.))*(6160*beta**4 + 18480*beta**3 + 19404*beta**2 + 8028*beta + 945.)
+        N2 = ((beta**2)/(288.))*(6160*beta**4.0 + 18480*beta**3.0 + 19404*beta**2.0 + 8028*beta + 945.)
         phi = 1. - N1/(2.*xi - 1.) + N2/((2.*xi - 1.)**2)
         alpha = -t**2/(2*sigma**2) + 0.25*eta**2 - xi*0.5 + 0.25 + k*(2*xi - 1.) - 0.25*np.log(1 + z**2) - 0.5*xi*np.log(2) + 0.5*(xi - 1.)*np.log(2*xi - 1.) + xi*np.log(rho) + (xi - 1.)*np.log(sigma)
-        return -(alpha - np.log(sp.gamma(xi)) + np.log(phi))  
+        pdf = np.exp(alpha)*phi/sp.gamma(xi)
+        return pdf
 
-    if (xi>5. and  eta>= 0.) or (xi>1. and eta>=(rho*sigma+5.)) :
-        z = eta/np.sqrt(4*xi - 2.)
+    if xi>1.0 and t<=(rho*(sigma**2.0)) :
+        z = max(0.0,eta/np.sqrt(4*xi-2.))
         k = 0.5*(z*np.sqrt(1. + z**2) + np.log(z + np.sqrt(1. + z**2)))
         beta = 0.5*((z/(np.sqrt(1. + z**2)) - 1.))
         N1 = (beta/12.)*(20*beta**2 + 30*beta + 9.)
         N2 = ((beta**2)/(288.))*(6160*beta**4 + 18480*beta**3 + 19404*beta**2 + 8028*beta + 945.)
         psi = 1. + N1/(2*xi - 1.) + N2/((2*xi - 1.)**2)
-        first = xi*np.log(rho) + (xi - 1.)*np.log(sigma) - (t**2)/(2*sigma**2) + 0.25*(eta**2) - 0.25*np.log(2*np.pi)
-        U = 0.5*xi - 0.25 - 0.5*xi*np.log(2*xi - 1.) + 0.5*(xi - 1.)*np.log(2)
-        second = -k*(2*xi - 1.) - 0.25*np.log(1. + z**2) + np.log(psi)
-        return -(first + U + second)
+        pdf = (rho**xi)*(sigma**(xi-1.))*np.exp(0.25*(eta**2.0)-(t**2)/(2*sigma**2))
+        pdf /= np.log(2.0*np.pi)
+        U = np.exp(0.5*xi - 0.25)*((2*xi - 1.)**(-0.5*xi))*(2.**(0.5*(xi - 1.)))
+        pdf *= U
+        pdf *= np.exp(-k*(2*xi-1.))
+        pdf *= (1. + z**2)**(-0.25)
+        pdf *= psi
+        return pdf
 
-    if xi<=1. and eta>=(rho*sigma + 5.) :
-        return -(xi*np.log(rho*sigma) - 0.5*np.log(2*np.pi*sigma**2) -
-            xi*np.log(eta) - (t**2)/(2*sigma**2)) 
+    if xi<=1. and t<=(rho*(sigma**2.0)) :
+        pdf = (rho*sigma)**xi
+        pdf *= eta**(-xi)
+        pdf *= np.exp(-t**2.0/(2.0*sigma**2.0))
+        pdf /= np.sqrt(2.*np.pi*sigma**2.0)
+        return pdf 
 
     print("error, no condition met")
     return 0.0
@@ -87,7 +100,7 @@ def LikelihoodFunctor(data,domsUsed):
 
         nloglike = 0.0
 
-        for dom in pulse_series :
+        for dom in pulse_series.keys() :
 
             pmt_x = geo_doms[dom].position.x
             pmt_y = geo_doms[dom].position.y
@@ -100,13 +113,13 @@ def LikelihoodFunctor(data,domsUsed):
                 distance = np.sqrt((v1x-pmt_x)**2.0 + (v1y-pmt_y)**2.0 + (v1z-pmt_z)**2.0) 
                 amp =  amplitude(distance)
                 t_trav = distance/c_n
-                prob = br*amp*cpandel(t-to-t_trav,distance)
+                prob = br*amp*cpandel(t-t0-t_trav,distance)
 
                 #vertex2
                 distance = np.sqrt((v2x-pmt_x)**2.0 + (v2y-pmt_y)**2.0 + (v2z-pmt_z)**2.0) 
                 amp =  amplitude(distance)
                 t_trav = distance/c_n
-                prob += (1.-br)*amp*cpandel(t-to-dt-t_trav,distance)
+                prob += (1.-br)*amp*cpandel(t-t0-dt-t_trav,distance)
 
                 prob += darkrate
 
@@ -133,7 +146,7 @@ class nutaureco(icetray.I3ConditionalModule):
         self.output = self.GetParameter("output")
         self.gcdfile = self.GetParameter("GCDFile")
         self.geometry = self.gcdfile.pop_frame()["I3Geometry"]
-        self.domsUsed = self.geometry.omgeo.items()   
+        self.domsUsed = self.geometry.omgeo   
 
         self.c = 0.299792458                                 # speed of light 
         self.n = 1.34                                        # 1.33 is the refractive index of water at 20 degrees C
@@ -155,20 +168,26 @@ class nutaureco(icetray.I3ConditionalModule):
         V1x = 0.0
         V1y = 0.0
         V1z = 0.0
+
+        pulsecount = 0
         
         for dom in data.keys() :
-            
+
             pmt_x = self.domsUsed[dom].position.x
             pmt_y = self.domsUsed[dom].position.y
             pmt_z = self.domsUsed[dom].position.z
 
             for pulse in data[dom] :
+                    pulsecount += 1
                     T0 += pulse.time*pulse.charge
                     V1x += pmt_x*pulse.charge
                     V1y += pmt_y*pulse.charge
                     V1z += pmt_z*pulse.charge
                     sumcharge += pulse.charge
         
+        if pulsecount < 100 :
+          return
+
         T0 = T0/sumcharge
         V1x = V1x/sumcharge
         V1y = V1y/sumcharge
@@ -227,9 +246,9 @@ class nutaureco(icetray.I3ConditionalModule):
         recoParticle_cascade = dataclasses.I3Particle()
         recoParticle_cascade.shape = dataclasses.I3Particle.InfiniteTrack
         recoParticle_cascade.dir = dataclasses.I3Direction(0.0,0.0,0.0)
-        recoParticle_cascade.speed = c
+        recoParticle_cascade.speed = self.c
         recoParticle_cascade.pos = v0
-        recoParticle_cascade.time = solution_double['t0']
+        recoParticle_cascade.time = solution_single['t0']
 
         minimizer.fixed["dt"]=False
         minimizer.fixed["dtheta"]=False
@@ -246,9 +265,9 @@ class nutaureco(icetray.I3ConditionalModule):
         v1y = solution_double['v1y']
         v1z = solution_double['v1z']
 
-        v2x = v1x + self.c*dt*np.cos(solution_double['dphi'])*np.sin(solution_double['dtheta'])
-        v2y = v1y + self.c*dt*np.sin(solution_double['dphi'])*np.sin(solution_double['dtheta'])
-        v2z = v1z + self.c*dt*np.cos(solution_double['dtheta'])
+        v2x = v1x + self.c*solution_double['dt']*np.cos(solution_double['dphi'])*np.sin(solution_double['dtheta'])
+        v2y = v1y + self.c*solution_double['dt']*np.sin(solution_double['dphi'])*np.sin(solution_double['dtheta'])
+        v2z = v1z + self.c*solution_double['dt']*np.cos(solution_double['dtheta'])
       
         v1 = dataclasses.I3Position(v1x,v1y,v1z)
         v2 = dataclasses.I3Position(v2x,v2y,v2z)
@@ -256,20 +275,20 @@ class nutaureco(icetray.I3ConditionalModule):
         theta = solution_double['dtheta']
         u = dataclasses.I3Direction(np.sin(theta)*np.cos(phi), np.sin(theta)*np.sin(phi), np.cos(theta))
 
-        intensity = solutions_double['br']
+        intensity = solution_double['br']
 
         # Record the final result
         recoParticle_create = dataclasses.I3Particle()
         recoParticle_create.shape = dataclasses.I3Particle.InfiniteTrack
         recoParticle_create.dir = u
-        recoParticle_create.speed = c
+        recoParticle_create.speed = self.c
         recoParticle_create.pos = v1
         recoParticle_create.time = solution_double['t0']
 
         recoParticle_decay = dataclasses.I3Particle()
         recoParticle_decay.shape = dataclasses.I3Particle.InfiniteTrack                        
         recoParticle_decay.dir = u
-        recoParticle_decay.speed = c
+        recoParticle_decay.speed = self.c
         recoParticle_decay.pos = v2
         recoParticle_decay.time = solution_double['t0']+solution_double['dt']
 
@@ -282,5 +301,5 @@ class nutaureco(icetray.I3ConditionalModule):
         frame[self.output+"_double_nlogl"] =  dataclasses.I3Double(loglikelihood_double)
         frame[self.output+"_single_v0"] = recoParticle_cascade
         frame[self.output+"_single_nlogl"] =  dataclasses.I3Double(loglikelihood_single)
-        self.push_frame(frame)    
+        self.PushFrame(frame)    
 
