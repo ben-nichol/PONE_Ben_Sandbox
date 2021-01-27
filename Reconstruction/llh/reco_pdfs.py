@@ -89,7 +89,7 @@ def cpandel(t, d, sigma = 2.0, lambda_s = 120., rho = 0.004):
             pdf /= np.log(2.0*np.pi)
             U = np.exp(0.5*xi[i] - 0.25)*((2*xi[i] - 1.)**(-0.5*xi[i]))*(2.**(0.5*(xi[i] - 1.)))
             _pdf *= U
-            _pdf *= np.exp(-k*(2*x[i]i-1.))
+            _pdf *= np.exp(-k*(2*xi[i]-1.))
             _pdf *= (1. + z**2)**(-0.25)
             _pdf *= psi
             pdf.append(_pdf)

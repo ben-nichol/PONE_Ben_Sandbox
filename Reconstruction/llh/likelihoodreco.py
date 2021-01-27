@@ -15,7 +15,7 @@ import sys
 from iminuit import Minuit
 import argparse
 import math as m
-from Reconstruction.llh.ChargeLikelihood import nLogLikelihood
+from Reconstruction.llh.ChargeLikelihood import Likelihood
 
 # Functional that is fed data from InitialGuess for PMT locations and the PDF we wish to use. Uses those locations to build a Pandel Function for a given track
 def LikelihoodFunctor(self,data,domsUsed,vertexrad,prnt = False):
@@ -126,7 +126,7 @@ def LikelihoodFunctor(self,data,domsUsed,vertexrad,prnt = False):
         vx = vertexRad*np.sin(vtheta)*np.cos(vphi)
         vy = vertexRad*np.sin(vtheta)*np.sin(vphi)
         vz = vertexRad*np.cos(vtheta)
-        p_charge = nLogLikelihood(pmt,charge,vx,vy,vz,theta,phi)
+        p_charge = Likelihood(pmt,charge,vx,vy,vz,theta,phi)
         out = pdf(t,d)
         dark = 1./10000.
         sum_nloglike = 0.0
