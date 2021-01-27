@@ -60,6 +60,9 @@ dom_acceptance = ComputeDOMAccept()
 def GetDOMEff(angle) :
   global dom_acceptance
 
+  #mdom uniform coverage
+  return 1.0
+
   if len(dom_acceptance) == 0 :
     dom_acceptance = ComputeDOMAccept()
 
@@ -113,18 +116,18 @@ def HitProb(vert_x,vert_y,vert_z,theta,phi,dom_x,dom_y,dom_z) :
 	#return the probability of seeing a photon from this angle at this distance including constant for darknoise.
 
   #print("impact = %f DOMAcc = %f d_phot=%d %f" % (impact_theta,GetDOMEff(impact_theta),d_phot,min(1.0,GetDOMEff(impact_theta)/d_phot+darkprob)))
-  return min(1.0,np.exp(-d_phot/30.)*GetDOMEff(impact_theta)/d_phot + darkprob)
+  #return min(1.0,np.exp(-d_phot/30.)*GetDOMEff(impact_theta)/d_phot + darkprob)
+  return GetDOMEff(impact_theta)/d_phot
 
-def nLogLikelihood(pmt,charge,vert_x,vert_y,vert_z,theta,phi) :
+def Likelihood(pmt,charge,vert_x,vert_y,vert_z,theta,phi) :
   dom_x = pmt[:,0] 
   dom_y = pmt[:,1] 
   dom_z = pmt[:,2] 
 
-  nLogLSum = 0.0
+  prob = []
   for i in range(len(dom_x)) : 
-    if charge[i] > 0.0 :
-      nLogLSum += -charge[i]*np.log(HitProb(vert_x,vert_y,vert_z,theta,phi,dom_x[i],dom_y[i],dom_z[i]))
-  return nLogLSum
+       prob.append(HitProb(vert_x,vert_y,vert_z,theta,phi,dom_x[i],dom_y[i],dom_z[i]))
+  return prob
 
 #Charge probability
 def ChargeProb(vert_x,vert_y,vert_z,theta,phi,dom_x,dom_y,dom_z,N,charge) :

@@ -43,6 +43,66 @@ def cpandel(t, d, sigma = 10., lambda_s = 120., rho = 0.004):
     frac_2 = sp.hyp1f1(0.5*(xi+1),1.5,0.5*eta**2)/sp.gamma(0.5*xi)
     return frac*(frac_1 - np.sqrt(2.)*eta*frac_2)
 
+def cpandel(t, d, sigma = 2.0, lambda_s = 120., rho = 0.004):
+    xi = dist/lambda_s
+    eta = rho*sigma - (time/sigma)   
+
+    pdf = []
+    for i in len(t) :
+       
+        if t[i]<-25.*sigma or t[i]>3500. :
+            pdf.append(0.0)
+
+        if (t[i]>-5.0*sigma and t[i]<30.0*sigma) and xi[i]<5.0 :
+            # Define our region dependent approximations of the CPandel function
+            _pdf = sp.hyp1f1(0.5*xi[i],0.5,0.5*eta[i]**2)/sp.gamma(0.5*(xi[i] + 1.))
+            _pdf -= np.sqrt(2.)*eta[i]*sp.hyp1f1(0.5*(xi[i]+1.),1.5,0.5*eta[i]**2)/sp.gamma(0.5*xi[i]) 
+            _pdf *= (rho**xi[i])*(sigma**(xi[i] - 1.))*np.exp(-(t**2)/(2.*sigma**2))
+            _pdf /= 2.**((1.+xi[i])/2.)
+            pdf.append(_pdf)
+
+        if xi[i] <= 1. and t[i] > 30.*sigma :
+            _pdf = np.exp((rho**2)*(sigma**2)/2.)
+            _pdf *= (rho**xi[i])*(t[i]**(xi[i]-1.))*np.exp(-rho*t[i])
+            _pdf /= sp.gamma(xi[i])
+            pdf.append(_pdf)
+
+        if xi[i]>1.0 and t[i]>(rho*(sigma**2.0)) :
+            z = max(0.0,-eta[i]/np.sqrt(4*xi[i] - 2.))
+            k = 0.5*(z*np.sqrt(1. + z**2) + np.log(z + np.sqrt(1. + z**2)))
+            beta = 0.5*((z/np.sqrt(1. + z**2)) - 1.)
+            N1 = (beta/12.)*(20*beta**2 + 30*beta + 9.)
+            N2 = ((beta**2)/(288.))*(6160*beta**4.0 + 18480*beta**3.0 + 19404*beta**2.0 + 8028*beta + 945.)
+            phi = 1. - N1/(2.*xi[i] - 1.) + N2/((2.*xi[i] - 1.)**2)
+            alpha = -t[i]**2/(2*sigma**2) + 0.25*eta[i]**2 - xi[i]*0.5 + 0.25 + k*(2*xi[i] - 1.) - 0.25*np.log(1 + z**2) - 0.5*xi[i]*np.log(2) + 0.5*(xi[i] - 1.)*np.log(2*xi[i] - 1.) + xi[i]*np.log(rho) + (xi[i] - 1.)*np.log(sigma)
+            _pdf = np.exp(alpha)*phi/sp.gamma(xi[i])
+            pdf.append(_pdf)
+
+        if xi[i]>1.0 and t[i]<=(rho*(sigma**2.0)) :
+            z = max(0.0,eta[i]/np.sqrt(4*xi[i]-2.))
+            k = 0.5*(z*np.sqrt(1. + z**2) + np.log(z + np.sqrt(1. + z**2)))
+            beta = 0.5*((z/(np.sqrt(1. + z**2)) - 1.))
+            N1 = (beta/12.)*(20*beta**2 + 30*beta + 9.)
+            N2 = ((beta**2)/(288.))*(6160*beta**4 + 18480*beta**3 + 19404*beta**2 + 8028*beta + 945.)
+            psi = 1. + N1/(2*xi - 1.) + N2/((2*xi - 1.)**2)
+            pdf = (rho**xi[i])*(sigma**(xi[i]-1.))*np.exp(0.25*(eta[i]**2.0)-(t**2)/(2*sigma**2))
+            pdf /= np.log(2.0*np.pi)
+            U = np.exp(0.5*xi[i] - 0.25)*((2*xi[i] - 1.)**(-0.5*xi[i]))*(2.**(0.5*(xi[i] - 1.)))
+            _pdf *= U
+            _pdf *= np.exp(-k*(2*x[i]i-1.))
+            _pdf *= (1. + z**2)**(-0.25)
+            _pdf *= psi
+            pdf.append(_pdf)
+
+        if xi[i]<=1. and t[i]<=(rho*(sigma**2.0)) :
+            _pdf = (rho*sigma)**xi[i]
+            _pdf *= eta[i]**(-xi[i])
+            _pdf *= np.exp(-t[i]**2.0/(2.0*sigma**2.0))
+            _pdf /= np.sqrt(2.*np.pi*sigma**2.0)
+            pdf.append(_pdf) 
+
+    return pdf
+
 # -log(CPandel) so that the result can be a sum instead of a product. Multiple cases are used as approximations are needed for different domains of t-d. #
 # This region restriction has made the python implementation more complicated in the goals of keeping it pythonic (and hence fast-ish). In particular,   #
 # this function builds other functions that are the possible cases, then finds which elements of the numpy arrays satisfy those particular conditionals  #

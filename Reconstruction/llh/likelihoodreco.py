@@ -9,7 +9,7 @@ from icecube import icetray, dataclasses, dataio, simclasses
 from icecube.icetray import I3Units, I3Frame  
 from icecube.dataclasses import I3Particle 
 import numpy as np                 
-from Reconstruction.llh.reco_pdfs import log_cpandel as pdf               # This module is used to store the pdf
+from Reconstruction.llh.reco_pdfs import cpandel as pdf               # This module is used to store the pdf
 from scipy import special as sp                        # For the Gamma function 
 import sys
 from iminuit import Minuit
@@ -126,9 +126,13 @@ def LikelihoodFunctor(self,data,domsUsed,vertexrad,prnt = False):
         vx = vertexRad*np.sin(vtheta)*np.cos(vphi)
         vy = vertexRad*np.sin(vtheta)*np.sin(vphi)
         vz = vertexRad*np.cos(vtheta)
-        charge_out = nLogLikelihood(pmt,charge,vx,vy,vz,theta,phi)
+        p_charge = nLogLikelihood(pmt,charge,vx,vy,vz,theta,phi)
         out = pdf(t,d)
-        return np.sum(out) + charge_out
+        dark = 1./10000.
+        sum_nloglike = 0.0
+        for i in len(out) :
+            sum_nloglike -= charge[i]*np.log(out[i]*p_charge[i]+dark)
+        return sum_nloglike
 
     return likelihoodFunction
 
