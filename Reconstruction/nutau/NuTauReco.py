@@ -225,7 +225,6 @@ class nutaureco(icetray.I3ConditionalModule):
                             error_br=1.0,
                             limit_br=(0.0,1.0),
                             errordef=0.5,
-                            print_level=3
                            )
 
         minimizer.fixed["dt"]=True
