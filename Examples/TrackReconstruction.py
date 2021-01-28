@@ -66,24 +66,24 @@ tray.AddModule(SignificantHitPulseCleaning,"SignificantHit",
               window = 1000
               )
 
-#tray.AddModule(LineFitReco, "LineFit",
-#              GCDFile=gcd_file, 
-#              inputseries = "SignificanHits",
-#              output = "linefit"
-#              )
-
-#tray.AddModule(likelihoodreco,"likelihoodreco",
-#               GCDFile = gcd_file,                               
-#               pulseseries = "SignificanHits",
-#               seedtrack = "linefit",
-#               output = "llhfit"
-#              ) 
-
-tray.AddModule(nutaureco,"NuTauReconstructin",
-              GCDFile = gcd_file, 
-              pulseseries = "SignificanHits",
-              output = "NuTau_"
+tray.AddModule(LineFitReco, "LineFit",
+              GCDFile=gcd_file, 
+              inputseries = "SignificanHits",
+              output = "linefit"
               )
+
+tray.AddModule(likelihoodreco,"likelihoodreco",
+               GCDFile = gcd_file,                               
+               pulseseries = "SignificanHits",
+               seedtrack = "linefit",
+               output = "llhfit"
+              ) 
+
+#tray.AddModule(nutaureco,"NuTauReconstructin",
+#              GCDFile = gcd_file, 
+#              pulseseries = "SignificanHits",
+#              output = "NuTau_"
+#              )
 
 
 tray.AddModule("I3Writer","writer",

@@ -120,13 +120,9 @@ def HitProb(vert_x,vert_y,vert_z,theta,phi,dom_x,dom_y,dom_z) :
   return GetDOMEff(impact_theta)/d_phot
 
 def Likelihood(pmt,charge,vert_x,vert_y,vert_z,theta,phi) :
-  dom_x = pmt[:,0] 
-  dom_y = pmt[:,1] 
-  dom_z = pmt[:,2] 
-
   prob = []
-  for i in range(len(dom_x)) : 
-       prob.append(HitProb(vert_x,vert_y,vert_z,theta,phi,dom_x[i],dom_y[i],dom_z[i]))
+  for i in range(len(pmt)) : 
+       prob.append(HitProb(vert_x,vert_y,vert_z,theta,phi,pmt[i][0],pmt[i][1],pmt[i][2]))
   return prob
 
 #Charge probability

@@ -18,7 +18,7 @@ import math as m
 from Reconstruction.llh.ChargeLikelihood import Likelihood
 
 # Functional that is fed data from InitialGuess for PMT locations and the PDF we wish to use. Uses those locations to build a Pandel Function for a given track
-def LikelihoodFunctor(self,data,domsUsed,vertexrad,prnt = False):
+def LikelihoodFunctor(data,domsUsed,vertexrad):
     # turn PMT locations and time hits into numpy arrays for easier numpy algebra
     pulse_series = data
     geo_doms = domsUsed
@@ -52,71 +52,42 @@ def LikelihoodFunctor(self,data,domsUsed,vertexrad,prnt = False):
         vx = vertexRad*np.cos(vphi)*np.sin(vtheta)
         vy = vertexRad*np.sin(vphi)*np.sin(vtheta)
         vz = vertexRad*np.cos(vtheta)
-        x = pmt[:,0] - vx
-        y = pmt[:,1] - vy
-        z = pmt[:,2] - vz
-        # Compute (\vec{r} - vec{x}) dot \vec{v}
-        v = np.array([np.sin(theta)*np.cos(phi),np.sin(theta)*np.sin(phi),np.cos(theta)])
-        dotprod = x*v[0] + y*v[1] + z*v[2]
-        # Compute the final vector components
-        x = x - dotprod*v[0]
-        y = y - dotprod*v[1]
-        z = z - dotprod*v[2]
-        # Compute t_i,c and d_i,c
-        dc = np.sqrt(x*x + y*y + z*z)
-        tc = dotprod/c
+        v =np.array([np.sin(vtheta)*np.cos(vphi),np.sin(vtheta)*np.sin(vphi),np.cos(vtheta)])
+        dc = []
+        tc = []
+
+        for dom in pulse_series.keys() :                                              
+          for pulse in pulse_series[dom] :
+            x = geo_doms[dom].position.x - vx
+            y = geo_doms[dom].position.y - vy
+            z = geo_doms[dom].position.z - vz
+            # Compute (\vec{r} - vec{x}) dot \vec{v}
+            dotprod = x*v[0] + y*v[1] + z*v[2]
+            # Compute the final vector components
+            x = x - dotprod*v[0]
+            y = y - dotprod*v[1]
+            z = z - dotprod*v[2]
+            # Compute t_i,c and d_i,c
+            dc.append(np.sqrt(x*x + y*y + z*z))
+            tc.append(dotprod/c)
         return dc, tc
-
-    def GetVertexTime(vtheta,vphi) :                                      
-        x = pmt[:,0]                                                                  
-        y = pmt[:,1]                                                                  
-        z = pmt[:,2]                                                                  
-                                                                                 
-        mean_t = 0.0                                                                  
-        mean_x = 0.0                                                                  
-        mean_y = 0.0                                                                  
-        mean_z = 0.0                                                                  
-        sum_charge = 0.0;                                                             
-                                                                                  
-        for i in range(len(time)):                                                    
-            mean_t = mean_t + charge[i]*time[i]                                         
-            mean_x = mean_x + charge[i]*x[i]                                            
-            mean_y = mean_y + charge[i]*y[i]                                            
-            mean_z = mean_z + charge[i]*z[i]                                            
-            sum_charge = sum_charge + charge[i]                                         
-                                                                                         
-            mean_t = mean_t/sum_charge                                                    
-            mean_x = mean_x/sum_charge                                                    
-            mean_y = mean_y/sum_charge                                                    
-            mean_z = mean_z/sum_charge                                                    
-                            
-            vx = vertexRad*np.cos(vphi)*np.sin(vtheta)                                
-            vy = vertexRad*np.sin(vphi)*np.sin(vtheta)                                
-            vz = vertexRad*np.cos(vtheta)  
-
-        dist_phot = 0.0                                                               
-                                                                                         
-        for i in range(len(time)):                                                    
-            dist_phot = dist_phot + charge[i]*np.sqrt((mean_x-x[i])**2.0+(mean_y-y[i])**2.0+(mean_z-z[i])**2.0)                                                          
-        dist_phot = dist_phot/sum_charge                                              
-                                                                                          
-        dist = np.sqrt((vx-mean_x)**2.0+(vy-mean_y)**2.0+(vz-mean_z)**2.0)            
-        vertextime = mean_t - dist/0.3 - dist_phot/(0.3/1.35)                         
-        return vertextime 
         
     # Given the linefit and other parameters 
     def computeResiduals(dc, tc, t0):
-        # Now we find the time of the photon emission
-        tc = tc - dc/(np.tan(theta_c)*c)
-        # The first component of the geometric time
-        d = dc/np.sin(theta_c) 
-        t_geo = d/c_n
-        # Apply our offset time to find the "true" closest approach time array. Multiply by 1E9 to change to nanoseconds
-        tc = tc + t0
-        # The total geometric time
-        t_geo = t_geo + tc 
+        t = []
+        d = []
+        for i in range(len(dc)) :
+          # Now we find the time of the photon emission
+          _tc = tc[i] - dc[i]/(np.tan(theta_c)*c)
+          # The first component of the geometric time
+          d.append(dc[i]/np.sin(theta_c)) 
+          t_geo = d[-1]/c_n
+          # Apply our offset time to find the "true" closest approach time array. Multiply by 1E9 to change to nanoseconds
+          _tc += t0
+          # The total geometric time
+          t_geo = t_geo + _tc 
         # Residual time is now the difference between the geometric time and the observed time. This won't work with just the Pandel Function
-        t = time - t_geo
+          t.append(time[i] - t_geo)
         return d, t
 
     # uses the prior defined functions to build a likelihood function that when given a track (linefit) will produce a negative loglikelihood value
@@ -130,11 +101,49 @@ def LikelihoodFunctor(self,data,domsUsed,vertexrad,prnt = False):
         out = pdf(t,d)
         dark = 1./10000.
         sum_nloglike = 0.0
-        for i in len(out) :
+        for i in range(len(out)) :
             sum_nloglike -= charge[i]*np.log(out[i]*p_charge[i]+dark)
         return sum_nloglike
 
     return likelihoodFunction
+
+def GetVertexTime(vtheta,vphi,pulse_series,geo_doms,vertexrad):                                 
+  # turn PMT locations and time hits into numpy arrays for easier numpy
+  # algebra
+
+  mean_t = 0.0                                                            
+  mean_x = 0.0                                                            
+  mean_y = 0.0                                                            
+  mean_z = 0.0                                                            
+  sum_charge = 0.0;
+                                                                                                                        
+  for dom in pulse_series.keys() :                                            
+    for pulse in pulse_series[dom] :                                                                          
+      mean_t = mean_t + pulse.charge*pulse.time                                 
+      mean_x = mean_x + pulse.charge*geo_doms[dom].position.x                                    
+      mean_y = mean_y + pulse.charge*geo_doms[dom].position.y                
+      mean_z = mean_z + pulse.charge*geo_doms[dom].position.z                
+      sum_charge = sum_charge+pulse.charge                                 
+
+  mean_t = mean_t/sum_charge                                          
+  mean_x = mean_x/sum_charge                                          
+  mean_y = mean_y/sum_charge                                          
+  mean_z = mean_z/sum_charge                                          
+
+  vx = vertexrad*np.cos(vphi)*np.sin(vtheta)
+  vy = vertexrad*np.sin(vphi)*np.sin(vtheta)                          
+  vz = vertexrad*np.cos(vtheta)                                       
+
+  dist_phot = 0.0
+
+  for dom in pulse_series.keys() :                                              
+    for pulse in pulse_series[dom] :
+      dist_phot += pulse.charge*np.sqrt((mean_x-geo_doms[dom].position.x)**2.0+(mean_y-geo_doms[dom].position.y)**2.0+(mean_z-geo_doms[dom].position.z)**2.0)
+
+  dist_phot = dist_phot/sum_charge                                      
+  dist = np.sqrt((vx-mean_x)**2.0+(vy-mean_y)**2.0+(vz-mean_z)**2.0)      
+  vertextime = mean_t - dist/0.3- dist_phot/(0.3/1.35)                   
+  return vertextime 
 
 class likelihoodreco(icetray.I3ConditionalModule):
 
@@ -162,8 +171,8 @@ class likelihoodreco(icetray.I3ConditionalModule):
         # Some quantities that are environment dependent
         self.c = 0.299792458                                 # speed of light 
         self.n = 1.34                                        # 1.33 is the refractive index of water at 20 degrees C
-        self.c_n = c/n                                       # light in water
-        self.theta_c = np.arccos(1./n)                       # Cherenkov angle in water in radians
+        self.c_n = self.c/self.n                                       # light in water
+        self.theta_c = np.arccos(1./self.n)                       # Cherenkov angle in water in radians
         self.lambda_s = 120.                                 # scattering length of light for violet light
         self.lambda_a = 15.                                  # absorption length of light for violet light
         self.tau = 557                                       # time parameter that has to be fit using simulations or data      
@@ -182,7 +191,7 @@ class likelihoodreco(icetray.I3ConditionalModule):
         VPhi = 0.0
         if np.sin(VTheta) != 0.0 :
             VPhi = np.arccos(linefit.pos.x/(vr*np.sin(VTheta)))   
-        T0 = qFunctor.GetVertexTime(VTheta,VPhi)
+        T0 = GetVertexTime(VTheta,VPhi,data,self.domsUsed,self.vertexRad)
           
         minimizer = Minuit(qFunctor, 
                         t0=T0,
@@ -226,12 +235,12 @@ class likelihoodreco(icetray.I3ConditionalModule):
             recoParticle.fit_status = dataclasses.I3Particle.InsufficientQuality
                                             
         recoParticle.dir = u
-        recoParticle.speed = c
+        recoParticle.speed = self.c
         recoParticle.pos = q
         recoParticle.time = 0
             
         # include both linefit and improved recos for comparison
         frame[self.output] = recoParticle  
-        frame[self.output+"_nloglike"] =  minimizer.fval
-        self.push_frame(frame)    
+        frame[self.output+"_nloglike"] =  dataclasses.I3Double(minimizer.fval)
+        self.PushFrame(frame)    
 

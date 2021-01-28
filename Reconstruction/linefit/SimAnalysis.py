@@ -58,7 +58,7 @@ class LineFitReco(icetray.I3ConditionalModule):
         if frame.Stop != I3Frame.DAQ:
             return False
         geoMap = self.geometry.omgeo
-        mcpeMap = frame["MCPESeriesMap"]
+        mcpeMap = frame[self.input]
     
         domCount = 0
         for dom in self.domsUsed:

@@ -35,68 +35,67 @@ def pandel(t, d, lambda_a = 15., lambda_s = 120., tau = 557E-9):
     return (1./N)*frac*exp
 
 # CPandel function. This only works on a constrained subset of the t-d plane, namely for direct hits (time is in ns) #lambda_s = 33.3 (default)
-def cpandel(t, d, sigma = 10., lambda_s = 120., rho = 0.004):
-    xi = d/(lambda_s*np.sin(theta_c))
-    eta = rho*sigma - (t/sigma)
-    frac = (np.power(rho,xi)*np.power(sigma,xi-1.)*np.exp(-(t**2)/(2.*sigma**2)))/(np.power(2.,(1. + xi)/2.))
-    frac_1 = sp.hyp1f1(0.5*xi,0.5,0.5*eta**2)/sp.gamma(0.5*(xi + 1.))
-    frac_2 = sp.hyp1f1(0.5*(xi+1),1.5,0.5*eta**2)/sp.gamma(0.5*xi)
-    return frac*(frac_1 - np.sqrt(2.)*eta*frac_2)
+#def cpandel(t, d, sigma = 10., lambda_s = 120., rho = 0.004):
+#    xi = d/(lambda_s*np.sin(theta_c))
+#    eta = rho*sigma - (t/sigma)
+#    frac = (np.power(rho,xi)*np.power(sigma,xi-1.)*np.exp(-(t**2)/(2.*sigma**2)))/(np.power(2.,(1. + xi)/2.))
+#    frac_1 = sp.hyp1f1(0.5*xi,0.5,0.5*eta**2)/sp.gamma(0.5*(xi + 1.))
+#    frac_2 = sp.hyp1f1(0.5*(xi+1),1.5,0.5*eta**2)/sp.gamma(0.5*xi)
+#    return frac*(frac_1 - np.sqrt(2.)*eta*frac_2)
 
 def cpandel(t, d, sigma = 2.0, lambda_s = 120., rho = 0.004):
-    xi = dist/lambda_s
-    eta = rho*sigma - (time/sigma)   
 
     pdf = []
-    for i in len(t) :
-       
+    for i in range(len(t)) :
+        xi = d[i]/lambda_s                                                             
+        eta = rho*sigma - (t[i]/sigma)
         if t[i]<-25.*sigma or t[i]>3500. :
             pdf.append(0.0)
 
-        if (t[i]>-5.0*sigma and t[i]<30.0*sigma) and xi[i]<5.0 :
+        elif (t[i]>-5.0*sigma and t[i]<30.0*sigma) and xi<5.0 :
             # Define our region dependent approximations of the CPandel function
-            _pdf = sp.hyp1f1(0.5*xi[i],0.5,0.5*eta[i]**2)/sp.gamma(0.5*(xi[i] + 1.))
-            _pdf -= np.sqrt(2.)*eta[i]*sp.hyp1f1(0.5*(xi[i]+1.),1.5,0.5*eta[i]**2)/sp.gamma(0.5*xi[i]) 
-            _pdf *= (rho**xi[i])*(sigma**(xi[i] - 1.))*np.exp(-(t**2)/(2.*sigma**2))
-            _pdf /= 2.**((1.+xi[i])/2.)
+            _pdf = sp.hyp1f1(0.5*xi,0.5,0.5*eta**2)/sp.gamma(0.5*(xi + 1.))
+            _pdf -= np.sqrt(2.)*eta*sp.hyp1f1(0.5*(xi+1.),1.5,0.5*eta**2)/sp.gamma(0.5*xi) 
+            _pdf *= (rho**xi)*(sigma**(xi - 1.))*np.exp(-(t[i]**2)/(2.*sigma**2))
+            _pdf /= 2.**((1.+xi)/2.)
             pdf.append(_pdf)
 
-        if xi[i] <= 1. and t[i] > 30.*sigma :
+        elif xi <= 1. and t[i] > 30.*sigma :
             _pdf = np.exp((rho**2)*(sigma**2)/2.)
-            _pdf *= (rho**xi[i])*(t[i]**(xi[i]-1.))*np.exp(-rho*t[i])
-            _pdf /= sp.gamma(xi[i])
+            _pdf *= (rho**xi)*(t[i]**(xi-1.))*np.exp(-rho*t[i])
+            _pdf /= sp.gamma(xi)
             pdf.append(_pdf)
 
-        if xi[i]>1.0 and t[i]>(rho*(sigma**2.0)) :
-            z = max(0.0,-eta[i]/np.sqrt(4*xi[i] - 2.))
+        elif xi>1.0 and t[i]>(rho*(sigma**2.0)) :
+            z = max(0.0,-eta/np.sqrt(4*xi - 2.))
             k = 0.5*(z*np.sqrt(1. + z**2) + np.log(z + np.sqrt(1. + z**2)))
             beta = 0.5*((z/np.sqrt(1. + z**2)) - 1.)
             N1 = (beta/12.)*(20*beta**2 + 30*beta + 9.)
             N2 = ((beta**2)/(288.))*(6160*beta**4.0 + 18480*beta**3.0 + 19404*beta**2.0 + 8028*beta + 945.)
-            phi = 1. - N1/(2.*xi[i] - 1.) + N2/((2.*xi[i] - 1.)**2)
-            alpha = -t[i]**2/(2*sigma**2) + 0.25*eta[i]**2 - xi[i]*0.5 + 0.25 + k*(2*xi[i] - 1.) - 0.25*np.log(1 + z**2) - 0.5*xi[i]*np.log(2) + 0.5*(xi[i] - 1.)*np.log(2*xi[i] - 1.) + xi[i]*np.log(rho) + (xi[i] - 1.)*np.log(sigma)
-            _pdf = np.exp(alpha)*phi/sp.gamma(xi[i])
+            phi = 1. - N1/(2.*xi - 1.) + N2/((2.*xi - 1.)**2)
+            alpha = -t[i]**2/(2*sigma**2) + 0.25*eta**2 - xi*0.5 + 0.25 + k*(2*xi - 1.) - 0.25*np.log(1 + z**2) - 0.5*xi*np.log(2) + 0.5*(xi-1.)*np.log(2*xi-1.) + xi*np.log(rho) + (xi-1.)*np.log(sigma)
+            _pdf = np.exp(alpha)*phi/sp.gamma(xi)
             pdf.append(_pdf)
 
-        if xi[i]>1.0 and t[i]<=(rho*(sigma**2.0)) :
-            z = max(0.0,eta[i]/np.sqrt(4*xi[i]-2.))
+        elif xi>1.0 and t[i]<=(rho*(sigma**2.0)) :
+            z = max(0.0,eta/np.sqrt(4*xi-2.))
             k = 0.5*(z*np.sqrt(1. + z**2) + np.log(z + np.sqrt(1. + z**2)))
             beta = 0.5*((z/(np.sqrt(1. + z**2)) - 1.))
             N1 = (beta/12.)*(20*beta**2 + 30*beta + 9.)
             N2 = ((beta**2)/(288.))*(6160*beta**4 + 18480*beta**3 + 19404*beta**2 + 8028*beta + 945.)
             psi = 1. + N1/(2*xi - 1.) + N2/((2*xi - 1.)**2)
-            pdf = (rho**xi[i])*(sigma**(xi[i]-1.))*np.exp(0.25*(eta[i]**2.0)-(t**2)/(2*sigma**2))
-            pdf /= np.log(2.0*np.pi)
-            U = np.exp(0.5*xi[i] - 0.25)*((2*xi[i] - 1.)**(-0.5*xi[i]))*(2.**(0.5*(xi[i] - 1.)))
-            _pdf *= U
-            _pdf *= np.exp(-k*(2*xi[i]-1.))
+            _pdf = (rho**xi)*(sigma**(xi-1.))*np.exp(0.25*(eta**2.0)-(t[i]**2)/(2*sigma**2))
+            _pdf /= np.log(2.0*np.pi)
+            U = np.exp(0.5*xi - 0.25)*((2*xi - 1.)**(-0.5*xi))*(2.**(0.5*(xi - 1.)))
+            _pdf += U
+            _pdf *= np.exp(-k*(2*xi-1.))
             _pdf *= (1. + z**2)**(-0.25)
             _pdf *= psi
             pdf.append(_pdf)
 
-        if xi[i]<=1. and t[i]<=(rho*(sigma**2.0)) :
-            _pdf = (rho*sigma)**xi[i]
-            _pdf *= eta[i]**(-xi[i])
+        elif xi<=1. and t[i]<=(rho*(sigma**2.0)) :
+            _pdf = (rho*sigma)**xi
+            _pdf *= eta**(-xi)
             _pdf *= np.exp(-t[i]**2.0/(2.0*sigma**2.0))
             _pdf /= np.sqrt(2.*np.pi*sigma**2.0)
             pdf.append(_pdf) 
