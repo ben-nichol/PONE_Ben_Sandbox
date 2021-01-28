@@ -31,6 +31,10 @@ args = parser.parse_args()
 photon_series = "I3Photons"
 tray = I3Tray()
 
+files_dir = args.infile
+file_list_aux = os.listdir(files_dir)
+file_list = [x for x in file_list_aux if ( '.i3.gz' in x)]
+
 #from globals import max_num_files_per_dataset
 randomService = phys_services.I3SPRNGRandomService(
                                                    seed = 1234567,
@@ -41,7 +45,7 @@ randomService = phys_services.I3SPRNGRandomService(
 tray.context['I3RandomService'] = randomService
 
 tray.AddModule('I3Reader', 'reader',
-            FilenameList = [args.gcdfile, args.infile]
+            FilenameList = [args.gcdfile, args.infile+file_list[args.runnumber]]
             )
 
 gcd_file = dataio.I3File(args.gcdfile)
