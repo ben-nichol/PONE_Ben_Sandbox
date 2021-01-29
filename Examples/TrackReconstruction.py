@@ -71,27 +71,24 @@ tray.AddModule(SignificantHitPulseCleaning,"SignificantHit",
               )
 
 tray.AddModule(LineFitReco, "LineFit",
-              GCDFile=gcd_file, 
               inputseries = "SignificanHits",
               output = "linefit"
               )
 
 tray.AddModule(likelihoodreco,"likelihoodreco",
-               GCDFile = gcd_file,                               
                pulseseries = "SignificanHits",
                seedtrack = "linefit",
                output = "llhfit"
               ) 
 
-#tray.AddModule(nutaureco,"NuTauReconstructin",
-#              GCDFile = gcd_file, 
-#              pulseseries = "SignificanHits",
-#              output = "NuTau_"
-#              )
+tray.AddModule(nutaureco,"NuTauReconstructin",
+              pulseseries = "SignificanHits",
+              output = "NuTau"
+              )
 
 
 tray.AddModule("I3Writer","writer",
-               Filename = args.outfile,
+               Filename = args.outfile+"/NuTauFit_"+file_list[args.runnumber],
                Streams = [icetray.I3Frame.DAQ, icetray.I3Frame.Physics, icetray.I3Frame.TrayInfo],
               )
 

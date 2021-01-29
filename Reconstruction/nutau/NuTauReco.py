@@ -134,7 +134,6 @@ class nutaureco(icetray.I3ConditionalModule):
     def __init__(self, context):
         icetray.I3ConditionalModule.__init__(self, context)
 
-        self.AddParameter("GCDFile","GCD file.")
         self.AddParameter("pulseseries","Name of the Merged MCPE tree name","MergedSeriesMap")
         self.AddParameter("output","Track to store fit.","taufit")
 
@@ -144,9 +143,6 @@ class nutaureco(icetray.I3ConditionalModule):
 
         self.pulseseries = self.GetParameter("pulseseries")
         self.output = self.GetParameter("output")
-        self.gcdfile = self.GetParameter("GCDFile")
-        self.geometry = self.gcdfile.pop_frame()["I3Geometry"]
-        self.domsUsed = self.geometry.omgeo   
 
         self.c = 0.299792458                                 # speed of light 
         self.n = 1.34                                        # 1.33 is the refractive index of water at 20 degrees C
@@ -161,7 +157,7 @@ class nutaureco(icetray.I3ConditionalModule):
         
 
         data = frame[self.pulseseries]
-
+        domsUsed = frame['I3Geometry'].omgeo
         sumcharge = 0.0
 
         T0 = 0.0
@@ -173,9 +169,9 @@ class nutaureco(icetray.I3ConditionalModule):
         
         for dom in data.keys() :
 
-            pmt_x = self.domsUsed[dom].position.x
-            pmt_y = self.domsUsed[dom].position.y
-            pmt_z = self.domsUsed[dom].position.z
+            pmt_x = domsUsed[dom].position.x
+            pmt_y = domsUsed[dom].position.y
+            pmt_z = domsUsed[dom].position.z
 
             for pulse in data[dom] :
                     pulsecount += 1
@@ -198,7 +194,7 @@ class nutaureco(icetray.I3ConditionalModule):
         Dphi = 0.0
         Br = 1.0
 
-        qFunctor = LikelihoodFunctor(data,self.domsUsed)   
+        qFunctor = LikelihoodFunctor(data,domsUsed)   
           
         minimizer = Minuit(qFunctor, 
                             t0=T0,

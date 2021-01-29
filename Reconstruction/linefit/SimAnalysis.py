@@ -18,7 +18,6 @@ class LineFitReco(icetray.I3ConditionalModule):
 
     def __init__(self, context):
         icetray.I3ConditionalModule.__init__(self, context)
-        self.AddParameter("GCDFile","GCD to be simulated")
         self.AddParameter("inputseries","Input pulse series","MCPESeriesMap")
         self.AddParameter("output","Output track name.","linefit")
         self.AddParameter("hitThresh","Threshold for number of pulses in DOM",1)
@@ -28,14 +27,10 @@ class LineFitReco(icetray.I3ConditionalModule):
 
     def Configure(self):
 
-        self.gcdFile = self.GetParameter("GCDFile")
         self.hitThresh = self.GetParameter("hitThresh")
         self.domThresh = self.GetParameter("domThresh")
         self.input = self.GetParameter("inputseries")
         self.output = self.GetParameter("output")
-        self.geometry = self.gcdFile.pop_frame()["I3Geometry"]
-        self.domsUsed = self.geometry.omgeo.keys()
-        
 
     # A function that determines whether a frame passes the cut or not. The
     # function checks whether a threshold number of DOMs passed given a 
@@ -57,11 +52,11 @@ class LineFitReco(icetray.I3ConditionalModule):
     def passFrame(self,frame):
         if frame.Stop != I3Frame.DAQ:
             return False
-        geoMap = self.geometry.omgeo
+        geoMap = frame['I3Geometry'].omgeo 
         mcpeMap = frame[self.input]
     
         domCount = 0
-        for dom in self.domsUsed:
+        for dom in geoMap.keys():
             position = geoMap[dom].position
             if dom not in mcpeMap:
                 continue
@@ -95,7 +90,7 @@ class LineFitReco(icetray.I3ConditionalModule):
         if not frame.Has(self.input):
             raise ValueError("Frame does not contain " + self.input)
         mcpeMap = frame[self.input]
-        geoMap = self.geometry.omgeo
+        geoMap = frame['I3Geometry'].omgeo 
         data = []
         for omkey, mcpeList in mcpeMap:
             timeList = [mcpe.time for mcpe in mcpeList]
@@ -150,6 +145,7 @@ class LineFitReco(icetray.I3ConditionalModule):
     # of an I3Direction object for the particle's direction, a double for the particle's
     # speed, and an I3Position object for the particle vertex (position at t=0)  
     def DAQ(self,frame):
+
       if not self.passFrame(frame) :
         return
       datapoints = self.getLinefitDataPoints(frame)

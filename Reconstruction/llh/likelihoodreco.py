@@ -150,7 +150,6 @@ class likelihoodreco(icetray.I3ConditionalModule):
     def __init__(self, context):
         icetray.I3ConditionalModule.__init__(self, context)
 
-        self.AddParameter("GCDFile","GCD file.")
         self.AddParameter("pulseseries","Name of the Merged MCPE tree name","MergedSeriesMap")
         self.AddParameter("seedtrack","Track to seed fit","linefit")
         self.AddParameter("output","Track to store fit.","llnfit")
@@ -163,9 +162,6 @@ class likelihoodreco(icetray.I3ConditionalModule):
         self.pulseseries = self.GetParameter("pulseseries")
         self.seedtrack = self.GetParameter("seedtrack")
         self.output = self.GetParameter("output")
-        self.gcdfile = self.GetParameter("GCDFile")
-        self.geometry = self.gcdfile.pop_frame()["I3Geometry"]
-        self.domsUsed = self.geometry.omgeo
         self.vertexRad = self.GetParameter("vertexRad")
 
         # Some quantities that are environment dependent
@@ -184,14 +180,16 @@ class likelihoodreco(icetray.I3ConditionalModule):
         # Clean the data to get rid of repeated events
         #data = clean_data(data)
         linefit = frame[self.seedtrack]
-          
-        qFunctor = LikelihoodFunctor(data,self.domsUsed,self.vertexRad) 
+        domsUsed = frame['I3Geometry'].omgeo 
+
+        qFunctor = LikelihoodFunctor(data,domsUsed,self.vertexRad) 
         vr = np.sqrt(linefit.pos.x**2.+linefit.pos.y**2.0+linefit.pos.z**2.0)
         VTheta = np.arccos(linefit.pos.z/vr)
         VPhi = 0.0
         if np.sin(VTheta) != 0.0 :
-            VPhi = np.arccos(linefit.pos.x/(vr*np.sin(VTheta)))   
-        T0 = GetVertexTime(VTheta,VPhi,data,self.domsUsed,self.vertexRad)
+            #VPhi = np.arccos(linefit.pos.x/(vr*np.sin(VTheta)))
+            VPhi = np.arctan2(linefit.pos.y,linefit.pos.x)
+        T0 = GetVertexTime(VTheta,VPhi,data,domsUsed,self.vertexRad)
           
         minimizer = Minuit(qFunctor, 
                         t0=T0,
