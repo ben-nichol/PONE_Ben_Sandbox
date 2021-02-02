@@ -25,7 +25,6 @@ class PhotonBomb(icetray.I3ConditionalModule):
                           "Time (within each event) at which to flash",
                           500.*I3Units.ns)
         self.AddParameter("RandomService","Random Service")
-        self.AddParameter("Position","Position of photon bomb")
         self.AddParameter("Radius","Radius for simulation",200.)
        
         self.AddOutBox("OutBox")
@@ -35,7 +34,6 @@ class PhotonBomb(icetray.I3ConditionalModule):
         self.photonsPerPulse = self.GetParameter("PhotonsPerPulse")
         self.flashTime = self.GetParameter("FlashTime")
         self.randomService = self.GetParameter("RandomService")
-        self.position = self.GetParameter("Position")
         self.numPulses = self.GetParameter("NumPulses")
         self.radius = self.GetParameter("Radius")
 
@@ -43,17 +41,18 @@ class PhotonBomb(icetray.I3ConditionalModule):
         outputSeries = I3CLSimFlasherPulseSeries()
 
         numPhotons = self.photonsPerPulse
+        bomb_position = dataclasses.I3Position(self.radius*np.cos(phi)*np.sin(theta)*I3Units.m,
+                                               self.radius*np.sin(phi)*np.sin(theta)*I3Units.m,
+                                               self.radius*np.cos(theta)*I3Units.m)
 
         for i in range(self.numPulses) :
             newPulse = I3CLSimFlasherPulse()
             newPulse.type = I3CLSimFlasherPulse.FlasherPulseType.LED405nm
-            theta = random_service.uniform(0.,np.pi)
-            phi = random_service.uniform(0.,2.*np.pi)
-            newPulse.pos = dataclasses.I3Position(self.radius*np.cos(phi)*np.sin(theta)*I3Units.m, 
-                                                  self.radius*np.sin(phi)*np.sin(theta)*I3Units.m, 
-                                                  self.radius*np.cos(theta)*I3Units.m)
-            theta = random_service.uniform(0.,np.pi)
-            phi = random_service.uniform(0.,2.*np.pi)
+            theta = self.random_service.uniform(0.,np.pi)
+            phi = self.random_service.uniform(0.,2.*np.pi)
+            newPulse.pos = bomb_position
+            theta = self.random_service.uniform(0.,np.pi)
+            phi = self.random_service.uniform(0.,2.*np.pi)
             newPulse.dir = dataclasses.I3Direction(np.cos(phi)*np.sin(theta)*I3Units.m, 
                                                    np.sin(phi)*np.sin(theta)*I3Units.m, 
                                                    np.cos(theta)*I3Units.m)
@@ -73,5 +72,6 @@ class PhotonBomb(icetray.I3ConditionalModule):
             outputSeries.append(newPulse)
 
         frame[self.flasherPulseSeriesName] = outputSeries
+        frame[self.flasherPulseSeriesName+"_position"] = bomb_position
 
         self.PushFrame(frame)

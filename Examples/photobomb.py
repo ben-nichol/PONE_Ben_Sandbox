@@ -13,17 +13,18 @@ from Flasher.genPhotonBomb import PhotonBomb
 
 parser = argparse.ArgumentParser(description = "Takes I3Photons from step2 of the simulations and generates DOM hits")
 parser.add_argument("-o", "--outfile",default="./test_output.i3", help="Write output to OUTFILE (.i3{.gz} format)")
-parser.add_argument("-i", "--infile",default="./test_input.i3", help="Read input from INFILE (.i3{.gz} format)")
-parser.add_argument("-r", "--runnumber", type="string", default="1", dest="RUNNUMBER", help="The run/dataset number for this simulation, is used as seed for random generator")
-parser.add_argument("-l", "--filenr",type="string",default="1", help="File number, stream of I3SPRNGRandomService")
+parser.add_argument("-r", "--runnumber", type=int, default=1, help="The run/dataset number for this simulation, is used as seed for random generator")
+parser.add_argument("-l", "--filenr",type=int, default=1, help="File number, stream of I3SPRNGRandomService")
 parser.add_argument("-g", "--gcdfile",default=os.getenv('PONESRCDIR')+"/GCD/PONE_Phase1.i3.gz", help="Read in GCD file")
-parser.add_argument("-e","--efficiency", type="float",default=1.0,help="DOM Efficiency ... the same as UnshadowedFraction")
-parser.add_argument("-m","--icemodel", default="spice_3.2.1",help="Ice model (spice_mie, spice_lea, etc)")
-parser.add_argument("-c","--crossenergy", type="float",default=200.0,help="The cross energy where the hybrid clsim approach will be used")
+parser.add_argument("-e", "--efficiency", type=float,default=1.0,help="DOM Efficiency ... the same as UnshadowedFraction")
+parser.add_argument("-m", "--icemodel", default="spice_3.2.1",help="Ice model (spice_mie, spice_lea, etc)")
+parser.add_argument("-c", "--crossenergy", type=float,default=200.0,help="The cross energy where the hybrid clsim approach will be used")
 
 args = parser.parse_args()
 
 CPU=False
+
+outfile = args.outfile+"_"+str(args.runnumber)+".i3.gz"
 
 photon_series = "I3Photons"
 #print 'CUDA devices: ', options.DEVICE
@@ -41,19 +42,21 @@ tray.context['I3RandomService'] = randomService
 def BasicHitFilter(frame):
     hits = 0
     if frame.Has(photon_series):
-       hits = len(frame.Get(photon_series))
+       hits = len(frame[photon_series])
     if hits>0:
        return True
     else:
        return False
 
+outfile = ""
+if args.outfile[-1] == "/" :
+  outfile = args.outfile + "PhotonBomb_"+str(args.runnumber)+".i3.gz"
+else :
+  outfile = args.outfile + "/PhotonBomb_"+str(args.runnumber)+".i3.gz" 
 
-outfile = args.outfile
-infile = args.infile
-
-tray.AddModule('I3Reader', 'reader',
-            FilenameList = [args.gcdfile, infile]
-            )
+#tray.AddModule('I3Reader', 'reader',
+#            FilenameList = [args.gcdfile]
+#            )
 
 tray.AddModule("I3GeometryDecomposer", "I3ModuleGeoMap")
 
@@ -73,11 +76,12 @@ tray.AddModule("I3MCEventHeaderGenerator","gen_header",
 tray.AddModule(PhotonBomb, "customFlasher",
                FlasherPulseSeriesName = "PhotonBomb",
                PhotonsPerPulse = 1.e3,
+               RandomService = randomService
                )
 
 tray.AddSegment(clsim.I3CLSimMakePhotons, 'goCLSIM',
-                UseCPUs=CPU,
-                UseGPUs=True,
+                #UseCPUs=CPU,
+                #UseGPUs=True,
                 #UseOnlyDeviceNumber=[1],
                 #OpenCLDeviceList=[0],
                 #MCTreeName="I3MCTree",
@@ -86,12 +90,12 @@ tray.AddSegment(clsim.I3CLSimMakePhotons, 'goCLSIM',
                 FlasherPulseSeriesName="PhotonBomb",
                 #MMCTrackListName="MMCTrackList",
                 PhotonSeriesName=photon_series,
-                ParallelEvents=1000,
+                #ParallelEvents=1000,
                 RandomService=randomService,
-                IceModelLocation=icemodel_path,
+                #IceModelLocation=icemodel_path,
                 #IceModelLocation=mediumProperties,
                 #UnWeightedPhotons=True, #turn off optimizations
-                UseGeant4=True,
+                #UseGeant4=True,
                 CrossoverEnergyEM=0.1,
                 #PhotonHistoryEntries=1000,
                 #CrossoverEnergyHadron=float(options.CROSSENERGY),
@@ -101,15 +105,7 @@ tray.AddSegment(clsim.I3CLSimMakePhotons, 'goCLSIM',
                 DoNotParallelize=False,
                 DOMOversizeFactor=1.,
                 UnshadowedFraction=1., #normal in IC79 and older CLSim versions was 0.9, now it is 1.0
-                GCDFile=gcd_file,
-                ExtraArgumentsToI3CLSimModule={
-                    #"UseHardcodedDeepCoreSubdetector":True, #may save some GPU memory
-                    #"EnableDoubleBuffering":True,
-                    "DoublePrecision":False, #will impact performance if true
-                    "StatisticsName":"clsim_stats",
-                    "IgnoreDOMIDs":[],
-                    #"SaveAllPhotons":True,
-                    }
+                GCDFile=args.gcdfile #gcd_file
                 )
 
 
@@ -120,7 +116,7 @@ SkipKeys = ["I3MCTree_bak"]
 
 tray.AddModule("I3Writer","writer",
                SkipKeys=SkipKeys,
-               Filename = options.OUTFILE,
+               Filename =  outfile,
                Streams = [icetray.I3Frame.DAQ, icetray.I3Frame.Physics, icetray.I3Frame.TrayInfo],
               )
 
