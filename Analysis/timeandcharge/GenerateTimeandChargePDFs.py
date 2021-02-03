@@ -1,6 +1,7 @@
 from icecube import dataclasses, dataio, simclasses                             
 from icecube.icetray import I3Units, I3Frame                                    
-from icecube.dataclasses import I3Particle                                      
+from icecube.dataclasses import I3Particle
+from scipy.stats import norm                                      
 import numpy as np                                                              
 import sys                                                                      
 import os                                                                       
@@ -28,7 +29,8 @@ geometry = gcd_file.pop_frame()["I3Geometry"]
 geoMap = geometry.omgeo  
 c = 0.299792458  
 n = 1.34                                        # 1.33 is the refractive index of water at 20 degrees C
-c_n = c/n                            
+c_n = c/n
+sigma = 1.0                            
                                                                                 
 for infile in file_list:                                                        
   infile =  dataio.I3File(os.path.join(_dir,infile))                            
@@ -38,14 +40,15 @@ for infile in file_list:
       continue
 
     bomb_pos = frame["PhotonBomb_position"]
-    pulse_series = frame["SignificanHits"]
+    pulse_series = frame["I3Photons"]
 
     for dom in pulse_series :
     	pulse_list =  pulse_series[dom]
     	dom_pos = geoMap[dom].position
     	distance = np.sqrt((bomb_pos.x-dom_pos.x)**2.0+(bomb_pos.y-dom_pos.y)**2.0+(bomb_pos.z-dom_pos.z)**2.0)
     	for pulse in pulse_list :
-    		TimeChargeDist.Fill(distance,pulse.time-(500.+distance/c_n)*I3Units.ns,pulse.charge)
+        for i in range(-3,4) :
+    		  TimeChargeDist.Fill(distance,pulse.time-(500.+distance/c_n)*I3Units.ns,norm(i))
 
 outfile = file("fittertables.dat","w")
 outfile.write("200,2000,0.0,200.0,-500.,1500.\n")
