@@ -19,9 +19,9 @@ parser.add_argument("-g", "--gcdfile",default=os.getenv('PONESRCDIR')+"/GCD/PONE
 parser.add_argument("-e", "--efficiency", type=float,default=1.0,help="DOM Efficiency ... the same as UnshadowedFraction")
 parser.add_argument("-m", "--icemodel", default="spice_3.2.1",help="Ice model (spice_mie, spice_lea, etc)")
 parser.add_argument("-c", "--crossenergy", type=float,default=200.0,help="The cross energy where the hybrid clsim approach will be used")
-
+parser.add_argument("-f", "--frames", type=int,default=1000,help="N Frames")
 args = parser.parse_args()
-
+count = 0
 CPU=False
 
 outfile = args.outfile+"_"+str(args.runnumber)+".i3.gz"
@@ -39,6 +39,16 @@ randomService = phys_services.I3SPRNGRandomService(
 
 tray.context['I3RandomService'] = randomService
 
+def PrintMessage(frame,message="") :
+  print(message)
+  count += 1
+  return True
+
+def DeleteFrames(frame) :
+  if frame.Has("PhotonBomb") :
+    frame.Delete("PhotonBomb")
+  return True
+
 def BasicHitFilter(frame):
     hits = 0
     if frame.Has(photon_series):
@@ -54,38 +64,31 @@ if args.outfile[-1] == "/" :
 else :
   outfile = args.outfile + "/PhotonBomb_"+str(args.runnumber)+".i3.gz" 
 
-#tray.AddModule('I3Reader', 'reader',
-#            FilenameList = [args.gcdfile]
-#            )
-
-tray.AddModule("I3GeometryDecomposer", "I3ModuleGeoMap")
-
 icemodel_path =  args.icemodel
 
 gcd_file = dataio.I3File(args.gcdfile)
 
-tray.AddModule("I3InfiniteSource","streams",
-               Prefix=args.gcdfile, 
-               Stream=icetray.I3Frame.DAQ)
+tray.Add("I3InfiniteSource", prefix = args.gcdfile)
 
-tray.AddModule("I3MCEventHeaderGenerator","gen_header",
-               RunNumber=args.runnumber,
-               EventID=1,
-               IncrementEventID=True)
+tray.Add("I3MCEventHeaderGenerator",
+             EventID=0,
+             RunNumber=args.runnumber,
+             IncrementEventID=True)
 
 tray.AddModule(PhotonBomb, "customFlasher",
                FlasherPulseSeriesName = "PhotonBomb",
                PhotonsPerPulse = 1.e3,
-               RandomService = randomService
+               RandomService = randomService,
+               NumPulses = 10000
                )
 
 tray.AddSegment(clsim.I3CLSimMakePhotons, 'goCLSIM',
-                #UseCPUs=CPU,
-                #UseGPUs=True,
+                #UseCPUs=True,
+                UseGPUs=True,
                 #UseOnlyDeviceNumber=[1],
                 #OpenCLDeviceList=[0],
-                #MCTreeName="I3MCTree",
-                OutputMCTreeName="I3MCTree_clsim",
+                MCTreeName="PhotonBomb", #"I3MCTree",
+                #OutputMCTreeName="I3MCTree_clsim",
                 #FlasherInfoVectName="I3FlasherInfo",
                 FlasherPulseSeriesName="PhotonBomb",
                 #MMCTrackListName="MMCTrackList",
@@ -97,7 +100,7 @@ tray.AddSegment(clsim.I3CLSimMakePhotons, 'goCLSIM',
                 #UnWeightedPhotons=True, #turn off optimizations
                 #UseGeant4=True,
                 CrossoverEnergyEM=0.1,
-                #PhotonHistoryEntries=1000,
+                PhotonHistoryEntries=0,
                 #CrossoverEnergyHadron=float(options.CROSSENERGY),
                 StopDetectedPhotons=True,
                 #UseHoleIceParameterization=False, # Apply it when making hits!
@@ -112,15 +115,18 @@ tray.AddSegment(clsim.I3CLSimMakePhotons, 'goCLSIM',
 # Tested that all frames go through CLSIM. Removing the ones without any hits to save space.
 tray.AddModule(BasicHitFilter, 'FilterNullPhotons', Streams = [icetray.I3Frame.DAQ, icetray.I3Frame.Physics])
 
-SkipKeys = ["I3MCTree_bak"]
+#SkipKeys = ["I3MCTree_bak"]
+
+tray.AddModule(DeleteFrames, "DeleteStuff",Streams = [icetray.I3Frame.DAQ,
+  icetray.I3Frame.Physics])
 
 tray.AddModule("I3Writer","writer",
-               SkipKeys=SkipKeys,
+#               SkipKeys=SkipKeys,
                Filename =  outfile,
                Streams = [icetray.I3Frame.DAQ, icetray.I3Frame.Physics, icetray.I3Frame.TrayInfo],
               )
 
 tray.AddModule("TrashCan","adios")
 
-tray.Execute()
+tray.Execute(args.frames)
 tray.Finish()

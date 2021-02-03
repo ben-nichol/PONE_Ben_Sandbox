@@ -39,8 +39,9 @@ class PhotonBomb(icetray.I3ConditionalModule):
 
     def DAQ(self, frame):
         outputSeries = I3CLSimFlasherPulseSeries()
-
         numPhotons = self.photonsPerPulse
+        theta = self.randomService.uniform(0.,np.pi)                       
+        phi = self.randomService.uniform(0.,2.*np.pi)
         bomb_position = dataclasses.I3Position(self.radius*np.cos(phi)*np.sin(theta)*I3Units.m,
                                                self.radius*np.sin(phi)*np.sin(theta)*I3Units.m,
                                                self.radius*np.cos(theta)*I3Units.m)
@@ -48,11 +49,9 @@ class PhotonBomb(icetray.I3ConditionalModule):
         for i in range(self.numPulses) :
             newPulse = I3CLSimFlasherPulse()
             newPulse.type = I3CLSimFlasherPulse.FlasherPulseType.LED405nm
-            theta = self.random_service.uniform(0.,np.pi)
-            phi = self.random_service.uniform(0.,2.*np.pi)
             newPulse.pos = bomb_position
-            theta = self.random_service.uniform(0.,np.pi)
-            phi = self.random_service.uniform(0.,2.*np.pi)
+            theta = self.randomService.uniform(0.,np.pi)
+            phi = self.randomService.uniform(0.,2.*np.pi)
             newPulse.dir = dataclasses.I3Direction(np.cos(phi)*np.sin(theta)*I3Units.m, 
                                                    np.sin(phi)*np.sin(theta)*I3Units.m, 
                                                    np.cos(theta)*I3Units.m)
