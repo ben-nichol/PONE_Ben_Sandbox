@@ -11,9 +11,10 @@ from icecube import icetray, dataclasses, dataio, simclasses
 from icecube import phys_services, sim_services           
 import argparse  
 from Reconstruction.linefit.SimAnalysis import LineFitReco
-from Reconstruction.llh.likelihoodreco import likelihoodreco
-from Reconstruction.nutau.NuTauReco import nutaureco
+from Reconstruction.llh.likelihoodreco_tables import likelihoodreco
+from Reconstruction.nutau.NuTauReco_tables import nutaureco
 from PulseCleaning.SignificantHitPulseCleaning import SignificantHitPulseCleaning
+from Reconstruction.nutau.curveFit import curveFit
 
 # This script will perform a hybridCLSim propagation.
 #
@@ -84,6 +85,12 @@ tray.AddModule(likelihoodreco,"likelihoodreco",
 tray.AddModule(nutaureco,"NuTauReconstructin",
               pulseseries = "SignificanHits",
               output = "NuTau"
+              )
+
+tray.AddModule(curveFit,"CurveFit",
+                InputMCPETree = "SignificanHits",
+                OutputMCPETree = "nuTauCurveFit",
+                HitsInDOMsCut = 120
               )
 
 

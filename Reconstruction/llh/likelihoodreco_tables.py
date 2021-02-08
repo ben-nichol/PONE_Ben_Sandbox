@@ -10,7 +10,7 @@ from icecube.icetray import I3Units, I3Frame
 from icecube.dataclasses import I3Particle 
 import numpy as np                 
 from scipy import special as sp                        # For the Gamma function 
-import sys
+import sys, os
 from iminuit import Minuit
 import argparse
 import math as m
@@ -23,7 +23,7 @@ def LikelihoodFunctor(data,domsUsed,vertexrad,pdf,time_lim,dist_lim):
     pmt = []
     time = []
     charge = []
-    pdf_tables = tables
+    pdf_tables = pdf
 
     for dom in pulse_series.keys() :
         for pulse in pulse_series[dom] :
@@ -47,19 +47,13 @@ def LikelihoodFunctor(data,domsUsed,vertexrad,pdf,time_lim,dist_lim):
     pdf_tables = pdf
     table_time_lim = time_lim
     table_dist_lim = dist_lim
-    darkprob = 0.0001
+    darkprob = 1e-5
 
     def GetProbability(distance,time) :
 
-      if time<table_time_lim[0] or time > table_time_lim[1] :
-        return darkprob
-      if distance<table_dist_lim[0] or distance > table_dist_lim[1] :
-        return darkprob
-
-      dist_bin = distance/deltDist 
-      time_bin = time/deltaTime
-
-      return pdf_tables[dist_bin][time_bin] + darkprob
+      dist_bin = max(min(int(distance),len(pdf_tables)-1),0)                  
+      time_bin = max(min(int(time-table_time_lim[0]),len(pdf_tables[dist_bin])-1),0)
+      return pdf_tables[dist_bin][time_bin]+darkprob
     
     # The computations from here on require we find the time and distance of closest approach, d_i,c and t_i,c
     def closestApproach(vtheta, vphi, theta, phi):
@@ -113,12 +107,14 @@ def LikelihoodFunctor(data,domsUsed,vertexrad,pdf,time_lim,dist_lim):
         vx = vertexRad*np.sin(vtheta)*np.cos(vphi)
         vy = vertexRad*np.sin(vtheta)*np.sin(vphi)
         vz = vertexRad*np.cos(vtheta)
-        p_charge = Likelihood(pmt,charge,vx,vy,vz,theta,phi)
-        out = pdf(t,d)
-        dark = 1./10000.
+        
+        prob = []
+        for i in range(len(d)) :
+          prob.append(GetProbability(d[i],t[i]))
+
         sum_nloglike = 0.0
-        for i in range(len(out)) :
-            sum_nloglike -= charge[i]*np.log(out[i]*p_charge[i]+dark)
+        for i in range(len(prob)) :
+            sum_nloglike -= charge[i]*np.log(prob[i])
         return sum_nloglike
 
     return likelihoodFunction
@@ -170,33 +166,35 @@ class likelihoodreco(icetray.I3ConditionalModule):
         self.AddParameter("seedtrack","Track to seed fit","linefit")
         self.AddParameter("output","Track to store fit.","llnfit")
         self.AddParameter("vertexRad","Radius to put vertex at",500.)
-        self.AddParameter("tablesfile","",os.getenv('PONESRCDIR')+"/data/fittertables.dat")
+        self.AddParameter("tablesfile","","")
 
         self.AddOutBox("OutBox")
 
-    def ReadTables(filename) :
+    def ReadTables(self) :
 
-      infile = open_file(filename,"r")
+      infile = open(self.tablefiles,"r")
       lines = infile.readlines()
       linecount = 0
-      pdf = []
+      self.pdf = [[]]
       xcount = 0
       for line in lines :
         splitline = line.split(",",100)
         if linecount == 0 :
-          nx = int(splitline[0])
-          ny = int(splitline[1])
-          minx = float(splitline[2])
-          maxx = float(splitline[3])
-          miny = float(splitline[4])
-          maxy = float(splitline[5])
+          nx = int(splitline[0].replace("\n",""))
+          ny = int(splitline[1].replace("\n",""))
+          minx = float(splitline[2].replace("\n",""))
+          maxx = float(splitline[3].replace("\n",""))
+          miny = float(splitline[4].replace("\n",""))
+          maxy = float(splitline[5].replace("\n",""))
         else :
           if xcount == nx :
-            pdf.append([])
+            self.pdf.append([])
             xcount = 0
           for value in splitline :
-            pdf[-1].append(value)
-      return pdf,[minx,maxx],[miny,maxy]
+            self.pdf[-1].append(float(value.replace("\n","")))
+        linecount += 1
+      self.time_lim = [miny,maxy]
+      self.dist_lim = [minx,maxx]
 
     def Configure(self):
 
@@ -213,8 +211,12 @@ class likelihoodreco(icetray.I3ConditionalModule):
         self.lambda_s = 120.                                 # scattering length of light for violet light
         self.lambda_a = 15.                                  # absorption length of light for violet light
         self.tau = 557                                       # time parameter that has to be fit using simulations or data  
+        self.tablefiles = self.GetParameter("tablesfile")
 
-        self.pdf,self.time_lim,self.dist_lim = ReadTables(self.GetParameter("Tables"))    
+        if self.tablefiles == "" :
+          self.tablefiles = os.getenv('PONESRCDIR')+"/data/fittertables.dat"
+
+        self.ReadTables()    
 
     # Main function of this file. Structured this way so that it can be easily imported aswell in any other implementation.                                   
     def DAQ(self,frame): 

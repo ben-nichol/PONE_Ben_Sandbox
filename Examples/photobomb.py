@@ -19,7 +19,7 @@ parser.add_argument("-g", "--gcdfile",default=os.getenv('PONESRCDIR')+"/GCD/PONE
 parser.add_argument("-e", "--efficiency", type=float,default=1.0,help="DOM Efficiency ... the same as UnshadowedFraction")
 parser.add_argument("-m", "--icemodel", default="spice_3.2.1",help="Ice model (spice_mie, spice_lea, etc)")
 parser.add_argument("-c", "--crossenergy", type=float,default=200.0,help="The cross energy where the hybrid clsim approach will be used")
-parser.add_argument("-f", "--frames", type=int,default=1000,help="N Frames")
+parser.add_argument("-f", "--frames", type=int,default=100,help="N Frames")
 args = parser.parse_args()
 count = 0
 CPU=False
@@ -33,8 +33,8 @@ tray = I3Tray()
 # Now fire up the random number generator with that seed
 #from globals import max_num_files_per_dataset
 randomService = phys_services.I3SPRNGRandomService(
-                seed = 1234*args.runnumber,
-                nstreams = 1000000,
+                seed = args.runnumber,
+                nstreams = 4e7,
                 streamnum = args.runnumber)
 
 tray.context['I3RandomService'] = randomService
@@ -77,9 +77,9 @@ tray.Add("I3MCEventHeaderGenerator",
 
 tray.AddModule(PhotonBomb, "customFlasher",
                FlasherPulseSeriesName = "PhotonBomb",
-               PhotonsPerPulse = 1.e3,
+               PhotonsPerPulse = 1.e2,
                RandomService = randomService,
-               NumPulses = 10000
+               NumPulses = 1000
                )
 
 tray.AddSegment(clsim.I3CLSimMakePhotons, 'goCLSIM',

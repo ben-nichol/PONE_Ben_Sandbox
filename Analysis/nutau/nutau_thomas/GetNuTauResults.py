@@ -9,7 +9,7 @@ import sys
 import os
 import argparse
 import math as m
-import ROOT
+#import ROOT
 from Weights import weight
 
 parser = argparse.ArgumentParser()
@@ -24,7 +24,7 @@ file_list = [x for x in file_list_aux if '.i3.gz' in x]
 
 nfiles = len(file_list)
 
-outfile = ROOT.TFile(args.outfile,"RECREATE")
+#outfile = ROOT.TFile(args.outfile,"RECREATE")
 #CorrectTau_DeltaD = ROOT.TH1F("CorrectTau_DeltaD","",500,0.,500.)
 #CorrectTau_V1Res = ROOT.TH1F("CorrectTau_V1Res","",500,0.,500.)
 #CorrectTau_V2Res = ROOT.TH1F("CorrectTau_V2Res","",500,0.,500.)
@@ -35,9 +35,10 @@ outfile = ROOT.TFile(args.outfile,"RECREATE")
 #CorrectEle_Energy = ROOT.TH1F("CorrectEle_Energy","",100,0,10.)
 #CorrectEle_VRes = ROOT.TH1F("CorrectEle_VRes","",500,0.,500.)
 
-MissIdentified_Tau = ROOT.TH1F("MissIdentified_Tau","",40,0.,20.)
-CorrIdentified_Tau = ROOT.TH1F("CorrIdentified_Tau","",40,0.,20.)
-Missed_Tau = ROOT.TH1F("Missed_Tau","",40,0.,20.)
+#MissIdentified_Tau = ROOT.TH1F("MissIdentified_Tau","",160,-20.,20.)
+#CorrIdentified_Tau = ROOT.TH1F("CorrIdentified_Tau","",160,-20.,20.)
+#Missed_Tau = ROOT.TH1F("Missed_Tau","",160,-20.,20.)
+#CorrectReject = ROOT.TH1F("CorrectReject","",160,-20.,20.)
 
 for infile in file_list:
   infile =  dataio.I3File(os.path.join(_dir,infile))  
@@ -55,23 +56,33 @@ for infile in file_list:
     single_like = frame["NuTau_single_nlogl"].value
     double_like = frame["NuTau_double_nlogl"].value
 
+    biGauss_valuesMap = frame['nuTauCurveFit_biGauss']                      
+    doublePeak_valuesMap = frame['nuTauCurveFit_doublePeak']
+
     weightDict = frame["I3MCWeightDict"]
     weight = weightDict['OneWeight']
-    f = astroFlux(NuGPrimary.energy)
-    liveTime = 365*24*60*60
-    event_weight = simpleWeight(weight,f)*liveTime/(2000*weightDict['NEvents'])
-
+    #f = astroFlux(NuGPrimary.energy)
+    #liveTime = 365*24*60*60
+    #event_weight = simpleWeight(weight,f)*liveTime/(2000*weightDict['NEvents'])
+    event_weight = weight#(frame, len(file_list))
 
     mctracktype = MMCTrackList[0].GetI3Particle().type
-    print("Primary Type = "+str(NuGPrimary.type)+" Secondary Type = " 
-        +str(mctracktype)+" track like = " + str(track_like)+" single like = "
-        + str(single_like)+" double like = " + str(double_like))
+    #print("Primary Type = "+str(NuGPrimary.type)+" Secondary Type = " 
+    #    +str(mctracktype)+" track like = " + str(track_like)+" single like = "
+    #    + str(single_like)+" double like = " + str(double_like))
 
     tau_reco = False
     if double_like < single_like and double_like < track_like :
       tau_reco = True
 
-    likelihood_diff = min(double_like-single_like,double_like-track_like)
+    likelihood_diff = min(-double_like+single_like,-double_like+track_like)
+
+    maxdif = -100.0
+    for key in biGauss_valuesMap.keys() :
+      bigauss = biGauss_valuesMap[key]
+      doublepeak = doublePeak_valuesMap[key]
+      diff = bigauss-doublepeak
+      maxdif = max(maxdif,diff)
 
     true_tau = False
     if NuGPrimary.type == 16 or NuGPrimary.type == -16 :                        
@@ -79,23 +90,28 @@ for infile in file_list:
       if mctracktype == 15 or mctracktype == -15 :
         true_tau = True
 
-    like = 0.0
-    while like < likelihood_diff :
-      if true_tau :
-        Missed_Tau.Fill(like,event_weight)
-      else :
-        MissIdentified_Tau.Fill(like,event_weight)
-      like += 0.5
-    while like < 20. :
-      if true_tau :
-        CorrIdentified_Tau.Fill(like,event_weight)
-      like += 0.5
+    print("Primary Type = "+str(NuGPrimary.type)+" Secondary Type = " +str(mctracktype)+" like dif = "+str(likelihood_diff) + " bigausdiff = "+str(maxdif))  
 
-outfile.cd()
-MissIdentified_Tau.Write()           
-CorrIdentified_Tau.Write()               
-Missed_Tau.Write()
-outfile.Close()
+ #   like = -20.0
+ #   while like < likelihood_diff :
+ #     if true_tau :
+ #       Missed_Tau.Fill(like,event_weight)
+ #     else :
+ #       CorrectReject.Fill(like,event_weight)
+ #     like += 0.25
+ #   while like < 20. :
+ #     if true_tau :
+ #       CorrIdentified_Tau.Fill(like,event_weight)
+ #     else :
+ #       MissIdentified_Tau.Fill(like,event_weight) 
+ #     like += 0.25
+
+#outfile.cd()
+#MissIdentified_Tau.Write()           
+#CorrIdentified_Tau.Write()               
+#Missed_Tau.Write()
+#CorrectReject.Write()
+#outfile.Close()
 
     #if NuGPrimary.type == 16 or NuGPrimary.type == -16 :
       #Secondary = MMCTrackList[0].GetI3Particle()

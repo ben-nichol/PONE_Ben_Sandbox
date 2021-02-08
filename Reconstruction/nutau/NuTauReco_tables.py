@@ -6,7 +6,7 @@ from icecube.icetray import I3Units, I3Frame
 from icecube.dataclasses import I3Particle 
 import numpy as np                 
 from scipy import special as sp                        # For the Gamma function 
-import sys
+import sys, os
 from iminuit import Minuit
 import argparse
 import math as m
@@ -28,19 +28,19 @@ def LikelihoodFunctor(data,domsUsed,pdf,time_lim,dist_lim):
     pdf_tables = pdf
     table_time_lim = time_lim
     table_dist_lim = dist_lim
-    darkprob = 0.0001
+    darkprob = 1e-5
 
-    def GetProbability(distance,time) :
+    def GetProbability(time,distance) :
+  
+      if time < table_time_lim[0] or time > table_time_lim[1] :
+        return 0.0
+      if distance < table_dist_lim[0] or distance > table_dist_lim[1] :
+        return 0.0
 
-        if time<table_time_lim[0] or time > table_time_lim[1] :
-            return darkprob
-        if distance<table_dist_lim[0] or distance > table_dist_lim[1] :
-            return darkprob
+      dist_bin = max(min(int(distance),len(pdf_tables)-1),0)
+      time_bin = max(min(int(time-table_time_lim[0]),len(pdf_tables[dist_bin])-1),0)
 
-        dist_bin = distance/deltDist 
-        time_bin = time/deltaTime
-
-        return pdf_tables[dist_bin][time_bin] + darkprob     
+      return pdf_tables[dist_bin][time_bin]
 
     # uses the prior defined functions to build a likelihood function that when given a track (linefit) will produce a negative loglikelihood value
     def likelihoodFunction(t0,dt,v1x,v1y,v1z,dtheta,dphi,br):
@@ -62,14 +62,15 @@ def LikelihoodFunctor(data,domsUsed,pdf,time_lim,dist_lim):
                 charge = pulse.charge
                 #vertex 1 
                 distance = np.sqrt((v1x-pmt_x)**2.0 + (v1y-pmt_y)**2.0 + (v1z-pmt_z)**2.0) 
-
-                prob = br*amp*GetProbability(t-t0-t_trav,distance)
+                t_trav = distance/c_n
+                t_resid = t-t0-t_trav
+                prob = br*GetProbability(t_resid,distance)
 
                 #vertex2
                 distance = np.sqrt((v2x-pmt_x)**2.0 + (v2y-pmt_y)**2.0 + (v2z-pmt_z)**2.0) 
-                amp =  amplitude(distance)
                 t_trav = distance/c_n
-                prob += (1.-br)*amp*GetProbability(t-t0-dt-t_trav,distance)
+                t_resid = t-t0-dt-t_trav
+                prob += (1.-br)*GetProbability(t_resid,distance)
 
                 prob += darkrate
 
@@ -86,32 +87,35 @@ class nutaureco(icetray.I3ConditionalModule):
 
         self.AddParameter("pulseseries","Name of the Merged MCPE tree name","MergedSeriesMap")
         self.AddParameter("output","Track to store fit.","taufit")
-
+        self.AddParameter("tables","tablesfile","")
         self.AddOutBox("OutBox")
 
-    def ReadTables(filename) :
+    def ReadTables(self) :
 
-        infile = open_file(filename,"r")
+        infile = open(self.tablesfiles,"r")
         lines = infile.readlines()
         linecount = 0
-        pdf = []
+        self.pdf = [[]]
         xcount = 0
         for line in lines :
             splitline = line.split(",",100)
             if linecount == 0 :
-                nx = int(splitline[0])
-                ny = int(splitline[1])
-                minx = float(splitline[2])
-                maxx = float(splitline[3])
-                miny = float(splitline[4])
-                maxy = float(splitline[5])
+                nx = int(splitline[0].replace("\n",""))
+                ny = int(splitline[1].replace("\n",""))
+                minx = float(splitline[2].replace("\n",""))
+                maxx = float(splitline[3].replace("\n",""))
+                miny = float(splitline[4].replace("\n",""))
+                maxy = float(splitline[5].replace("\n",""))
             else :
                 if xcount == nx :
-                    pdf.append([])
+                    self.pdf.append([])
                     xcount = 0
                 for value in splitline :
-                    pdf[-1].append(value)
-        return pdf,[minx,maxx],[miny,maxy]
+                    self.pdf[-1].append(float(value.replace("\n","")))
+                    xcount += 1
+            linecount += 1
+        self.time_lim = [minx,maxx]
+        self.dist_lim = [miny,maxy]
 
     def Configure(self):
 
@@ -120,13 +124,17 @@ class nutaureco(icetray.I3ConditionalModule):
 
         self.c = 0.299792458                                 # speed of light 
         self.n = 1.34                                        # 1.33 is the refractive index of water at 20 degrees C
-        self.c_n = self.c/self.n                                       # light in water
-        self.theta_c = np.arccos(1./self.n)                       # Cherenkov angle in water in radians
+        self.c_n = self.c/self.n                             # light in water
+        self.theta_c = np.arccos(1./self.n)                  # Cherenkov angle in water in radians
         self.lambda_s = 120.                                 # scattering length of light for violet light
         self.lambda_a = 15.                                  # absorption length of light for violet light
         self.tau = 557                                       # time parameter that has to be fit using simulations or data   
+ 
+        self.tablesfiles = self.GetParameter("Tables")
+        if self.tablesfiles == "" :
+          self.tablesfiles = default=os.getenv('PONESRCDIR')+"/data/fittertables.dat"
 
-        self.pdf,self.time_lim,self.dist_lim = ReadTables(self.GetParameter("Tables"))   
+        self.ReadTables() 
 
     # Main function of this file. Structured this way so that it can be easily imported aswell in any other implementation.                                   
     def DAQ(self,frame): 
@@ -136,10 +144,10 @@ class nutaureco(icetray.I3ConditionalModule):
         domsUsed = frame['I3Geometry'].omgeo
         sumcharge = 0.0
 
-        T0  = 0.0
-        V1x = 0.0
-        V1y = 0.0
-        V1z = 0.0
+        _T0  = 0.0
+        _V1x = 0.0
+        _V1y = 0.0
+        _V1z = 0.0
 
         pulsecount = 0
         
@@ -151,19 +159,24 @@ class nutaureco(icetray.I3ConditionalModule):
 
             for pulse in data[dom] :
                     pulsecount += 1
-                    T0 += pulse.time*pulse.charge
-                    V1x += pmt_x*pulse.charge
-                    V1y += pmt_y*pulse.charge
-                    V1z += pmt_z*pulse.charge
+                    _T0 += pulse.time*pulse.charge
+                    _V1x += pmt_x*pulse.charge
+                    _V1y += pmt_y*pulse.charge
+                    _V1z += pmt_z*pulse.charge
                     sumcharge += pulse.charge
         
         if pulsecount < 100 :
           return
 
-        T0 = T0/sumcharge
-        V1x = V1x/sumcharge
-        V1y = V1y/sumcharge
-        V1z = V1z/sumcharge
+        _T0 = _T0/sumcharge
+        _V1x = _V1x/sumcharge
+        _V1y = _V1y/sumcharge
+        _V1z = _V1z/sumcharge
+
+        T0 = _T0
+        V1x = _V1x
+        V1y = _V1y
+        V1z = _V1z
 
         dT = 0.0
         Dtheta = 0.0
@@ -172,7 +185,7 @@ class nutaureco(icetray.I3ConditionalModule):
 
         qFunctor = LikelihoodFunctor(data,domsUsed,self.pdf,self.time_lim,self.dist_lim)   
           
-        minimizer = Minuit(qFunctor, 
+        minimizer_single = Minuit(qFunctor, 
                             t0=T0,
                             error_t0=1.0,
                             dt=dT,
@@ -199,15 +212,51 @@ class nutaureco(icetray.I3ConditionalModule):
                             errordef=0.5,
                            )
 
-        minimizer.fixed["dt"]=True
-        minimizer.fixed["dtheta"]=True
-        minimizer.fixed["dphi"]=True
-        minimizer.fixed["br"]=True
+        minimizer_single.fixed["dt"]=True
+        minimizer_single.fixed["dtheta"]=True
+        minimizer_single.fixed["dphi"]=True
+        minimizer_single.fixed["br"]=True
 
-        minimizer.migrad()
+        minimizer_single.migrad()
 
-        solution_single = minimizer.values
-        loglikelihood_single = minimizer.fval
+        T0=_T0
+        dT = 60*0.3
+        V1x = _V1x
+        V1y = _V1y
+        V1z = _V1z-30
+        Dtheta = 0.0
+        Dphi = 0.0
+        Br = 0.5
+
+        minimizer_double = Minuit(qFunctor,                                     
+                                            t0=T0,                                 
+                                            error_t0=1.0,
+                                            dt=dT,                                              
+                                            error_dt=1.0,                                       
+                                            limit_dt=(0.0,10000.0),                            
+                                            v1x=V1x,                                           
+                                            error_v1x=1.0,                                     
+                                            limit_v1x=(-500.,500.),                             
+                                            v1y=V1y,                                            
+                                            error_v1y=1.0,                                      
+                                            limit_v1y=(-500.,500.),                           
+                                            v1z=V1z,                                           
+                                            error_v1z=1.0,                                      
+                                            limit_v1z=(-500.,500.),                             
+                                            dtheta=Dtheta,                                      
+                                            error_dtheta=1.0,                                   
+                                            limit_dtheta=(0.0,np.pi),                           
+                                            dphi=Dphi,                                          
+                                            error_dphi=1.0,                                     
+                                            limit_dphi=(0.0,2.0*np.pi),                         
+                                            br=Br,                                            
+                                            error_br=1.0,                                       
+                                            limit_br=(0.0,1.0),                                 
+                                            errordef=0.5,                                       
+                                            )
+
+        solution_single = minimizer_single.values
+        loglikelihood_single = minimizer_single.fval
 
         v0x = solution_single['v1x']
         v0y = solution_single['v1y']
@@ -221,15 +270,10 @@ class nutaureco(icetray.I3ConditionalModule):
         recoParticle_cascade.pos = v0
         recoParticle_cascade.time = solution_single['t0']
 
-        minimizer.fixed["dt"]=False
-        minimizer.fixed["dtheta"]=False
-        minimizer.fixed["dphi"]=False
-        minimizer.fixed["br"]=False
+        minimizer_double.migrad()
 
-        minimizer.migrad()
-
-        solution_double = minimizer.values
-        loglikelihood_double = minimizer.fval
+        solution_double = minimizer_double.values
+        loglikelihood_double = minimizer_double.fval
             
         # For likelihood
         v1x = solution_double['v1x']

@@ -1,8 +1,8 @@
-from icecube import dataclasses, dataio, icetray, NuFlux
+from icecube import dataclasses, dataio, icetray
+import nuflux
 from icecube.icetray import I3Units
-import matplotlib.pyplot as plt
 import numpy as np
-import argparse, matplotlib
+import argparse
 
 def astroFlux(Energy):
     '''
@@ -18,7 +18,8 @@ def simpleWeight(oneWeight, neutrino, lepton):
     '''
     simple Weight is different for CC and NC events
     '''
-    flux = NuFlux.makeFlux('honda2006')
+    #flux = NewNuFlux.makeFlux('honda2006')
+    flux = nuflux.makeFlux('honda2006')
     astro_flux = astroFlux(neutrino.energy)
 
     #neutral currents with NuMu atmospheric flux
