@@ -15,6 +15,7 @@ from Reconstruction.llh.likelihoodreco_tables import likelihoodreco
 from Reconstruction.nutau.NuTauReco_tables import nutaureco
 from PulseCleaning.SignificantHitPulseCleaning import SignificantHitPulseCleaning
 from Reconstruction.nutau.curveFit import curveFit
+from Reconstruction.nutau.curveFit_tables import curveFit_tables 
 
 # This script will perform a hybridCLSim propagation.
 #
@@ -87,7 +88,7 @@ tray.AddModule(nutaureco,"NuTauReconstructin",
               output = "NuTau"
               )
 
-tray.AddModule(curveFit,"CurveFit",
+tray.AddModule(curveFit_tables,"CurveFit_tables",
                 pulseseries = "SignificanHits",
                 output = "nuTauCurveFit",
                 HitsInDOMsCut = 120
@@ -95,7 +96,7 @@ tray.AddModule(curveFit,"CurveFit",
 
 tray.AddModule(curveFit,"CurveFit",                                             
                InputMCPETree = "SignificanHits",                                 
-               OututMCPETree = "nuTauOrig",                                       
+               OutputMCPETree = "nuTauOrig",                                       
                HitsInDOMsCut = 200                                             
               )
 

@@ -6,11 +6,11 @@ import numpy as np
 from scipy import stats
 from iminuit import minimize
 from scipy.stats.distributions import chi2
-from likelihoodHelpers import log_likelihood_biGauss, log_likelihood_doublePeak
-from likelihoodHelpers import likelihood_ratio_doublePeak, likelihood_ratio_biGauss, biGauss, double_peak
-from likelihoodHelpers import log_likelihood_expGauss, log_likelihood_expDoublePeak, expGauss, expDoublePeak
+from Reconstruction.nutau.likelihoodHelpers import log_likelihood_biGauss, log_likelihood_doublePeak
+from Reconstruction.nutau.likelihoodHelpers import likelihood_ratio_doublePeak, likelihood_ratio_biGauss, biGauss, double_peak
+from Reconstruction.nutau.likelihoodHelpers import log_likelihood_expGauss, log_likelihood_expDoublePeak, expGauss, expDoublePeak
 import scipy, csv
-from tabulate import tabulate
+#from tabulate import tabulate
 
 class curveFit(icetray.I3ConditionalModule):
     """
@@ -198,10 +198,10 @@ class curveFit(icetray.I3ConditionalModule):
                     nll = lambda *args: log_likelihood_biGauss(*args)
                     if debug_mode == True:
                         print('Bounds on single peak')
-                        print(tabulate(bnds_biGauss,
-                               tablefmt=u'fancy_grid'))
-                        headers = [["llh","pos1", "wid1", "k1", "amp1"]]
-                        print(tabulate(headers))
+                        #print(tabulate(bnds_biGauss,
+                         #      tablefmt=u'fancy_grid'))
+                        #headers = [["llh","pos1", "wid1", "k1", "amp1"]]
+                        #print(tabulate(headers))
 
                     soln_single = minimize(log_likelihood_expGauss, initial_biGauss,
                                             args=(entries_in_bins, bin_centers, debug_mode),
@@ -241,8 +241,8 @@ class curveFit(icetray.I3ConditionalModule):
                     if debug_mode == True:
                         print('Bounds on double peak')
                         # Don't repeat existing stuff
-                        print(tabulate(bnds_doublePeak,
-                                tablefmt=u'fancy_grid'))
+                        #print(tabulate(bnds_doublePeak,
+                        #        tablefmt=u'fancy_grid'))
 
                     soln_double = minimize(log_likelihood_expDoublePeak, initial_doublePeak,
                                                 args=(entries_in_bins, bin_centers, debug_mode),

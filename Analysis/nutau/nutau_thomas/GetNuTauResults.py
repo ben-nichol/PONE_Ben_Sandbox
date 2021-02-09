@@ -56,8 +56,11 @@ for infile in file_list:
     single_like = frame["NuTau_single_nlogl"].value
     double_like = frame["NuTau_double_nlogl"].value
 
-    biGauss_valuesMap = frame['nuTauCurveFit_singlePeak']                      
-    doublePeak_valuesMap = frame['nuTauCurveFit_doublePeak']
+    biGauss_valuesMap_tables = frame['nuTauCurveFit_singlePeak']                      
+    doublePeak_valuesMap_tables = frame['nuTauCurveFit_doublePeak']
+
+    biGauss_valuesMap_orig = frame['nuTauOrig_biGauss']                
+    doublePeak_valuesMap_orig = frame['nuTauOrig_doublePeak']
 
     weightDict = frame["I3MCWeightDict"]
     weight = weightDict['OneWeight']
@@ -77,14 +80,37 @@ for infile in file_list:
 
     likelihood_diff = min(-double_like+single_like,-double_like+track_like)
 
+    print("tables")
     maxdif = -999999999999.0
-    for key in biGauss_valuesMap.keys() :
-      bigauss = biGauss_valuesMap[key][0]
+    logdeltLLH_tables = 0.0
+    for key in biGauss_valuesMap_tables.keys() :
+      bigauss = biGauss_valuesMap_tables[key][0]
+      print(key)
       print(bigauss)
-      doublepeak = doublePeak_valuesMap[key][0]
+      doublepeak = doublePeak_valuesMap_tables[key][0]
       print(doublepeak)
       diff = bigauss-doublepeak
-      maxdif = max(maxdif,diff)
+      if diff > 0.0 :                                                           
+        logdeltLLH_tables = np.log(2.*diff)
+      maxdif = max(maxdif,logdeltLLH_tables)
+
+    biGauss_valuesMap_orig = frame['nuTauOrig_biGauss']                         
+    doublePeak_valuesMap_orig = frame['nuTauOrig_doublePeak']     
+
+    print("original")
+    maxdif_orig = -999999999999.0 
+    logdeltLLH_orig = 0.0  
+    for key in biGauss_valuesMap_orig.keys() :                                
+      bigauss = biGauss_valuesMap_orig[key][0] 
+      print(key)
+      print(bigauss)                                                            
+      doublepeak = doublePeak_valuesMap_orig[key][0]                          
+      print(doublepeak)                                                         
+      diff = bigauss-doublepeak
+      if diff > 0.0 :
+        logdeltLLH_orig = np.log(2.*diff)
+      maxdif_orig = max(maxdif_orig,logdeltLLH_orig) 
+
 
     true_tau = False
     if NuGPrimary.type == 16 or NuGPrimary.type == -16 :                        
@@ -92,7 +118,9 @@ for infile in file_list:
       if mctracktype == 15 or mctracktype == -15 :
         true_tau = True
 
-    print("Primary Type = "+str(NuGPrimary.type)+" Secondary Type = " +str(mctracktype)+" like dif = "+str(likelihood_diff) + " bigausdiff = "+str(maxdif))  
+    print("Primary Type = "+str(NuGPrimary.type)+" Secondary Type = "
+        +str(mctracktype)+" like dif = "+str(likelihood_diff) + " tablediff = "
+        +str(maxdif)+" originaldiff = " + str(maxdif_orig))  
 
  #   like = -20.0
  #   while like < likelihood_diff :

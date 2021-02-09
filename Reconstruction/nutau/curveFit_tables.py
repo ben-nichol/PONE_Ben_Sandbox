@@ -110,7 +110,7 @@ def LikelihoodFunctor_double(data,pdf,time_lim,dist_lim):
 
     return likelihoodFunction
 
-class curveFit(icetray.I3ConditionalModule):
+class curveFit_tables(icetray.I3ConditionalModule):
 
     def __init__(self, context):
         icetray.I3ConditionalModule.__init__(self, context)
@@ -207,7 +207,7 @@ class curveFit(icetray.I3ConditionalModule):
             select_time = recoPulse_timeList[(recoPulse_timeList > mean-50) & (recoPulse_timeList < mean+50)]
             select_charge = recoPulse_chargeList[(recoPulse_timeList > mean-50) & (recoPulse_timeList < mean+50)]
 
-            if len(select_time) < 10 or len(max_hitTimes) < 10:
+            if len(select_time) < 10 or len(select_charge) < 10:
                 exit_status = np.array([1])
                 exitStatusMap.update({omkey: dataclasses.I3VectorDouble(exit_status)})
                 continue
@@ -227,7 +227,7 @@ class curveFit(icetray.I3ConditionalModule):
                             error_t0=1.0,
                             d0=D0,
                             error_d0=1.0,
-                            limit_d0=(1.0.,120.),
+                            limit_d0=(1.0,120.),
                             errordef=0.5,
                            )
 
@@ -239,17 +239,14 @@ class curveFit(icetray.I3ConditionalModule):
             D1 = 20.0
             Br = 1.0
 
-            qFunctor_double = LikelihoodFunctor(data,self.pdf,self.time_lim,self.dist_lim)
+            qFunctor_double = LikelihoodFunctor_double(data,self.pdf,self.time_lim,self.dist_lim)
 
             minimizer_double = Minuit(qFunctor_double,                                     
                                             t0=T0,
                                             error_t0=1.0,
-                                            dt=dT,
-                                            error_dt=1.0,
-                                            limit_dt=(mean-300.,mean+300.),
                                             d0=D0,
                                             error_d0=1.0,
-                                            limit_d0=(1.0.,120.),
+                                            limit_d0=(1.0,120.),
                                             t1=T1,
                                             error_t1=1.0,
                                             limit_t1=(mean-300.,mean+300.),
@@ -273,11 +270,11 @@ class curveFit(icetray.I3ConditionalModule):
                                        ])
 
             doublePeak_values = np.array([minimizer_double.fval, 
-                                          solution_single["t0"],
-                                          solution_single["d0"],
-                                          solution_single["t1"],
-                                          solution_single["d1"],
-                                          solution_single["br"]
+                                          solution_double["t0"],
+                                          solution_double["d0"],
+                                          solution_double["t1"],
+                                          solution_double["d1"],
+                                          solution_double["br"]
                                          ])
 
             biGauss_valuesMap.update({omkey: dataclasses.I3VectorDouble(biGauss_values)})
