@@ -47,7 +47,7 @@ def LikelihoodFunctor(data,domsUsed,vertexrad,pdf,time_lim,dist_lim):
     pdf_tables = pdf
     table_time_lim = time_lim
     table_dist_lim = dist_lim
-    darkprob = 1e-5
+    darkprob = 1.e-7
 
     def GetProbability(distance,time) :
 

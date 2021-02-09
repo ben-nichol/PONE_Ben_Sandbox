@@ -1,4 +1,4 @@
-'''
+''' 
 Functions commonly used for likelihood analysis
 '''
 from icecube import icetray, dataio, dataclasses, simclasses, clsim
@@ -18,49 +18,56 @@ Functions used
 
 '''
 
-def gaussian(x, pos, wid, amp):
-    y = amp*np.exp(-4*np.log(2)*((x-pos)/(wid))**2)
-    return y
+def log_likelihood_biGauss_functor(time,charge):
 
-def biGauss(x, pos, wid, r, amp):
-    mask = x < pos
+    timearray = time
+    chargearray = charge
 
-    y_all = ([])
-    for i in range(0, len(mask)):
+    def gaussian(x,mean,sigma):
+        return (1./(sigma*np.sqrt(2*np.pi)))*np.exp(-((x-mean)**2.0)/(2.*sigma**2))
 
-        if mask[i] == True:
-            m = 1
-            nm = 0
-        else:
-            m = 0
-            nm = 1
-        if r != 0:
-            y1 = gaussian(x[i],pos,r*wid/(r+1),amp)*m
-            y2 = gaussian(x[i],pos,wid/(r+1),amp)*nm
-            y = y1 + y2
-        else:
-            y = gaussian(x[i],pos,wid, amp)*nm
+    def biGauss(x, mean, sigma1,sigma2):
+        if x > mean :
+            return gaussian(x[i],mean,sigma1)
+        else :
+            return (sigma1/sigma2)*gaussian(x[i],mean,sigma2)
 
-        y_all = np.append(y_all, y)
-    return y_all
+    def log_likelihood_biGauss(mean,sigma1,sigma2):
+        sumloglike = 0.0
+        for i in range(len(timearray)) :
+            model = biGauss(timearray[i],mean,sigma1,sigma2)
+            sumloglike += chargearray[i]*np.log(model)
+        return sumloglike
 
-def double_peak(x, pos1, wid1, r1, amp1, pos2, wid2, r2, amp2):
-    b1 = biGauss(x, pos1, wid1, r1, amp1)
-    b2 = biGauss(x, pos2, wid2, r2, amp2)
-    b = np.append(b1, b2)
-    return b1+b2
+    return log_likelihood_biGauss
 
-def log_likelihood_biGauss(theta, n, x, debug):
-    pos, wid, r, amp = theta
-    model = biGauss(x, pos, wid, r, amp)
-    L = model - (n*np.log(model))
-    return np.sum(L)
+def log_likelihood_doublePeak_functor(time,charge):
 
-def log_likelihood_doublePeak(theta, n, x, debug):
-    pos1, wid1, r1, amp1, pos2, wid2, r2, amp2 = theta
-    model = double_peak(x, pos1, wid1, r1, amp1, pos2, wid2, r2, amp2)
-    L = model - (n*np.log(model))
-    return np.sum(L)
+    timearray = time
+    chargearray = charge
+
+    def gaussian(x,mean,sigma):
+        return (1./(sigma*np.sqrt(2*np.pi)))*np.exp(-((x-mean)**2.0)/(2.*sigma**2))
+
+    def biGauss(x, mean, sigma1,sigma2):
+        if x > mean :
+            return gaussian(x[i],mean,sigma1)
+        else :
+            return (sigma1/sigma2)*gaussian(x[i],mean,sigma2)
+
+    def double_peak(mean1,sigma1,mean2,sigma2,r):
+        b1 = biGauss(x,mean1,sigma1,sigma2)
+        b2 = biGauss(x,mean2,sigma3,sigma4)
+        b = np.append(b1, b2)
+        return b1+b2
+
+    def log_likelihood_doublePeak(theta, n, x, debug):
+        pos1, wid1, r1, amp1, pos2, wid2, r2, amp2 = theta
+        model = double_peak(x, pos1, wid1, r1, amp1, pos2, wid2, r2, amp2)
+        L = model - (n*np.log(model))
+        return np.sum(L)
+
+    return log_likelihood_doublePeak
 
 def expGauss(x, pos, wid, k, amp):
     aux = (x-pos)/wid

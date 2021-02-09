@@ -47,7 +47,7 @@ def LikelihoodFunctor(data,domsUsed,pdf,time_lim,dist_lim):
         v2x = v1x + c*dt*np.cos(dphi)*np.sin(dtheta)
         v2y = v1y + c*dt*np.sin(dphi)*np.sin(dtheta)
         v2z = v1z + c*dt*np.cos(dtheta) 
-        darkrate = 1./10000.
+        darkrate = 1.e-7
 
         nloglike = 0.0
 
