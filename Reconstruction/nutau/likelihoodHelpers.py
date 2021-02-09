@@ -1,4 +1,4 @@
-''' 
+'''
 Functions commonly used for likelihood analysis
 '''
 from icecube import icetray, dataio, dataclasses, simclasses, clsim
@@ -11,6 +11,7 @@ from scipy import stats
 from scipy.optimize import minimize
 from scipy.stats.distributions import chi2
 import scipy
+from tabulate import tabulate
 
 '''
 
@@ -18,56 +19,57 @@ Functions used
 
 '''
 
-def log_likelihood_biGauss_functor(time,charge):
+def gaussian(x, pos, wid, amp):
+    y = amp*np.exp(-4*np.log(2)*((x-pos)/(wid))**2)
+    return y
 
-    timearray = time
-    chargearray = charge
+def biGauss(x, pos, wid, r, amp):
+    mask = x < pos
 
-    def gaussian(x,mean,sigma):
-        return (1./(sigma*np.sqrt(2*np.pi)))*np.exp(-((x-mean)**2.0)/(2.*sigma**2))
+    y_all = ([])
+    for i in range(0, len(mask)):
 
-    def biGauss(x, mean, sigma1,sigma2):
-        if x > mean :
-            return gaussian(x[i],mean,sigma1)
-        else :
-            return (sigma1/sigma2)*gaussian(x[i],mean,sigma2)
+        if mask[i] == True:
+            m = 1
+            nm = 0
+        else:
+            m = 0
+            nm = 1
+        if r != 0:
+            y1 = gaussian(x[i],pos,r*wid/(r+1),amp)*m
+            y2 = gaussian(x[i],pos,wid/(r+1),amp)*nm
+            y = y1 + y2
+        else:
+            y = gaussian(x[i],pos,wid, amp)*nm
 
-    def log_likelihood_biGauss(mean,sigma1,sigma2):
-        sumloglike = 0.0
-        for i in range(len(timearray)) :
-            model = biGauss(timearray[i],mean,sigma1,sigma2)
-            sumloglike += chargearray[i]*np.log(model)
-        return sumloglike
+        y_all = np.append(y_all, y)
+    return y_all
 
-    return log_likelihood_biGauss
+def double_peak(x, pos1, wid1, r1, amp1, pos2, wid2, r2, amp2):
+    b1 = biGauss(x, pos1, wid1, r1, amp1)
+    b2 = biGauss(x, pos2, wid2, r2, amp2)
+    b = np.append(b1, b2)
+    return b1+b2
 
-def log_likelihood_doublePeak_functor(time,charge):
+def log_likelihood_biGauss(theta, n, x, debug):
+    pos, wid, r, amp = theta
+    model = biGauss(x, pos, wid, r, amp)
+    L = model - (n*np.log(model))
+    if debug == True:
+        #print('*****************One Peak*****************')
+        print(tabulate([[pos, wid, r, amp, np.sum(L)]], tablefmt=u'fancy_grid',
+        headers=("pos", "wid", "r", "amp", "log likelihood")))
+    return np.sum(L)
 
-    timearray = time
-    chargearray = charge
-
-    def gaussian(x,mean,sigma):
-        return (1./(sigma*np.sqrt(2*np.pi)))*np.exp(-((x-mean)**2.0)/(2.*sigma**2))
-
-    def biGauss(x, mean, sigma1,sigma2):
-        if x > mean :
-            return gaussian(x[i],mean,sigma1)
-        else :
-            return (sigma1/sigma2)*gaussian(x[i],mean,sigma2)
-
-    def double_peak(mean1,sigma1,mean2,sigma2,r):
-        b1 = biGauss(x,mean1,sigma1,sigma2)
-        b2 = biGauss(x,mean2,sigma3,sigma4)
-        b = np.append(b1, b2)
-        return b1+b2
-
-    def log_likelihood_doublePeak(theta, n, x, debug):
-        pos1, wid1, r1, amp1, pos2, wid2, r2, amp2 = theta
-        model = double_peak(x, pos1, wid1, r1, amp1, pos2, wid2, r2, amp2)
-        L = model - (n*np.log(model))
-        return np.sum(L)
-
-    return log_likelihood_doublePeak
+def log_likelihood_doublePeak(theta, n, x, debug):
+    pos1, wid1, r1, amp1, pos2, wid2, r2, amp2 = theta
+    model = double_peak(x, pos1, wid1, r1, amp1, pos2, wid2, r2, amp2)
+    L = model - (n*np.log(model))
+    if debug == True:
+        #print('*****************Double Peak*****************')
+        print(tabulate([[pos1, wid1, r1, amp1, pos2, wid2, r2, amp2, np.sum(L)]], tablefmt=u'fancy_grid',
+        headers=("pos1", "wid1", "r1", "amp1", "pos1", "wid1", "r1", "amp1", "log likelihood")))
+    return np.sum(L)
 
 def expGauss(x, pos, wid, k, amp):
     aux = (x-pos)/wid
@@ -87,12 +89,22 @@ def log_likelihood_expGauss(theta, n, x, debug):
     pos, wid, k, amp = theta
     model = expGauss(x, pos, wid, k, amp)
     L = model - (n*np.log(model))
+    if debug == True:
+        #print('*****************One Peak*****************')
+        #print("\t".join(["%0.5f" % x for x in [np.sum(L), pos, wid, k, amp]]))
+        print(tabulate([[pos, wid, k, amp, np.sum(L)]], tablefmt=u'fancy_grid',
+        headers=("pos", "wid", "k", "amp", "log likelihood")))
     return np.sum(L)
 
 def log_likelihood_expDoublePeak(theta, n, x, debug):
     pos1, wid1, k1, amp1, pos2, wid2, k2, amp2 = theta
     model = expDoublePeak(x, pos1, wid1, k1, amp1, pos2, wid2, k2, amp2)
     L = model - (n*np.log(model))
+    if debug == True:
+        #print('*****************Double Peak*****************')
+        #print("\t".join(["%0.5f" % x for x in [np.sum(L), pos1, wid1, k1, amp1, pos2, wid2, k2, amp2]]))
+        print(tabulate([[pos1, wid1, k1, amp1, pos2, wid2, k2, amp2, np.sum(L)]], tablefmt=u'fancy_grid',
+        headers=("pos1", "wid1", "k1", "amp1", "pos2", "wid2", "k2", "amp2", "log likelihood")))
     return np.sum(L)
 
 def likelihood_ratio_doublePeak(x, n, pos1, wid1, r1, amp1, pos2, wid2, r2, amp2):
