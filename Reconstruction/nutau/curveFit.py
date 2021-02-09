@@ -1,193 +1,86 @@
-#!/usr/bin/env python                                                                                                
- 
-# Import some useful ICECUBE modules                                                                                  
-from icecube import icetray, dataclasses, dataio, simclasses
-from icecube.icetray import I3Units, I3Frame  
-from icecube.dataclasses import I3Particle 
-import numpy as np                 
-from scipy import special as sp                        # For the Gamma function 
-import sys, os
-from iminuit import Minuit
-import argparse
-import math as m
-
-def LikelihoodFunctor_single(data,pdf,time_lim,dist_lim):
-                
-    pulse_series = data
-
-    c = 0.299792458                                 # speed of light 
-    n = 1.34                                        # 1.33 is the refractive index of water at 20 degrees C
-    c_n = c/n                                       # light in water
-    theta_c = np.arccos(1./n)                       # Cherenkov angle in water in radians
-    lambda_s = 120.                                 # scattering length of light for violet light
-    lambda_a = 15.                                  # absorption length of light for violet light
-    tau = 557                                       # time parameter that has to be fit using simulations or data 
-    pdf_tables = pdf
-    table_time_lim = time_lim
-    table_dist_lim = dist_lim
-    darkprob = 1e-5
-
-    def GetProbability(time,distance) :
-  
-      if time < table_time_lim[0] or time > table_time_lim[1] :
-        return 0.0
-      if distance < table_dist_lim[0] or distance > table_dist_lim[1] :
-        return 0.0
-
-      dist_bin = max(min(int(distance),len(pdf_tables)-1),0)
-      time_bin = max(min(int(time-table_time_lim[0]),len(pdf_tables[dist_bin])-1),0)
-
-      return pdf_tables[dist_bin][time_bin]
-
-    # uses the prior defined functions to build a likelihood function that when given a track (linefit) will produce a negative loglikelihood value
-    def likelihoodFunction(t0,d0): 
-        darkrate = 1.e-7
-
-        nloglike = 0.0
-
-        for dom in pulse_series.keys() :
-
-            for pulse in pulse_series[dom] :
-                t = pulse.time
-                charge = pulse.charge
-                
-                prob = GetProbability(t-t0,d0)
-                prob += darkrate
-
-                nloglike += -charge*np.log(prob)
-
-        return nloglike
-
-    return likelihoodFunction
-
-def LikelihoodFunctor_double(data,pdf,time_lim,dist_lim):
-                
-    pulse_series = data
-
-    c = 0.299792458                                 # speed of light 
-    n = 1.34                                        # 1.33 is the refractive index of water at 20 degrees C
-    c_n = c/n                                       # light in water
-    theta_c = np.arccos(1./n)                       # Cherenkov angle in water in radians
-    lambda_s = 120.                                 # scattering length of light for violet light
-    lambda_a = 15.                                  # absorption length of light for violet light
-    tau = 557                                       # time parameter that has to be fit using simulations or data 
-    pdf_tables = pdf
-    table_time_lim = time_lim
-    table_dist_lim = dist_lim
-    darkprob = 1e-5
-
-    def GetProbability(time,distance) :
-  
-      if time < table_time_lim[0] or time > table_time_lim[1] :
-        return 0.0
-      if distance < table_dist_lim[0] or distance > table_dist_lim[1] :
-        return 0.0
-
-      dist_bin = max(min(int(distance),len(pdf_tables)-1),0)
-      time_bin = max(min(int(time-table_time_lim[0]),len(pdf_tables[dist_bin])-1),0)
-
-      return pdf_tables[dist_bin][time_bin]
-
-    # uses the prior defined functions to build a likelihood function that when given a track (linefit) will produce a negative loglikelihood value
-    def likelihoodFunction(t0,d0,t1,d1,br): 
-        darkrate = 1.e-7
-
-        nloglike = 0.0
-
-        for dom in pulse_series.keys() :
-
-            for pulse in pulse_series[dom] :
-                t = pulse.time
-                charge = pulse.charge
-                
-                prob = br*GetProbability(t-t0,d0)
-                prob += (1.-br)*GetProbability(t-t1,d1)
-                prob += darkrate
-
-                nloglike += -charge*np.log(prob)
-
-        return nloglike
-
-    return likelihoodFunction
+from icecube import icetray, dataio, dataclasses, simclasses, clsim
+from icecube.icetray import I3Units, OMKey, I3Frame
+from icecube.dataclasses import ModuleKey
+from os.path import expandvars
+import numpy as np
+from scipy import stats
+from iminuit import minimize
+from scipy.stats.distributions import chi2
+from likelihoodHelpers import log_likelihood_biGauss, log_likelihood_doublePeak
+from likelihoodHelpers import likelihood_ratio_doublePeak, likelihood_ratio_biGauss, biGauss, double_peak
+from likelihoodHelpers import log_likelihood_expGauss, log_likelihood_expDoublePeak, expGauss, expDoublePeak
+import scipy, csv
+from tabulate import tabulate
 
 class curveFit(icetray.I3ConditionalModule):
+    """
+    Fitting single and double bifurcated gaussian
+    """
 
     def __init__(self, context):
         icetray.I3ConditionalModule.__init__(self, context)
+        self.AddParameter("omgeo",
+                        "geometry map given for the analysis",
+                        "omgeo")
 
-        self.AddParameter("pulseseries","Name of the Merged MCPE tree name","MergedSeriesMap")
-        self.AddParameter("output","Track to store fit.","taufit")
-        self.AddParameter("tables","tablesfile","")
-        self.AddParameter("HitsInDOMsCut","Cut in the num fits in DOMS",200)
+        self.AddParameter("InputMCPETree",
+                         "Input MCPETree name for analysis",
+                         "MCPESeriesMap")
+
+        self.AddParameter("OutputMCPETree",
+                         "Output MCPETree name",
+                         "CurvefitParameters")
+
+        self.AddParameter("HitsInDOMsCut",
+                          "Cut in the num fits in DOMS",
+                          200)
+
+        self.AddParameter("FrameList",
+                          "List of frame numbers to debug",
+                          [])
+
+        self.AddParameter("StringList",
+                          "List of string numbers to debug",
+                          [])
+
+        self.AddParameter("DOMList",
+                          "List of DOM numbers to debug",
+                          [])
+
         self.AddOutBox("OutBox")
-
-    def ReadTables(self) :
-
-        infile = open(self.tablesfiles,"r")
-        lines = infile.readlines()
-        linecount = 0
-        self.pdf = [[]]
-        xcount = 0
-        ny = 0
-        nx = 0
-        minx = 0.0
-        maxx = 0.0
-        miny = 0.0
-        maxy = 0.0
-        for line in lines :
-            splitline = line.split(",",100)
-            if linecount == 0 :
-                nx = int(splitline[0].replace("\n",""))
-                ny = int(splitline[1].replace("\n",""))
-                minx = float(splitline[2].replace("\n",""))
-                maxx = float(splitline[3].replace("\n",""))
-                miny = float(splitline[4].replace("\n",""))
-                maxy = float(splitline[5].replace("\n",""))
-                linecount += 1
-            else :
-                if xcount == ny :
-                    self.pdf.append([])
-                    xcount = 0
-                for value in splitline :
-                    self.pdf[-1].append(float(value.replace("\n","")))
-                    xcount += 1
-            linecount += 1
-        self.time_lim = [minx,maxx]
-        self.dist_lim = [miny,maxy]
 
     def Configure(self):
 
-        self.pulseseries = self.GetParameter("pulseseries")
-        self.output = self.GetParameter("output")
+        self.omgeo = self.GetParameter("omgeo")
+        self.input = self.GetParameter("InputMCPETree")
+        self.output = self.GetParameter("OutputMCPETree")
         self.cuts = self.GetParameter("HitsInDOMsCut")
+        self.frames = self.GetParameter("FrameList")
+        self.strings = self.GetParameter("StringList")
+        self.doms = self.GetParameter("DOMList")
 
-        self.c = 0.299792458                                 # speed of light 
-        self.n = 1.34                                        # 1.33 is the refractive index of water at 20 degrees C
-        self.c_n = self.c/self.n                             # light in water
-        self.theta_c = np.arccos(1./self.n)                  # Cherenkov angle in water in radians
-        self.lambda_s = 120.                                 # scattering length of light for violet light
-        self.lambda_a = 15.                                  # absorption length of light for violet light
-        self.tau = 557                                       # time parameter that has to be fit using simulations or data   
- 
-        self.tablesfiles = self.GetParameter("Tables")
-        if self.tablesfiles == "" :
-          self.tablesfiles = default=os.getenv('PONESRCDIR')+"/data/fittertables.dat"
+        self.frame_counter = 0
 
-        self.ReadTables() 
+    def DAQ(self, frame):
 
-    # Main function of this file. Structured this way so that it can be easily imported aswell in any other implementation.                                   
-    def DAQ(self,frame): 
-        
+        debug_mode = False
 
-        data = frame[self.pulseseries]
+        recoPulseMap = frame[self.input]
 
         biGauss_valuesMap = dataclasses.I3MapKeyVectorDouble()
         doublePeak_valuesMap = dataclasses.I3MapKeyVectorDouble()
         exitStatusMap = dataclasses.I3MapKeyVectorDouble()
 
-        for omkey in data.keys():
+        for omkey in recoPulseMap.keys():
 
-            recoPulseList = data[omkey]
+            # Check if I want to debug this frame
+            if self.frame_counter in self.frames and omkey[0] in self.strings and omkey[1] in self.doms:
+                print('Frame number - '+ str(self.frame_counter), 'String number - ' + str(omkey[0]), 'DOM number - '+ str(omkey[1]))
+                debug_mode = True
+            else:
+                debug_mode = False
+
+            recoPulseList = recoPulseMap[omkey]
             recoPulse_timeList = np.array([recoPulse.time for recoPulse in recoPulseList])
             recoPulse_chargeList = np.array([recoPulse.charge for recoPulse in recoPulseList])
 
@@ -203,89 +96,238 @@ class curveFit(icetray.I3ConditionalModule):
             Calculating the mean and removing the tails
             '''
 
+            #mean = recoPulse_timeList.mean()
             mean = sum(recoPulse_timeList*recoPulse_chargeList)/sum(recoPulse_chargeList) #mean is weighted
             select_time = recoPulse_timeList[(recoPulse_timeList > mean-50) & (recoPulse_timeList < mean+50)]
             select_charge = recoPulse_chargeList[(recoPulse_timeList > mean-50) & (recoPulse_timeList < mean+50)]
+            #print('SELECT CHARGE', select_charge, select_time, mean, recoPulse_timeList, recoPulse_chargeList)
 
-            if len(select_time) < 10 or len(select_charge) < 10:
+            if len(select_time) < 10:
                 exit_status = np.array([1])
                 exitStatusMap.update({omkey: dataclasses.I3VectorDouble(exit_status)})
                 continue
-            
+
+            mean_select_time = sum(select_time*select_charge)/sum(select_charge)
+            max_hitTimes = recoPulse_timeList[(recoPulse_timeList > (mean_select_time-100))&(recoPulse_timeList < (mean_select_time+100))]
+            max_charge = recoPulse_chargeList[(recoPulse_timeList > (mean_select_time-100))&(recoPulse_timeList < (mean_select_time+100))]
+
+            if len(max_hitTimes) < 10:
+                exit_status = np.array([1])
+                exitStatusMap.update({omkey: dataclasses.I3VectorDouble(exit_status)})
+                continue
+
+            #Shifting mean to zero
+            max_hitTimes_mean = sum(max_hitTimes*max_charge)/sum(max_charge)
+            timestamps = max_hitTimes - max_hitTimes_mean
+            final_mean = sum(timestamps*max_charge)/sum(max_charge)
+
+            '''
+            Histogramming the data from simulation
+            '''
+            print('Now Histogramming')
+            bins = np.arange(min(timestamps), max(timestamps), 3)
+            num, bin_edges = np.histogram(timestamps, bins=bins, weights=max_charge)
+            bin_centers = (bin_edges[:-1]+bin_edges[1:])/2
+
+            num_ampRatio = num/max(num)
+
+            #removing bins which are <1/5 the max(num), removing the tails this way.
+            num_select = num[num_ampRatio > 0.0]
+            bin_centers_select = bin_centers[num_ampRatio > 0.0]
+
+            '''
+            Including continuity in the bins
+            '''
+
+            #considering two extra bins on both sides
+            bin_center_bool = (bin_centers >= min(bin_centers_select) - 6)&(bin_centers <= max(bin_centers_select) + 6)
+            entries_in_bins = num[bin_center_bool]
+            bin_centers = bin_centers[bin_center_bool]
+
+            '''
+            Removing DOMs which don't have enough hits
+            '''
+
+            if len(entries_in_bins) < 9:
+                exit_status = np.array([2])
+                exitStatusMap.update({omkey: dataclasses.I3VectorDouble(exit_status)})
+                continue
+
+
+            if max(bin_centers) <= 0:
+                maxBinCenter = max(bin_centers) + abs(max(bin_centers)) + 3
+            else:
+                maxBinCenter = max(bin_centers)
+
+            exitStatusMap.update({omkey: dataclasses.I3VectorDouble(exit_status)})
+            time_window = max(bin_centers) - min(bin_centers)
             exit_status = np.array([3])
 
-            T0 = mean
-            D0 = 20.0
-            T1 = mean
-            D1 = 20.0
-            Br = 1.0
+            '''
+            Fitting bifurcated Gaussian and double bifurcated gaussian to
+            the mcpe hit time distributions for both tau and electron.
 
-            qFunctor_single = LikelihoodFunctor_single(data,self.pdf,self.time_lim,self.dist_lim)   
-          
-            minimizer_single = Minuit(qFunctor_single, 
-                            t0=T0,
-                            error_t0=1.0,
-                            limit_t0=(mean-300.,mean+300.),
-                            d0=D0,
-                            error_d0=1.0,
-                            limit_d0=(1.0,120.),
-                            errordef=0.5,
-                           )
+            initial_biGauss = np.array([final_mean, time_window/2, 1, max(entries_in_bins)])
+            initial_doublePeak = np.array([peak_time_boundary-1,
+                                           20,
+                                           1,
+                                           max(entries_in_bins),
+                                           peak_time_boundary+1,
+                                           20,
+                                           1,
+                                           max(entries_in_bins)])
 
-            minimizer_single.migrad()
 
-            T0 = mean-20.0
-            D0 = 20.0
-            T1 = mean+20.0
-            D1 = 20.0
-            Br = 1.0
+            '''
 
-            qFunctor_double = LikelihoodFunctor_double(data,self.pdf,self.time_lim,self.dist_lim)
+            init_k = np.linspace(1, 20, 1)
+            init_wid = np.linspace(0, time_window, 20)
 
-            minimizer_double = Minuit(qFunctor_double,                                     
-                                            t0=T0,
-                                            error_t0=1.0,
-                                            limit_t0=(mean-300.,mean+300.),
-                                            d0=D0,
-                                            error_d0=1.0,
-                                            limit_d0=(1.0,120.),
-                                            t1=T1,
-                                            error_t1=1.0,
-                                            limit_t1=(mean-300.,mean+300.),
-                                            d1=D1,
-                                            error_d1=1.0,
-                                            limit_d1=(1.0,120.),
-                                            br=Br,
-                                            error_br=1.0,
-                                            limit_br=(0.0,1.0),
-                                            errordef=0.5,                                       
-                                    )
+            best_fcn_single = 1e12
+            soln_biGauss = 0
+            bnds_biGauss = [[min(bin_centers), maxBinCenter],
+                            [1, time_window], # Let the width be negative
+                            [1, 20], # Restrict k to be positive, but only up to 20
+                            [0.1, 2*max(entries_in_bins)]] # Don't restrict the amplitude, it will vary greatly with K
 
-            minimizer_double.migrad()
+            for iK in init_k:
+                for iwid in init_wid:
+                    initial_biGauss = np.array([final_mean, iwid, iK, max(entries_in_bins)])
 
-            solution_single = minimizer_single.values 
-            solution_double = minimizer_double.values
+                    #Single Peak
+                    nll = lambda *args: log_likelihood_biGauss(*args)
+                    if debug_mode == True:
+                        print('Bounds on single peak')
+                        print(tabulate(bnds_biGauss,
+                               tablefmt=u'fancy_grid'))
+                        headers = [["llh","pos1", "wid1", "k1", "amp1"]]
+                        print(tabulate(headers))
 
-            biGauss_values = np.array([minimizer_single.fval, 
-                                       solution_single["t0"],
-                                       solution_single["d0"]
-                                       ])
+                    soln_single = minimize(log_likelihood_expGauss, initial_biGauss,
+                                            args=(entries_in_bins, bin_centers, debug_mode),
+                                            #method='TNC',
+                                            bounds = bnds_biGauss)
 
-            doublePeak_values = np.array([minimizer_double.fval, 
-                                          solution_double["t0"],
-                                          solution_double["d0"],
-                                          solution_double["t1"],
-                                          solution_double["d1"],
-                                          solution_double["br"]
-                                         ])
+                    if soln_single.fun < best_fcn_single:
+                        best_fcn_single = soln_single.fun
+                        soln_biGauss = soln_single
 
+            #Double Peak
+            peak_time_boundary = final_mean-6.
+            bnds_doublePeak = [[min(bin_centers), peak_time_boundary],
+                                bnds_biGauss[1],
+                                bnds_biGauss[2],
+                                bnds_biGauss[3],
+                                [peak_time_boundary, maxBinCenter],
+                                bnds_biGauss[1],
+                                bnds_biGauss[2],
+                                bnds_biGauss[3]]
+
+            best_fcn_double = 1e12
+            soln_doublePeak = 0
+
+            for iK in init_k:
+                for iwid in init_wid:
+                    initial_doublePeak = np.array([peak_time_boundary-1,
+                                                   iwid,
+                                                   iK,
+                                                   max(entries_in_bins),
+                                                   peak_time_boundary+1,
+                                                   iwid,
+                                                   iK,
+                                                   max(entries_in_bins)])
+
+                    nll = lambda *args: log_likelihood_doublePeak(*args)
+                    if debug_mode == True:
+                        print('Bounds on double peak')
+                        # Don't repeat existing stuff
+                        print(tabulate(bnds_doublePeak,
+                                tablefmt=u'fancy_grid'))
+
+                    soln_double = minimize(log_likelihood_expDoublePeak, initial_doublePeak,
+                                                args=(entries_in_bins, bin_centers, debug_mode),
+                                                #method='TNC',
+                                                bounds=bnds_doublePeak)
+
+                    if soln_double.fun < best_fcn_double:
+                        best_fcn_double = soln_double.fun
+                        soln_doublePeak = soln_double
+
+            '''
+            Calculating the Likelihood ratio for bifurcated gaussian
+            and double double bifurcated gaussian
+            '''
+            LR_biGauss = likelihood_ratio_biGauss(bin_centers, entries_in_bins, soln_biGauss.x[0],
+                                                  soln_biGauss.x[1], soln_biGauss.x[2], soln_biGauss.x[3])
+            LR_doublePeak = likelihood_ratio_doublePeak(bin_centers, entries_in_bins, soln_doublePeak.x[0],
+                                                        soln_doublePeak.x[1],soln_doublePeak.x[2],
+                                                        soln_doublePeak.x[3], soln_doublePeak.x[4],
+                                                        soln_doublePeak.x[5], soln_doublePeak.x[6],
+                                                        soln_doublePeak.x[7])
+            '''
+            Update values
+            '''
+
+            biGauss_values = np.array([soln_biGauss.fun, soln_biGauss.x[0],
+                                            soln_biGauss.x[1], soln_biGauss.x[2], soln_biGauss.x[3],
+                                            LR_biGauss])
+
+            doublePeak_values = np.array([soln_doublePeak.fun, soln_doublePeak.x[0],
+                                        soln_doublePeak.x[1],soln_doublePeak.x[2],
+                                        soln_doublePeak.x[3], soln_doublePeak.x[4],
+                                        soln_doublePeak.x[5], soln_doublePeak.x[6],
+                                        soln_doublePeak.x[7], LR_doublePeak])
+
+            # Define omkey:vector dictionary
             biGauss_valuesMap.update({omkey: dataclasses.I3VectorDouble(biGauss_values)})
             doublePeak_valuesMap.update({omkey: dataclasses.I3VectorDouble(doublePeak_values)})
-            exitStatusMap.update({omkey: dataclasses.I3VectorDouble(exit_status)})
 
-        frame[self.output + '_singlePeak'] = biGauss_valuesMap
-        frame[self.output + '_doublePeak'] = doublePeak_valuesMap
-        frame[self.output + '_exitStatus'] = exitStatusMap
-            
-        self.PushFrame(frame)    
+            print('Print message single peak -', soln_biGauss.message)
+            print('Print message double peak -', soln_doublePeak.message)
+            print('Log Likelihood Value single peak -', soln_biGauss.fun)
+            print('Log Likelihood Value double peak -', soln_doublePeak.fun)
 
+            if debug_mode==True:
+                print('Print message single peak -', soln_biGauss.message)
+                print('Print message double peak -', soln_doublePeak.message)
+                print('Log Likelihood Value single peak -', soln_biGauss.fun)
+                print('Log Likelihood Value double peak -', soln_doublePeak.fun)
+                import matplotlib.pyplot as plt
+                '''
+                (x, y) values for the fit
+                '''
+                #x = bin_centers
+                x = np.linspace(min(bin_centers)-30, max(bin_centers)+30, 1000)
+                #y_biGauss = biGauss(x, vals_single[1], vals_single[2], vals_single[3], vals_single[4])
+                #y_doublePeak = double_peak(x, vals[1], vals[2], vals[3], vals[4],
+                #                           vals[5], vals[6], vals[7], vals[8])
+
+                y_biGauss = expGauss(x, soln_biGauss.x[0],
+                                                soln_biGauss.x[1], soln_biGauss.x[2], soln_biGauss.x[3])
+                y_doublePeak = expDoublePeak(x, soln_doublePeak.x[0],
+                                            soln_doublePeak.x[1],soln_doublePeak.x[2],
+                                            soln_doublePeak.x[3], soln_doublePeak.x[4],
+                                            soln_doublePeak.x[5], soln_doublePeak.x[6],
+                                            soln_doublePeak.x[7])
+
+                plt.figure(figsize=(10,9))
+                _ = plt.hist(timestamps, bins=bins, weights=max_charge, histtype='step', linewidth = 5)
+                plt.plot(bin_centers, entries_in_bins, '*', c='k', label = 'Bins for fit', markersize=12, linewidth=6)
+                plt.plot(x, y_biGauss, '--', c = 'k', label = 'expGauss', linewidth=3)
+                plt.plot(x, y_doublePeak, '--', c = 'r', label = 'double expGauss', linewidth=3)
+                plt.axvline(x=soln_doublePeak.x[0], c='orange', label='Postion of First Gaussian')
+                plt.axvline(x=soln_doublePeak.x[4], c='g', label='Postion of Second Gaussian')
+                plt.axhline(y=soln_doublePeak.x[3], c='orange', label='Amplitude of First Gaussian')
+                plt.axhline(y=soln_doublePeak.x[7], c='g', label='Amplitude of Second gaussian')
+                #plt.axvline(x=peak_time_boundary,c='k')
+                plt.legend()
+                plt.xlabel('Time(ns)', fontsize = 16)
+                plt.title(str(omkey), fontsize=14)
+
+        frame[self.output+'_biGauss'] = biGauss_valuesMap
+        frame[self.output+ '_doublePeak'] = doublePeak_valuesMap
+        frame[self.output+ '_exitStatus'] = exitStatusMap
+        # Increase the frame counter
+        self.frame_counter += 1
+
+        self.PushFrame(frame)
