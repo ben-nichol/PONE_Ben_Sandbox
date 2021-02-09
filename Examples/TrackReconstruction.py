@@ -93,6 +93,12 @@ tray.AddModule(curveFit,"CurveFit",
                 HitsInDOMsCut = 120
               )
 
+tray.AddModule(curveFit,"CurveFit",                                             
+               InputMCPETree = "SignificanHits",                                 
+               OututMCPETree = "nuTauOrig",                                       
+               HitsInDOMsCut = 200                                             
+              )
+
 
 tray.AddModule("I3Writer","writer",
                Filename = args.outfile+"/NuTauFit_"+file_list[args.runnumber],

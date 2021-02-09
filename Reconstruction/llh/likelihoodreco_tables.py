@@ -177,6 +177,12 @@ class likelihoodreco(icetray.I3ConditionalModule):
       linecount = 0
       self.pdf = [[]]
       xcount = 0
+      ny = 0
+      nx = 0
+      minx = 0.0
+      maxx = 0.0
+      miny = 0.0
+      maxy = 0.0
       for line in lines :
         splitline = line.split(",",100)
         if linecount == 0 :
@@ -186,8 +192,9 @@ class likelihoodreco(icetray.I3ConditionalModule):
           maxx = float(splitline[3].replace("\n",""))
           miny = float(splitline[4].replace("\n",""))
           maxy = float(splitline[5].replace("\n",""))
+          linecount += 1
         else :
-          if xcount == nx :
+          if xcount == ny :
             self.pdf.append([])
             xcount = 0
           for value in splitline :
