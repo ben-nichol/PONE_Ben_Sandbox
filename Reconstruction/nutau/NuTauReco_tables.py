@@ -40,7 +40,7 @@ def LikelihoodFunctor(data,domsUsed,pdf,time_lim,dist_lim):
       dist_bin = max(min(int(distance),len(pdf_tables)-1),0)
       time_bin = max(min(int(time-table_time_lim[0]),len(pdf_tables[dist_bin])-1),0)
 
-      return pdf_tables[dist_bin][time_bin]
+      return pdf_tables[time_bin][dist_bin]
 
     # uses the prior defined functions to build a likelihood function that when given a track (linefit) will produce a negative loglikelihood value
     def likelihoodFunction(t0,dt,v1x,v1y,v1z,dtheta,dphi,br):
@@ -97,6 +97,12 @@ class nutaureco(icetray.I3ConditionalModule):
         linecount = 0
         self.pdf = [[]]
         xcount = 0
+        ny = 0
+        nx = 0
+        minx = 0.0
+        maxx = 0.0
+        miny = 0.0
+        maxy = 0.0
         for line in lines :
             splitline = line.split(",",100)
             if linecount == 0 :
@@ -106,8 +112,9 @@ class nutaureco(icetray.I3ConditionalModule):
                 maxx = float(splitline[3].replace("\n",""))
                 miny = float(splitline[4].replace("\n",""))
                 maxy = float(splitline[5].replace("\n",""))
+                linecount += 1
             else :
-                if xcount == nx :
+                if xcount == ny :
                     self.pdf.append([])
                     xcount = 0
                 for value in splitline :

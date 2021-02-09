@@ -11,10 +11,58 @@ from iminuit import Minuit
 import argparse
 import math as m
 
-def LikelihoodFunctor(data,domsUsed,pdf,time_lim,dist_lim):
+def LikelihoodFunctor_single(data,pdf,time_lim,dist_lim):
                 
     pulse_series = data
-    geo_doms = domsUsed
+
+    c = 0.299792458                                 # speed of light 
+    n = 1.34                                        # 1.33 is the refractive index of water at 20 degrees C
+    c_n = c/n                                       # light in water
+    theta_c = np.arccos(1./n)                       # Cherenkov angle in water in radians
+    lambda_s = 120.                                 # scattering length of light for violet light
+    lambda_a = 15.                                  # absorption length of light for violet light
+    tau = 557                                       # time parameter that has to be fit using simulations or data 
+    pdf_tables = pdf
+    table_time_lim = time_lim
+    table_dist_lim = dist_lim
+    darkprob = 1e-5
+
+    def GetProbability(time,distance) :
+  
+      if time < table_time_lim[0] or time > table_time_lim[1] :
+        return 0.0
+      if distance < table_dist_lim[0] or distance > table_dist_lim[1] :
+        return 0.0
+
+      dist_bin = max(min(int(distance),len(pdf_tables)-1),0)
+      time_bin = max(min(int(time-table_time_lim[0]),len(pdf_tables[dist_bin])-1),0)
+
+      return pdf_tables[time_bin][dist_bin]
+
+    # uses the prior defined functions to build a likelihood function that when given a track (linefit) will produce a negative loglikelihood value
+    def likelihoodFunction(t0,d0): 
+        darkrate = 1.e-7
+
+        nloglike = 0.0
+
+        for dom in pulse_series.keys() :
+
+            for pulse in pulse_series[dom] :
+                t = pulse.time
+                charge = pulse.charge
+                
+                prob = GetProbability(t-t0,d0)
+                prob += darkrate
+
+                nloglike += -charge*np.log(prob)
+
+        return nloglike
+
+    return likelihoodFunction
+
+def LikelihoodFunctor_double(data,pdf,time_lim,dist_lim):
+                
+    pulse_series = data
 
     c = 0.299792458                                 # speed of light 
     n = 1.34                                        # 1.33 is the refractive index of water at 20 degrees C
@@ -80,6 +128,12 @@ class curveFit(icetray.I3ConditionalModule):
         linecount = 0
         self.pdf = [[]]
         xcount = 0
+        ny = 0
+        nx = 0
+        minx = 0.0
+        maxx = 0.0
+        miny = 0.0
+        maxy = 0.0
         for line in lines :
             splitline = line.split(",",100)
             if linecount == 0 :
@@ -89,8 +143,9 @@ class curveFit(icetray.I3ConditionalModule):
                 maxx = float(splitline[3].replace("\n",""))
                 miny = float(splitline[4].replace("\n",""))
                 maxy = float(splitline[5].replace("\n",""))
+                linecount += 1
             else :
-                if xcount == nx :
+                if xcount == ny :
                     self.pdf.append([])
                     xcount = 0
                 for value in splitline :
@@ -165,32 +220,16 @@ class curveFit(icetray.I3ConditionalModule):
             D1 = 20.0
             Br = 1.0
 
-            qFunctor_single = LikelihoodFunctor(data,domsUsed,self.pdf,self.time_lim,self.dist_lim)   
+            qFunctor_single = LikelihoodFunctor_single(data,self.pdf,self.time_lim,self.dist_lim)   
           
             minimizer_single = Minuit(qFunctor_single, 
                             t0=T0,
                             error_t0=1.0,
-                            dt=dT,
-                            error_dt=1.0,
-                            limit_dt=(mean-300.,mean+300.),
                             d0=D0,
                             error_d0=1.0,
                             limit_d0=(1.0.,120.),
-                            t1=T1,
-                            error_t1=1.0,
-                            limit_t1=(mean-300.,mean+300.),
-                            d1=D1,
-                            error_d1=1.0,
-                            limit_d1=(1.0,120.),
-                            br=Br,
-                            error_br=1.0,
-                            limit_br=(0.0,1.0),
                             errordef=0.5,
                            )
-
-            minimizer_single.fixed["t1"]=True
-            minimizer_single.fixed["d1"]=True
-            minimizer_single.fixed["br"]=True
 
             minimizer_single.migrad()
 
@@ -200,7 +239,7 @@ class curveFit(icetray.I3ConditionalModule):
             D1 = 20.0
             Br = 1.0
 
-            qFunctor_double = LikelihoodFunctor(data,domsUsed,self.pdf,self.time_lim,self.dist_lim)
+            qFunctor_double = LikelihoodFunctor(data,self.pdf,self.time_lim,self.dist_lim)
 
             minimizer_double = Minuit(qFunctor_double,                                     
                                             t0=T0,

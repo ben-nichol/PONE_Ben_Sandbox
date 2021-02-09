@@ -53,7 +53,7 @@ def LikelihoodFunctor(data,domsUsed,vertexrad,pdf,time_lim,dist_lim):
 
       dist_bin = max(min(int(distance),len(pdf_tables)-1),0)                  
       time_bin = max(min(int(time-table_time_lim[0]),len(pdf_tables[dist_bin])-1),0)
-      return pdf_tables[dist_bin][time_bin]+darkprob
+      return pdf_tables[time_bin][dist_bin]+darkprob
     
     # The computations from here on require we find the time and distance of closest approach, d_i,c and t_i,c
     def closestApproach(vtheta, vphi, theta, phi):
@@ -177,6 +177,12 @@ class likelihoodreco(icetray.I3ConditionalModule):
       linecount = 0
       self.pdf = [[]]
       xcount = 0
+      ny = 0
+      nx = 0
+      minx = 0.0
+      maxx = 0.0
+      miny = 0.0
+      maxy = 0.0
       for line in lines :
         splitline = line.split(",",100)
         if linecount == 0 :
@@ -186,8 +192,9 @@ class likelihoodreco(icetray.I3ConditionalModule):
           maxx = float(splitline[3].replace("\n",""))
           miny = float(splitline[4].replace("\n",""))
           maxy = float(splitline[5].replace("\n",""))
+          linecount += 1
         else :
-          if xcount == nx :
+          if xcount == ny :
             self.pdf.append([])
             xcount = 0
           for value in splitline :
