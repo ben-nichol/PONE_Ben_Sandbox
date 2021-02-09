@@ -88,8 +88,8 @@ tray.AddModule(nutaureco,"NuTauReconstructin",
               )
 
 tray.AddModule(curveFit,"CurveFit",
-                InputMCPETree = "SignificanHits",
-                OutputMCPETree = "nuTauCurveFit",
+                pulseseries = "SignificanHits",
+                output = "nuTauCurveFit",
                 HitsInDOMsCut = 120
               )
 

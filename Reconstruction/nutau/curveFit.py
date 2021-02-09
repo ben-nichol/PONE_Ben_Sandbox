@@ -11,10 +11,9 @@ from iminuit import Minuit
 import argparse
 import math as m
 
-def LikelihoodFunctor(data,domsUsed,pdf,time_lim,dist_lim):
+def LikelihoodFunctor(data,pdf,time_lim,dist_lim):
                 
     pulse_series = data
-    geo_doms = domsUsed
 
     c = 0.299792458                                 # speed of light 
     n = 1.34                                        # 1.33 is the refractive index of water at 20 degrees C
@@ -152,7 +151,7 @@ class curveFit(icetray.I3ConditionalModule):
             select_time = recoPulse_timeList[(recoPulse_timeList > mean-50) & (recoPulse_timeList < mean+50)]
             select_charge = recoPulse_chargeList[(recoPulse_timeList > mean-50) & (recoPulse_timeList < mean+50)]
 
-            if len(select_time) < 10 or len(max_hitTimes) < 10:
+            if len(select_time) < 10 or len(select_charge) < 10:
                 exit_status = np.array([1])
                 exitStatusMap.update({omkey: dataclasses.I3VectorDouble(exit_status)})
                 continue
@@ -165,17 +164,15 @@ class curveFit(icetray.I3ConditionalModule):
             D1 = 20.0
             Br = 1.0
 
-            qFunctor_single = LikelihoodFunctor(data,domsUsed,self.pdf,self.time_lim,self.dist_lim)   
+            qFunctor_single = LikelihoodFunctor(data,self.pdf,self.time_lim,self.dist_lim)   
           
             minimizer_single = Minuit(qFunctor_single, 
                             t0=T0,
                             error_t0=1.0,
-                            dt=dT,
-                            error_dt=1.0,
-                            limit_dt=(mean-300.,mean+300.),
+                            limit_t0=(mean-300.,mean+300.),
                             d0=D0,
                             error_d0=1.0,
-                            limit_d0=(1.0.,120.),
+                            limit_d0=(1.0,120.),
                             t1=T1,
                             error_t1=1.0,
                             limit_t1=(mean-300.,mean+300.),
@@ -200,17 +197,15 @@ class curveFit(icetray.I3ConditionalModule):
             D1 = 20.0
             Br = 1.0
 
-            qFunctor_double = LikelihoodFunctor(data,domsUsed,self.pdf,self.time_lim,self.dist_lim)
+            qFunctor_double = LikelihoodFunctor(data,self.pdf,self.time_lim,self.dist_lim)
 
             minimizer_double = Minuit(qFunctor_double,                                     
                                             t0=T0,
                                             error_t0=1.0,
-                                            dt=dT,
-                                            error_dt=1.0,
-                                            limit_dt=(mean-300.,mean+300.),
+                                            limit_t0=(mean-300.,mean+300.),
                                             d0=D0,
                                             error_d0=1.0,
-                                            limit_d0=(1.0.,120.),
+                                            limit_d0=(1.0,120.),
                                             t1=T1,
                                             error_t1=1.0,
                                             limit_t1=(mean-300.,mean+300.),

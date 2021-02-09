@@ -56,7 +56,7 @@ for infile in file_list:
     single_like = frame["NuTau_single_nlogl"].value
     double_like = frame["NuTau_double_nlogl"].value
 
-    biGauss_valuesMap = frame['nuTauCurveFit_biGauss']                      
+    biGauss_valuesMap = frame['nuTauCurveFit_singlePeak']                      
     doublePeak_valuesMap = frame['nuTauCurveFit_doublePeak']
 
     weightDict = frame["I3MCWeightDict"]
@@ -77,10 +77,12 @@ for infile in file_list:
 
     likelihood_diff = min(-double_like+single_like,-double_like+track_like)
 
-    maxdif = -100.0
+    maxdif = -999999999999.0
     for key in biGauss_valuesMap.keys() :
-      bigauss = biGauss_valuesMap[key]
-      doublepeak = doublePeak_valuesMap[key]
+      bigauss = biGauss_valuesMap[key][0]
+      print(bigauss)
+      doublepeak = doublePeak_valuesMap[key][0]
+      print(doublepeak)
       diff = bigauss-doublepeak
       maxdif = max(maxdif,diff)
 
