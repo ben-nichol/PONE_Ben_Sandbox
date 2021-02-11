@@ -100,7 +100,6 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
       for i in range(len(pulsetimelist)-1) :
         charge += 1.0
         if (pulsetimelist[-1-i]-pulsetimelist[-2-i]) < self.minTsep :
-          charge += 1.0
           pulsechargelist.append(0.0)
         else :
           pulsechargelist.append(charge)

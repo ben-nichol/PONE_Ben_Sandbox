@@ -92,6 +92,8 @@ class curveFit(icetray.I3ConditionalModule):
                 exitStatusMap.update({omkey: dataclasses.I3VectorDouble(exit_status)})
                 continue
 
+            
+
             '''
             Calculating the mean and removing the tails
             '''
@@ -128,6 +130,10 @@ class curveFit(icetray.I3ConditionalModule):
             bins = np.arange(min(timestamps), max(timestamps), 3)
             num, bin_edges = np.histogram(timestamps, bins=bins, weights=max_charge)
             bin_centers = (bin_edges[:-1]+bin_edges[1:])/2
+
+            print(omkey)
+            for i in range(1,len(num)) :
+              print(str(i)+" , "+ str(num[i]) + " , " + str(num[i]-num[i-1]))
 
             num_ampRatio = num/max(num)
 
