@@ -59,6 +59,7 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
 
     random_service = self.randomService
     outputpulsemap = dataclasses.I3RecoPulseSeriesMap()
+    outputmcpulsemap = simclass.I3MCPulseSeriesMap()
     mcpulsemap = frame[self.inputmap]
     mcpulseOMKeys = mcpulsemap.keys()
     sqrt2 = 1.414213562373095
@@ -66,6 +67,7 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
     for omkey in mcpulseOMKeys:
       pulsetimelist = []
       pulseseries = dataclasses.I3RecoPulseSeries()
+      mcpulseseries = simclass.I3MCPulseSeries()
       #trueHists
       i=0
       for pulse in mcpulsemap[omkey]:
@@ -100,7 +102,12 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
       #combine pulses that are too close
 
       for i in range(len(pulsetimelist)) :
+        mcpulse = simclasses.I3MCPulse
+        mcpulse.time = pulsetimelist[i]
+        mcpulseseries.append(mcpulse)
         pulsechargelist.append(1.0)
+
+      outputmcpulsemap[omkey] = mcpulseseries
         
       mingap = 4.0
       minindex = -1
@@ -143,6 +150,7 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
       outputpulsemap[newomkey]=pulseseries 
 
     frame[self.outputmap] = outputpulsemap
+    frame[self.outputmap+"_MCpulses"] = outputmcpulsemap
     
     self.PushFrame(frame) 
 
