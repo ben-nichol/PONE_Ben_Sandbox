@@ -29,6 +29,7 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
     self.AddParameter("PEthreshold"," Pulse charge threshold",0.25)
     self.AddParameter("PEsaturation"," Saturation threshold for PMT",100.0)
     self.AddParameter("RandomService","Random Service")
+    self.AddParameter("GenWaveforms","Generate Waveforms?",False)
     self.AddOutBox("OutBox")
 
   def Configure(self):
@@ -52,6 +53,7 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
     self.PEthreshold = self.GetParameter("PEthreshold")
     self.PEsaturation = self.GetParameter("PEsaturation")
     self.randomService = self.GetParameter("RandomService") 
+    self.genWaveforms = self.GetParameter("GenWaveforms")
 
   def DAQ(self,frame) :
 
@@ -96,19 +98,34 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
       pulsetimelist.sort()
       pulsechargelist = []
       #combine pulses that are too close
-      charge = 0.0
-      for i in range(len(pulsetimelist)-1) :
-        charge += 1.0
-        if (pulsetimelist[-1-i]-pulsetimelist[-2-i]) < self.minTsep :
-          pulsechargelist.append(0.0)
-        else :
-          pulsechargelist.append(charge)
-          charge = 0.0
-      pulsechargelist.append(charge+1.0)
-      #note charge list backwards from time list
+
+      for i in range(len(pulsetimelist)) :
+        pulsechargelist.append(1.0)
+        
+      mingap = 4.0
+      minindex = -1
+      for i in range(1,len(pulsetimelist)) :
+        if (pulsetimelist[i]-pulsetimelist[i-1]) < mingap and pulsechargelist[i]*pulsechargelist[i-1] > 0.0:
+          mingap = (pulsetimelist[i]-pulsetimelist[i-1])
+          minindex = i
+      while mingap <= 3.0 : 
+        if pulsechargelist[minindex] > pulsechargelist[minindex-1]:
+          pulsechargelist[minindex] += pulsechargelist[minindex-1]
+          pulsechargelist[minindex-1] = 0.0
+        else:
+          pulsechargelist[minindex-1] += pulsechargelist[minindex]
+          pulsechargelist[minindex] = 0.0
+        mingap = 4.0
+        minindex = -1
+        for i in range(1,len(pulsetimelist)) :
+          if (pulsetimelist[i]-pulsetimelist[i-1]) < mingap and pulsechargelist[i]*pulsechargelist[i-1] > 0.0:
+            mingap = (pulsetimelist[i]-pulsetimelist[i-1])
+            minindex = i
+        
       for i in range(len(pulsechargelist)) :
         if pulsechargelist[i]>0.0 :
           pulsechargelist[i] = random_service.gaus(self.chargemean*pulsechargelist[i],np.sqrt(pulsechargelist[i])*self.chargesigma)
+
       for i in range(len(pulsetimelist)):
         #remove pulses with too low charge.
         if pulsechargelist[-1-i]<self.PEthreshold :
@@ -124,6 +141,7 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
         pulseseries.append(rpulse)
       newomkey = OMKey(omkey.string, omkey.om, 0)
       outputpulsemap[newomkey]=pulseseries 
+
     frame[self.outputmap] = outputpulsemap
     
     self.PushFrame(frame) 
