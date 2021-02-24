@@ -33,9 +33,9 @@ tray = I3Tray()
 # Now fire up the random number generator with that seed
 #from globals import max_num_files_per_dataset
 randomService = phys_services.I3SPRNGRandomService(
-                seed = args.runnumber,
-                nstreams = 4e7,
-                streamnum = args.runnumber)
+                seed = int(args.runnumber),
+               nstreams = int(4e7),
+                streamnum = int(args.runnumber))
 
 tray.context['I3RandomService'] = randomService
 
@@ -77,9 +77,9 @@ tray.Add("I3MCEventHeaderGenerator",
 
 tray.AddModule(PhotonBomb, "customFlasher",
                FlasherPulseSeriesName = "PhotonBomb",
-               PhotonsPerPulse = 1.e2,
+               PhotonsPerPulse = int(1e6),
                RandomService = randomService,
-               NumPulses = 1000
+               NumPulses = int(1e3)
                )
 
 tray.AddSegment(clsim.I3CLSimMakePhotons, 'goCLSIM',
@@ -95,7 +95,7 @@ tray.AddSegment(clsim.I3CLSimMakePhotons, 'goCLSIM',
                 PhotonSeriesName=photon_series,
                 #ParallelEvents=1000,
                 RandomService=randomService,
-                #IceModelLocation=icemodel_path,
+                IceModelLocation="/home/users/tmcelroy/pone_offline/WaterOpticalModel/STRAW_Andy_20200328_MattewEta",
                 #IceModelLocation=mediumProperties,
                 #UnWeightedPhotons=True, #turn off optimizations
                 #UseGeant4=True,
@@ -113,7 +113,7 @@ tray.AddSegment(clsim.I3CLSimMakePhotons, 'goCLSIM',
 
 
 # Tested that all frames go through CLSIM. Removing the ones without any hits to save space.
-tray.AddModule(BasicHitFilter, 'FilterNullPhotons', Streams = [icetray.I3Frame.DAQ, icetray.I3Frame.Physics])
+#tray.AddModule(BasicHitFilter, 'FilterNullPhotons', Streams = [icetray.I3Frame.DAQ, icetray.I3Frame.Physics])
 
 #SkipKeys = ["I3MCTree_bak"]
 

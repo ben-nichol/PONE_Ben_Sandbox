@@ -108,20 +108,23 @@ lowbin = 0
 while time <= 50.0 :
        if time < pulseshape[lowbin][0]:
               resampledpulseshape.append(0.0)
+              time += dt
               continue
-       while lowbin<len(pulseshape)-1 and time > pulseshape[lowbin][0]:
+       while lowbin<len(pulseshape)-2 and time > pulseshape[lowbin][0]:
               lowbin += 1
        if time > pulseshape[lowbin][0]:
               resampledpulseshape.append(0.0)
+              time += dt
               continue
        value = pulseshape[lowbin][1] + (pulseshape[lowbin+1][1]-pulseshape[lowbin][1])*((time-pulseshape[lowbin][0])/(pulseshape[lowbin+1][0]-pulseshape[lowbin][0]))
        resampledpulseshape.append(value)
+       time += dt
 
 specharge = sum(resampledpulseshape)/30.0
                                                                                 
 def pulsewave(time) :
-       bin = (time+tmin)/dt
-       if bin<0 or bin > len(resampledpulseshape):
+       bin = int((time+tmin)/dt)
+       if bin<0 or bin >= len(resampledpulseshape):
               return 0.0;
        return resampledpulseshape[bin]
 

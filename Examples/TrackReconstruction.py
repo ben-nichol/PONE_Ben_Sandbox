@@ -3,7 +3,8 @@
 
 from os.path import expandvars
 import os, sys, random
-from DOM.PONEDOMLauncher import SimpleDOMSimulation 
+from DOM.PONEDOMLauncher import SimpleDOMSimulation
+from DOM.WaveformBuilder import WaveformBuilder
 from PulseCleaning.TimeShifted import timeShift
 from I3Tray import *                                                            
 import random                                                                   
@@ -64,6 +65,10 @@ tray.AddModule(SimpleDOMSimulation, 'DOMLauncher',
                outputmap = "I3Photons_PMTResponse",
                RandomService = randomService
               )
+
+tray.AddModule(WaveformBuilder,'waveformbuilder',
+              inputmap = "I3Photons_PMTResponse_MCpulses",
+              outputmap = "waveform_pulses")
 
 tray.AddModule(SignificantHitPulseCleaning,"SignificantHit",
               GCDFile=gcd_file,

@@ -4,11 +4,13 @@ from icecube.dataclasses import ModuleKey
 import numpy as np
 from DOM.pulseshape import specharge, pulsewave
 
-def GenerateWaveform(time,pulsetimes,pulsecharge):
+
+
+def GenerateWaveform(time,pulsetimes,pulsecharge,mv_to_adc):
 
   V = np.random.normal(2.0,2.0)
   for i in range(len(pulsetimes)) :
-    V += -pulsecharge[i]*pulsewave(time-pulsetimes[i])
+    V += -pulsecharge[i]*pulsewave(time-pulsetimes[i])*mv_to_adc
 
   return int(V)
 
@@ -28,6 +30,8 @@ class WaveformBuilder(icetray.I3ConditionalModule):
 
     self.inputmap = self.GetParameter("inputmap")
     self.outputmap = self.GetParameter("outputmap")
+    self.mv_to_ADC = 1024./3000.
+    self.SPECharge = specharge*self.mv_to_ADC
 
   def DAQ(self,frame) :
 
@@ -42,11 +46,12 @@ class WaveformBuilder(icetray.I3ConditionalModule):
      
       waveform = []
       pulsetimes = []
+      pulsecharge = []
       charge = []
       
       for pulse in mcpulsemap[omkey]:
         pulsetimes.append(pulse.time)
-        pulsecharge.append(np.rand.normal(1.0,0.3))
+        pulsecharge.append(np.random.normal(1.0,0.3))
 
       tmin = min(pulsetimes)-300.
       tmax = max(pulsetimes)+300.
@@ -54,7 +59,7 @@ class WaveformBuilder(icetray.I3ConditionalModule):
 
       #assume 3 bin noise
       for i in range(nbins) :
-        waveform.append(GenerateWaveform(float(int(tmin/3)*3+i*3),pulsetimes,pulsecharge))
+        waveform.append(GenerateWaveform(float(int(tmin/3)*3+i*3),pulsetimes,pulsecharge,self.mv_to_ADC))
 
       deriv = [0.0]
       for i in range(1,len(waveform)) :
@@ -80,7 +85,7 @@ class WaveformBuilder(icetray.I3ConditionalModule):
       cansplit = False
 
       localbaseline = DefaultBaseline
-      for i in range(waveform) :
+      for i in range(len(waveform)) :
         if inpulse :
 
           if deriv[i] < PulseSplitVoltThresh :
@@ -106,7 +111,7 @@ class WaveformBuilder(icetray.I3ConditionalModule):
         elif deriv[i] > Derthreshold :
           inpulse = True
           if len(baselinesamples) < 5 :
-            localbaseline = mean(baselinesamples)
+            localbaseline = sum(baselinesamples)/len(baselinesamples)
           pulsefindercharge.append(float(waveform[i])-localbaseline)
           pulsefindermaxderiv.append(deriv[i])
           pulsefinderstartbin.append(i)
@@ -118,7 +123,7 @@ class WaveformBuilder(icetray.I3ConditionalModule):
       for i in range(len(pulsefindertimes)):
         rpulse = dataclasses.I3RecoPulse()
         rpulse.time = pulsefindertimes[i]
-        rpulse.charge = pulsefindercharge[i]/specharge
+        rpulse.charge = pulsefindercharge[i]/self.SPECharge
         rpulse.width = float(pulsefinderstopbin[i]-pulsefinderstartbin[i])*3.0
         pulseseries.append(rpulse)
 

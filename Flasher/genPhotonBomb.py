@@ -25,7 +25,7 @@ class PhotonBomb(icetray.I3ConditionalModule):
                           "Time (within each event) at which to flash",
                           500.*I3Units.ns)
         self.AddParameter("RandomService","Random Service")
-        self.AddParameter("Radius","Radius for simulation",200.)
+        self.AddParameter("Radius","Radius for simulation",150.)
        
         self.AddOutBox("OutBox")
 
@@ -58,7 +58,7 @@ class PhotonBomb(icetray.I3ConditionalModule):
             newPulse.time = self.flashTime
             newPulse.numberOfPhotonsNoBias = self.photonsPerPulse
             # from icecube/200704001 section 2:
-            newPulse.pulseWidth = 10. * I3Units.ns
+            newPulse.pulseWidth = 0.1 * I3Units.ns
             # these two have different meanings than for flashers:
             # polar is the angle w.r.t. the candle axis,
             # azimuthal is angle along the circle (and should always be 360deg)
