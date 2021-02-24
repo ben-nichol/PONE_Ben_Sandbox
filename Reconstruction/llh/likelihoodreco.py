@@ -36,12 +36,13 @@ def LikelihoodFunctor(data,domsUsed,vertexrad):
             charge.append(pulse.charge)
 
     c = 0.299792458                                 # speed of light 
-    n = 1.34                                        # 1.33 is the refractive index of water at 20 degrees C
-    c_n = c/n                                       # light in water
+    n = 1.34
+    ngroup = 1.3968                                 # 1.33 is the refractive index of water at 20 degrees C
+    c_n = c/ngroup                                     # light in water
     theta_c = np.arccos(1./n)                       # Cherenkov angle in water in radians
     lambda_s = 120.                                 # scattering length of light for violet light
     lambda_a = 15.                                  # absorption length of light for violet light
-    tau = 557                                       # time parameter that has to be fit using simulations or data      
+    tau = 18.949132224466762                                        # time parameter that has to be fit using simulations or data      
     vertexRad = vertexrad
     # min time index for the first hit PMT
     min_index = np.argmin(time)
@@ -97,9 +98,12 @@ def LikelihoodFunctor(data,domsUsed,vertexrad):
         vx = vertexRad*np.sin(vtheta)*np.cos(vphi)
         vy = vertexRad*np.sin(vtheta)*np.sin(vphi)
         vz = vertexRad*np.cos(vtheta)
-        p_charge = Likelihood(pmt,charge,vx,vy,vz,theta,phi)
+        p_charge []
+        tau = 59.0;
+        for i in range(len(dc)) :
+          p_charge.append(np.exp(-d[i]/tau)/max(dc[i],0.5))
         out = pdf(t,d)
-        dark = 1./10000.
+        dark = 1.e-8
         sum_nloglike = 0.0
         for i in range(len(out)) :
             sum_nloglike -= charge[i]*np.log(out[i]*p_charge[i]+dark)
@@ -166,11 +170,12 @@ class likelihoodreco(icetray.I3ConditionalModule):
 
         # Some quantities that are environment dependent
         self.c = 0.299792458                                 # speed of light 
-        self.n = 1.34                                        # 1.33 is the refractive index of water at 20 degrees C
-        self.c_n = self.c/self.n                                       # light in water
+        self.n = 1.34  
+        self.ngroup = 1.3555714017                                      # 1.33 is the refractive index of water at 20 degrees C
+        self.c_n = self.c/self.ngroup                                       # light in water
         self.theta_c = np.arccos(1./self.n)                       # Cherenkov angle in water in radians
         self.lambda_s = 120.                                 # scattering length of light for violet light
-        self.lambda_a = 15.                                  # absorption length of light for violet light
+        self.lambda_a = 18.949132224466762                                  # absorption length of light for violet light
         self.tau = 557                                       # time parameter that has to be fit using simulations or data      
 
     # Main function of this file. Structured this way so that it can be easily imported aswell in any other implementation.                                   
@@ -183,12 +188,22 @@ class likelihoodreco(icetray.I3ConditionalModule):
         domsUsed = frame['I3Geometry'].omgeo 
 
         qFunctor = LikelihoodFunctor(data,domsUsed,self.vertexRad) 
-        vr = np.sqrt(linefit.pos.x**2.+linefit.pos.y**2.0+linefit.pos.z**2.0)
-        VTheta = np.arccos(linefit.pos.z/vr)
+
+        p_2 = linefit.pos.x**2+linefit.pos.y**2+linefit.pos.z**2
+        pd = -(linefit.pos.x*linefit.dir.x+linefit.pos.y*linefit.dir.y+linefit.pos.z*linefit.dir.z)
+        r_2 = 550.0**2
+
+        L = -2.0*pd - np.sqrt(pd**2.0-p_2+r_2)
+
+        vertex = dataclasses.I3Direction(linefit.pos.x-L*linefit.dir.x,linefit.pos.y-L*linefit.dir.y,linefit.pos.z-L*linefit.dir.z)
+        direction = dataclasses.I3Direction(-linefit.dir.x,-linefit.dir.y,-linefit.dir.z)
+
+        vr = np.sqrt(vertex.x**2.+vertex.y**2.0+vertex.z**2.0)
+
+        VTheta = np.arccos(vertex.z/vr)
         VPhi = 0.0
         if np.sin(VTheta) != 0.0 :
-            #VPhi = np.arccos(linefit.pos.x/(vr*np.sin(VTheta)))
-            VPhi = np.arctan2(linefit.pos.y,linefit.pos.x)
+            VPhi = np.arctan2(vertex.y,vertex.x)
         T0 = GetVertexTime(VTheta,VPhi,data,domsUsed,self.vertexRad)
           
         minimizer = Minuit(qFunctor, 
@@ -200,10 +215,10 @@ class likelihoodreco(icetray.I3ConditionalModule):
                         vphi=VPhi,
                         error_vphi=1.0,
                         limit_vphi=(0.0,2.0*np.pi),
-                        phi=linefit.dir.phi,  
+                        phi=direction.phi,  
                         error_phi=1.0,
                         limit_phi=(0.0,2.0*np.pi),
-                        theta=linefit.dir.theta,
+                        theta=direction.theta,
                         error_theta=1.0,
                         limit_theta=(0.0,np.pi),
                         errordef=0.5,
@@ -220,7 +235,7 @@ class likelihoodreco(icetray.I3ConditionalModule):
         q = dataclasses.I3Position(vx,vy,vz)
         phi = solution['phi'] 
         theta = solution['theta']
-        u = dataclasses.I3Direction(np.sin(theta)*np.cos(phi), np.sin(theta)*np.sin(phi), np.cos(theta))
+        u = dataclasses.I3Direction(-np.sin(theta)*np.cos(phi), -np.sin(theta)*np.sin(phi), -np.cos(theta))
 
         # Record the final result
         recoParticle = dataclasses.I3Particle()
