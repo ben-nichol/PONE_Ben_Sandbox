@@ -43,7 +43,7 @@ def pandel(t, d, lambda_a = 15., lambda_s = 120., tau = 557E-9):
 #    frac_2 = sp.hyp1f1(0.5*(xi+1),1.5,0.5*eta**2)/sp.gamma(0.5*xi)
 #    return frac*(frac_1 - np.sqrt(2.)*eta*frac_2)
 
-def cpandel(t, d, sigma = 2.0, lambda_s = 120., rho = 0.004):
+def cpandel(t, d, sigma = 1.1339139328144132, lambda_s = 317.50178764954626, rho = 0.04079084329979382):
 
     pdf = []
     for i in range(len(t)) :

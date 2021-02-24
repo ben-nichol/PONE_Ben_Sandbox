@@ -25,7 +25,7 @@ class PhotonBomb(icetray.I3ConditionalModule):
                           "Time (within each event) at which to flash",
                           500.*I3Units.ns)
         self.AddParameter("RandomService","Random Service")
-        self.AddParameter("Radius","Radius for simulation",200.)
+        self.AddParameter("Radius","Radius for simulation",50.)
        
         self.AddOutBox("OutBox")
 
