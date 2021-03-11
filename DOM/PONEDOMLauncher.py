@@ -18,7 +18,7 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
     self.AddParameter("chargesigma","Sigma of charge distribution",0.3)
     self.AddParameter("chargemean","Mean of Charge distribution ",1.0)
     self.AddParameter("DNprob","Dark Noise rate (pulses per ns)",0.000001)
-    self.AddParameter("APprob","Total AP probability",0.15)
+    self.AddParameter("APprob","Total AP probability",0.06)
     self.AddParameter("APmeantime_1","Mean of early time AP distribution",2000.)
     self.AddParameter("APtimesigma_1","Sigma of early time AP distribution",1000.)
     self.AddParameter("APmeantime_2"," mean of late time AP distribution",8000.)

@@ -4,7 +4,6 @@ from icecube.dataclasses import I3Constants
 import numpy as np
 import argparse
 import sys
-#sys.path.insert(0,'/home/users/dhilu/P_ONE_dvirhilu/src')
 
 import gcdHelpers
 

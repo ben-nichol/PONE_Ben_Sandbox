@@ -59,5 +59,5 @@ class timeShift(icetray.I3ConditionalModule):
           timeShiftedMap[omkey] = newMCPEList
 
         frame[self.tShiftSeriesName] = timeShiftedMap
-
+        frame[self.tShiftSeriesName+str("_toffset")] = dataclasses.I3Double(min_time - self.mintime*I3Units.ns) 
         self.PushFrame(frame)
