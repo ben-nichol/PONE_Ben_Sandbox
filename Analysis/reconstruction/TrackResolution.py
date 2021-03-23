@@ -1,5 +1,5 @@
 from icecube import icetray, dataclasses, dataio, simclasses
-from icecube.icetray import I3Units, I3Frame  
+from icecube.icetray import I3Units, OMKey, I3Frame 
 from icecube.dataclasses import I3Particle 
 import numpy as np                 
 import sys, os
@@ -14,62 +14,78 @@ from scipy import integrate
 
 def cpandel(t, d, sigma = 1.1339139328144132, lambda_s = 317.50178764954626, rho = 0.04079084329979382):
 
-    pdf = []
-    for i in range(len(t)) :
-        xi = d[i]/lambda_s
-        eta = rho*sigma - (t[i]/sigma)
-        if t[i]<-25.*sigma or t[i]>3500. :
-            pdf.append(0.0)
+    pdf = 0.0
+    xi = d/lambda_s
+    eta = rho*sigma - (t/sigma)
+    if t<-25.*sigma or t>3500. :
+        return 0.0
 
-        elif (t[i]>-5.0*sigma and t[i]<30.0*sigma) and xi<5.0 :
-            # Define our region dependent approximations of the CPandel function
-            _pdf = sp.hyp1f1(0.5*xi,0.5,0.5*eta**2)/sp.gamma(0.5*(xi + 1.))
-            _pdf -= np.sqrt(2.)*eta*sp.hyp1f1(0.5*(xi+1.),1.5,0.5*eta**2)/sp.gamma(0.5*xi)
-            _pdf *= (rho**xi)*(sigma**(xi - 1.))*np.exp(-(t[i]**2)/(2.*sigma**2))
-            _pdf /= 2.**((1.+xi)/2.)
-            pdf.append(_pdf)
+    elif (t>-5.0*sigma and t<30.0*sigma) and xi<5.0 :
+        # Define our region dependent approximations of the CPandel function
+        _pdf = sp.hyp1f1(0.5*xi,0.5,0.5*eta**2)/sp.gamma(0.5*(xi + 1.))
+        _pdf -= np.sqrt(2.)*eta*sp.hyp1f1(0.5*(xi+1.),1.5,0.5*eta**2)/sp.gamma(0.5*xi)
+        _pdf *= (rho**xi)*(sigma**(xi - 1.))*np.exp(-(t**2)/(2.*sigma**2))
+        _pdf /= 2.**((1.+xi)/2.)
+        return _pdf
 
-        elif xi <= 1. and t[i] > 30.*sigma :
-            _pdf = np.exp((rho**2)*(sigma**2)/2.)
-            _pdf *= (rho**xi)*(t[i]**(xi-1.))*np.exp(-rho*t[i])
-            _pdf /= sp.gamma(xi)
-            pdf.append(_pdf)
+    elif xi <= 1. and t > 30.*sigma :
+        _pdf = np.exp((rho**2)*(sigma**2)/2.)
+        _pdf *= (rho**xi)*(t**(xi-1.))*np.exp(-rho*t)
+        _pdf /= sp.gamma(xi)
+        return _pdf
 
-        elif xi>1.0 and t[i]>(rho*(sigma**2.0)) :
-            z = max(0.0,-eta/np.sqrt(4*xi - 2.))
-            k = 0.5*(z*np.sqrt(1. + z**2) + np.log(z + np.sqrt(1. + z**2)))
-            beta = 0.5*((z/np.sqrt(1. + z**2)) - 1.)
-            N1 = (beta/12.)*(20*beta**2 + 30*beta + 9.)
-            N2 = ((beta**2)/(288.))*(6160*beta**4.0 + 18480*beta**3.0 + 19404*beta**2.0 + 8028*beta + 945.)
-            phi = 1. - N1/(2.*xi - 1.) + N2/((2.*xi - 1.)**2)
-            alpha = -t[i]**2/(2*sigma**2) + 0.25*eta**2 - xi*0.5 + 0.25 + k*(2*xi - 1.) - 0.25*np.log(1 + z**2) - 0.5*xi*np.log(2) + 0.5*(xi-1.)*np.log(2*xi-1.) + xi*np.log(rho) + (xi-1.)*np.log(sigma)
-            _pdf = np.exp(alpha)*phi/sp.gamma(xi)
-            pdf.append(_pdf)
+    elif xi>1.0 and t>(rho*(sigma**2.0)) :
+        z = max(0.0,-eta/np.sqrt(4*xi - 2.))
+        k = 0.5*(z*np.sqrt(1. + z**2) + np.log(z + np.sqrt(1. + z**2)))
+        beta = 0.5*((z/np.sqrt(1. + z**2)) - 1.)
+        N1 = (beta/12.)*(20*beta**2 + 30*beta + 9.)
+        N2 = ((beta**2)/(288.))*(6160*beta**4.0 + 18480*beta**3.0 + 19404*beta**2.0 + 8028*beta + 945.)
+        phi = 1. - N1/(2.*xi - 1.) + N2/((2.*xi - 1.)**2)
+        alpha = -t**2/(2*sigma**2) + 0.25*eta**2 - xi*0.5 + 0.25 + k*(2*xi - 1.) - 0.25*np.log(1 + z**2) - 0.5*xi*np.log(2) + 0.5*(xi-1.)*np.log(2*xi-1.) + xi*np.log(rho) + (xi-1.)*np.log(sigma)
+        _pdf = np.exp(alpha)*phi/sp.gamma(xi)
+        return _pdf
 
-        elif xi>1.0 and t[i]<=(rho*(sigma**2.0)) :
-            z = max(0.0,eta/np.sqrt(4*xi-2.))
-            k = 0.5*(z*np.sqrt(1. + z**2) + np.log(z + np.sqrt(1. + z**2)))
-            beta = 0.5*((z/(np.sqrt(1. + z**2)) - 1.))
-            N1 = (beta/12.)*(20*beta**2 + 30*beta + 9.)
-            N2 = ((beta**2)/(288.))*(6160*beta**4 + 18480*beta**3 + 19404*beta**2 + 8028*beta + 945.)
-            psi = 1. + N1/(2*xi - 1.) + N2/((2*xi - 1.)**2)
-            _pdf = (rho**xi)*(sigma**(xi-1.))*np.exp(0.25*(eta**2.0)-(t[i]**2)/(2*sigma**2))
-            _pdf /= np.log(2.0*np.pi)
-            U = np.exp(0.5*xi - 0.25)*((2*xi - 1.)**(-0.5*xi))*(2.**(0.5*(xi - 1.)))
-            _pdf += U
-            _pdf *= np.exp(-k*(2*xi-1.))
-            _pdf *= (1. + z**2)**(-0.25)
-            _pdf *= psi
-            pdf.append(_pdf)
+    elif xi>1.0 and t<=(rho*(sigma**2.0)) :
+        z = max(0.0,eta/np.sqrt(4*xi-2.))
+        k = 0.5*(z*np.sqrt(1. + z**2) + np.log(z + np.sqrt(1. + z**2)))
+        beta = 0.5*((z/(np.sqrt(1. + z**2)) - 1.))
+        N1 = (beta/12.)*(20*beta**2 + 30*beta + 9.)
+        N2 = ((beta**2)/(288.))*(6160*beta**4 + 18480*beta**3 + 19404*beta**2 + 8028*beta + 945.)
+        psi = 1. + N1/(2*xi - 1.) + N2/((2*xi - 1.)**2)
+        _pdf = (rho**xi)*(sigma**(xi-1.))*np.exp(0.25*(eta**2.0)-(t**2)/(2*sigma**2))
+        _pdf /= np.log(2.0*np.pi)
+        U = np.exp(0.5*xi - 0.25)*((2*xi - 1.)**(-0.5*xi))*(2.**(0.5*(xi - 1.)))
+        _pdf += U
+        _pdf *= np.exp(-k*(2*xi-1.))
+        _pdf *= (1. + z**2)**(-0.25)
+        _pdf *= psi
+        return _pdf
 
-        elif xi<=1. and t[i]<=(rho*(sigma**2.0)) :
-            _pdf = (rho*sigma)**xi
-            _pdf *= eta**(-xi)
-            _pdf *= np.exp(-t[i]**2.0/(2.0*sigma**2.0))
-            _pdf /= np.sqrt(2.*np.pi*sigma**2.0)
-            pdf.append(_pdf)
+    elif xi<=1. and t<=(rho*(sigma**2.0)) :
+        _pdf = (rho*sigma)**xi
+        _pdf *= eta**(-xi)
+        _pdf *= np.exp(-t**2.0/(2.0*sigma**2.0))
+        _pdf /= np.sqrt(2.*np.pi*sigma**2.0)
+        return _pdf
 
-    return pdf
+    return 0.0
+
+def GetGeoTime(position,vert,direction) :
+	c = 0.299792458                                 # speed of light 
+	n = 1.34
+	ngroup = 1.35557                                # 1.33 is the refractive index of water at 20 degrees C
+	c_n = c/ngroup                                     # light in water
+	theta_c = np.arccos(1./n)
+	x = position.x - vert.x
+	y = position.y - vert.y
+	z = position.z - vert.z
+	dotprod = x*direction.x + y*direction.y + z*direction.z
+	dc = np.sqrt(x*x + y*y + z*z-dotprod*dotprod)
+	d = dc/np.sin(theta_c)
+	t = d/c_n + dotprod/c - dc/(np.tan(theta_c)*c)
+	return d,dc,t
+
+
 
 def LikelihoodFunctor(data,domsUsed,vertexrad):
     # turn PMT locations and time hits into numpy arrays for easier numpy algebra
@@ -89,11 +105,6 @@ def LikelihoodFunctor(data,domsUsed,vertexrad):
                 time.append(pulse.time)
                 charge.append(1.0)
 
-    vx = 0.0
-    vy = 0.0
-    vz = 0.0
-    v =np.array([0.0,0.0,0.0])
-
     c = 0.299792458                                 # speed of light 
     n = 1.34
     ngroup = 1.35557                                # 1.33 is the refractive index of water at 20 degrees C
@@ -103,130 +114,23 @@ def LikelihoodFunctor(data,domsUsed,vertexrad):
     lambda_a = 15.                                  # absorption length of light for violet light
     tau = 18.949132224466762                                        # time parameter that has to be fit using simulations or data      
     vertexRad = vertexrad
-    # min time index for the first hit PMT
-    min_index = np.argmin(time)
 
-    # The computations from here on require we find the time and distance of closest approach, d_i,c and t_i,c
-    def closestApproach():
-        # Compute vec{r} - vec{x}
-        dc = []
-        tc = []
-        lc = []
-
-        for dom in pulse_series.keys() :
-          for pulse in pulse_series[dom] :
-            x = geo_doms[dom].position.x - vx
-            y = geo_doms[dom].position.y - vy
-            z = geo_doms[dom].position.z - vz
-            # Compute (\vec{r} - vec{x}) dot \vec{v}
-            dotprod = x*v[0] + y*v[1] + z*v[2]
-            # Compute the final vector components
-            #x = x - dotprod*v[0]
-            #y = y - dotprod*v[1]
-            #z = z - dotprod*v[2]
-            # Compute t_i,c and d_i,c
-            dc.append(np.sqrt(x*x + y*y + z*z-dotprod*dotprod))
-            tc.append(dotprod/c)
-            lc.append(dotprod)
-        return dc, tc, lc
-
-    # Given the linefit and other parameters 
-    def computeResiduals(dc, tc, lc, t0):
-        t = []
-        d = []
-        l = []
-        for i in range(len(dc)) :
-          # Now we find the time of the photon emission
-          _tc = tc[i] - dc[i]/(np.tan(theta_c)*c)
-          l.append(lc[i]-dc[i]/np.tan(theta_c))
-          # The first component of the geometric time
-          d.append(dc[i]/np.sin(theta_c))
-          t_geo = d[-1]/c_n
-          # Apply our offset time to find the "true" closest approach time array. Multiply by 1E9 to change to nanoseconds
-          _tc += t0
-          # The total geometric time
-          t_geo = t_geo + _tc
-        # Residual time is now the difference between the geometric time and the observed time. This won't work with just the Pandel Function
-          t.append(time[i] - t_geo)
-        return d, t, l
-
-    # uses the prior defined functions to build a likelihood function that when given a track (linefit) will produce a negative loglikelihood value
     def likelihoodFunction(vtheta, vphi, theta, phi, t0):
-        vx = vertexRad*np.sin(vtheta)*np.cos(vphi)
-        vy = vertexRad*np.sin(vtheta)*np.sin(vphi)
-        vz = vertexRad*np.cos(vtheta)
-        v =np.array([np.sin(theta)*np.cos(phi),np.sin(theta)*np.sin(phi),np.cos(theta)])
-        dc, tc, lc = closestApproach()
-        d, t, l = computeResiduals(dc, tc, lc, t0)
-        p_charge=[]
+	vertex = dataclasses.I3Position(vertexRad*np.sin(vtheta)*np.cos(vphi),vertexRad*np.sin(vtheta)*np.sin(vphi),vertexRad*np.cos(vtheta))
+	direction = dataclasses.I3Direction(np.sin(theta)*np.cos(phi),np.sin(theta)*np.sin(phi),np.cos(theta))
         dark = 1.e-8
 
-        N = 0.0
-        for dom in pulse_series.keys():
-          totalcharge = 0.0
-          for pulse in pulse_series[dom]:
-             totalcharge += pulse.charge
-          x = geo_doms[dom].position.x - vx
-          y = geo_doms[dom].position.y - vy
-          z = geo_doms[dom].position.z - vz
-          # Compute (\vec{r} - vec{x}) dot \vec{v}
-          dotprod = x*v[0] + y*v[1] + z*v[2]
-          # Compute the final vector components
-          #x = x - dotprod*v[0]
-          #y = y - dotprod*v[1]
-          #z = z - dotprod*v[2]
-          # Compute t_i,c and d_i,c
-          d_c = np.sqrt(x*x + y*y + z*z-dotprod*dotprod)
-          l = dotprod - d_c/np.tan(theta_c)
-          d_p = d_c/np.sin(theta_c)
-          N += totalcharge/(np.exp(-d_p/tau)/max(d_c,0.25)+1000.*dark)
-
-
-        for i in range(len(dc)) :
-        #  if l[i]<start or l[i]>start+stop :
-        #    p_charge.append(0.0)
-        #  else :
-        #    p_charge.append(np.exp(-d[i]/tau)/max(dc[i],0.5))
-            p_charge.append(np.exp(-d[i]/tau)/max(dc[i],0.25))
-        out = cpandel(t,d)
         sum_nloglike = 0.0
-        for i in range(len(out)) :
-            #sum_nloglike -= charge[i]*(np.log(N*out[i]+dark))
-            sum_nloglike -= charge[i]*np.log(out[i]*p_charge[i]+dark/N)
-            #sum_nloglike -= charge[i]*np.log(N*out[i]*p_charge[i])
-        #likelihood of not seeing any light
-        #assume chargetotal = sum(N*p_charge[i]) -> N = chargetotal/sum(p_charge[i])
-        #Hit=[]
-        #NotHit=[]
-        #for dom in geo_doms.keys() :
-
-          #x = geo_doms[dom].position.x - vx
-          #y = geo_doms[dom].position.y - vy
-          #z = geo_doms[dom].position.z - vz
-          # Compute (\vec{r} - vec{x}) dot \vec{v}
-          #dotprod = x*v[0] + y*v[1] + z*v[2]
-          # Compute the final vector components
-          #x = x - dotprod*v[0]
-          #y = y - dotprod*v[1]
-          #z = z - dotprod*v[2]
-          # Compute t_i,c and d_i,c
-          #d_c = np.sqrt(x*x + y*y + z*z)
-          #l = dotprod - d_c/np.tan(theta_c) 
-          #d_p = d_c/np.sin(theta_c)
-          #if l < start or l > start+stop :
-          #  if dom in pulse_series.keys() :
-          #    Hit.append(1000.*dark)
-          #  else :
-          #    NotHit.append(1000.*dark)
-          #else :
-          #  if dom in pulse_series.keys() :
-          #    Hit.append(np.exp(-d_p/tau)/max(d_c,0.5)+1000.*dark)
-          #  else :
-          #    NotHit.append(np.exp(-d_p/tau)/max(d_c,0.5)+1000.*dark)
-
-        #N = sum(charge)/sum(Hit)
-        #for p in NotHit :
-        #  sum_nloglike += p*N 
+        for dom in pulse_series.keys() :
+           domkey =  OMKey(dom.string, dom.om, 0) 
+           d,dc,t = GetGeoTime(geo_doms[domkey].position,vertex,direction)
+           p_charge = np.exp(-d/tau)/max(dc,0.25)
+           for pulse in pulse_series[dom] :
+               charge = 1.0
+               cpandel_out = cpandel(pulse.time - t0 - t ,d)
+               if(type(pulse_series) == 'icecube.dataclasses.I3RecoPulseSeriesMap') :
+                   charge = pulse.charge
+               sum_nloglike -= charge*np.log(cpandel_out*p_charge+dark)
 
         return sum_nloglike
 
@@ -263,6 +167,7 @@ graphcount = 0
 domsUsed = None
 n = 1.34
 ngroup = 1.35557                                # 1.33 is the refractive index of water at 20 degrees C
+c = 0.299
 c_n = c/ngroup                                     # light in water
 theta_c = np.arccos(1./n) 
 gcd_file = dataio.I3File("/home/users/tmcelroy/pone_offline/GCD/PONE_Phase1.i3.gz")
@@ -281,6 +186,7 @@ for infile in file_list :
 		Muon = MMCTrackList[0].GetI3Particle()
 		t_offset = float(frame["TimeShiftedMCPEMap_toffset"].value)
 		pulse_series = frame["SignificanHits"]
+		mcpulses = frame["TimeShiftedMCPEMap"]
 		likelihood = LikelihoodFunctor(pulse_series,domsUsed,550.)
 
 		ndoms = 0
@@ -288,11 +194,8 @@ for infile in file_list :
 
 		for dom in pulse_series.keys() :
 			ndoms += 1
-			#print(dom)
-			#print(str(domsUsed[dom].position.x)+","+str(domsUsed[dom].position.y)+","+str(domsUsed[dom].position.z))
                 	for pulse in pulse_series[dom] :
                         	totalcharge += pulse.charge
-				#print("		time = "+str(pulse.time)+" charge = "+str(pulse.charge))
 
 		muon_direction = dataclasses.I3Direction(Muon.dir.x,Muon.dir.y,Muon.dir.z)
 		p_2 = Muon.pos.x**2.0+Muon.pos.y**2.0+Muon.pos.z**2.0
@@ -321,16 +224,18 @@ for infile in file_list :
 		min_cyl_r = np.sqrt(minpos.x**2+minpos.y**2)
 		min_z = minpos.z
 
-		if(totalcharge > 600 and graphcount<5):
+		if(totalcharge > 600 and graphcount<1):
 			print("new graphs")
 			graphcount += 1
 			fout.cd()
 			LikelihoodSpace_TrueVertex = ROOT.TH2F("Event_"+str(muon_vertex.theta)+" "+str(muon_vertex.phi),"",60,0.,2.0*np.pi,30,0.,np.pi)
                         LikelihoodSpace_TrueDirection = ROOT.TH2F("Event_"+str(muon_direction.theta)+" "+str(muon_direction.phi),"",60,0.,2.0*np.pi,30,0.,np.pi)
                         LikelihoodSpace_TrueVertandDir = ROOT.TH1F("Event_"+str(muon_time),"",2000,-2000.,2000.)
-			time_10_20 = ROOT.TH1F("time_10_20_"+str(muon_time),"",3000,6000.0,9000.0)
-			time_50_60 = ROOT.TH1F("time_50_60_"+str(muon_time),"",3000,6000.0,9000.0)
-			time_80_100 = ROOT.TH1F("time_80_100_"+str(muon_time),"",3000,6000.0,9000.0)
+			time_10_20 = ROOT.TH1F("time_10_20_"+str(muon_time),"",3000,-3000.0,3000.0)
+			time_50_60 = ROOT.TH1F("time_50_60_"+str(muon_time),"",3000,-3000.0,3000.0)
+			time_80_100 = ROOT.TH1F("time_80_100_"+str(muon_time),"",3000,-3000.0,3000.0)
+			pulsetime = ROOT.TH1F("pulsetime_"+str(muon_time),"",3000,-3000.0,3000.0)
+			mcpulsetime  = ROOT.TH1F("mcpulsetime_"+str(muon_time),"",3000,-3000.0,3000.0)
 			ChargeHits = ROOT.TGraph2D()
 			mint_loglike = 999999999
 			mint = 0
@@ -348,31 +253,48 @@ for infile in file_list :
 					theta = LikelihoodSpace_TrueVertex.GetYaxis().GetBinCenter(i+1)
 					LikelihoodSpace_TrueVertex.SetBinContent(j+1,i+1,likelihood(muon_vertex.theta,muon_vertex.phi,theta, phi,mint))
 					LikelihoodSpace_TrueDirection.SetBinContent(j+1,i+1,likelihood(theta,phi,muon_direction.theta,muon_direction.phi,mint))
-			
+
+			for i in range(1,3001) :
+
+				time_10_20.SetBinContent(i,cpandel(time_10_20.GetXaxis().GetBinCenter(i),25))
+				time_50_60.SetBinContent(i,cpandel(time_50_60.GetXaxis().GetBinCenter(i),55))
+				time_80_100.SetBinContent(i,cpandel(time_80_100.GetXaxis().GetBinCenter(i),90))		
+	
 			count = 0
 			for dom in pulse_series.keys() :
-				x = geo_doms[dom].position.x - muon_vertex.x
-            			y = geo_doms[dom].position.y - muon_vertex.y
-            			z = geo_doms[dom].position.z - muon_vertex.z
+				x = domsUsed[dom].position.x - muon_vertex.x
+            			y = domsUsed[dom].position.y - muon_vertex.y
+            			z = domsUsed[dom].position.z - muon_vertex.z
             			# Compute (\vec{r} - vec{x}) dot \vec{v}
             			dotprod = x*muon_direction.x + y*muon_direction.y + z*muon_direction.z
             			# Compute the final vector components
             			d_c  = np.sqrt(x*x + y*y + z*z-dotprod*dotprod)
 				d_p = d_c/np.sin(theta_c)		
                         	for pulse in pulse_series[dom] :
-					if()
                                 	totalcharge += pulse.charge
-		
+                                        d,dc,t = GetGeoTime(domsUsed[dom].position,muon_vertex,muon_direction)
+					pulsetime.Fill(pulse.time-muon_time-t,pulse.charge)
 				ChargeHits.SetPoint(count,domsUsed[dom].position.x,domsUsed[dom].position.y,domsUsed[dom].position.z);
 				count +=1
+			for dom in mcpulses.keys() :
+				for pulse in mcpulses[dom] :
+					domkey =  OMKey(dom.string, dom.om, 0)
+                                        d,dc,t = GetGeoTime(domsUsed[domkey].position,muon_vertex,muon_direction)
+					mcpulsetime.Fill(pulse.time-muon_time-t)
 			LikelihoodSpace_TrueVertex.Write()
 			LikelihoodSpace_TrueDirection.Write()
 			LikelihoodSpace_TrueVertandDir.Write()
+			time_10_20.Scale(totalcharge/time_10_20.Integral())
+			time_10_20.Write()
+			time_50_60.Scale(totalcharge/time_50_60.Integral())
+			time_50_60.Write()
+			time_80_100.Scale(totalcharge/time_80_100.Integral())
+			time_80_100.Write()
+			pulsetime.Write()
+			mcpulsetime.Write()
 			ChargeHits.Write("Event_"+str(totalcharge))
 		
 			print("end graphs")
-		#if np.abs(min_z) > 500. or min_cyl_r > 200. :
-		#	continue
 
 		linefit = frame['linefit']
 		llhfit = frame['llhfit']

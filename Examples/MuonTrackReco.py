@@ -63,7 +63,11 @@ tray.AddModule(SimpleDOMSimulation, 'DOMLauncher',
                GCDFile=gcd_file,
                inputmap = "TimeShiftedMCPEMap",
                outputmap = "I3Photons_PMTResponse",
-               RandomService = randomService
+               RandomService = randomService,
+               minTsep = 0.000001,
+               LPprob = 0.00000001,
+               DNprob = 0.000000000001,
+               APprob = 0.000000000001,
               )
 
 #tray.AddModule(WaveformBuilder,'waveformbuilder',
