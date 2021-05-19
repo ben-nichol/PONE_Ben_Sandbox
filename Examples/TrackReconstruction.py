@@ -53,12 +53,14 @@ tray.AddModule('I3Reader', 'reader',
 
 gcd_file = dataio.I3File(args.gcdfile)
 
+#Take the MC photons and shifts them so that all events have a similar time structure.
 tray.AddModule(timeShift,"MCtimeShift",
               MergedMCPETreeName = photon_series,
               TimeShiftedMCPE = "TimeShiftedMCPEMap",
               MinTime = 7200
               )
 
+#Takes the MC photons and simulates to characteristics of the DOMs.
 tray.AddModule(SimpleDOMSimulation, 'DOMLauncher',
                GCDFile=gcd_file,
                inputmap = "TimeShiftedMCPEMap",
@@ -66,10 +68,12 @@ tray.AddModule(SimpleDOMSimulation, 'DOMLauncher',
                RandomService = randomService
               )
 
+#This is not typically needed but is for building raw waveforms for testing DOMLauncher. 
 tray.AddModule(WaveformBuilder,'waveformbuilder',
               inputmap = "I3Photons_PMTResponse_MCpulses",
               outputmap = "waveform_pulses")
 
+#This is a first order pulse cleaning method that will just remove pulses with time residualts > 1000 ns. 
 tray.AddModule(SignificantHitPulseCleaning,"SignificantHit",
               GCDFile=gcd_file,
               inputseries = "I3Photons_PMTResponse",
@@ -77,34 +81,25 @@ tray.AddModule(SignificantHitPulseCleaning,"SignificantHit",
               window = 1000
               )
 
+#First order track reconstruction. 
 tray.AddModule(LineFitReco, "LineFit",
               inputseries = "SignificanHits",
               output = "linefit"
               )
 
+
+#Likelihood based track reconstruction. 
 tray.AddModule(likelihoodreco,"likelihoodreco",
                pulseseries = "SignificanHits",
                seedtrack = "linefit",
                output = "llhfit"
               ) 
 
+#An incomplete cascade reconstruction. 
 tray.AddModule(nutaureco,"NuTauReconstructin",
               pulseseries = "SignificanHits",
               output = "NuTau"
               )
-
-tray.AddModule(curveFit_tables,"CurveFit_tables",
-                pulseseries = "SignificanHits",
-                output = "nuTauCurveFit",
-                HitsInDOMsCut = 120
-              )
-
-tray.AddModule(curveFit,"CurveFit",                                             
-               InputMCPETree = "SignificanHits",                                 
-               OutputMCPETree = "nuTauOrig",                                       
-               HitsInDOMsCut = 200                                             
-              )
-
 
 tray.AddModule("I3Writer","writer",
                Filename = args.outfile+"/NuTauFit_"+file_list[args.runnumber],
