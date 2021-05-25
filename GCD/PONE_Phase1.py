@@ -15,7 +15,7 @@ stringsPerCircle = ([7, 3])
 
 def generateGeometry(nCircles, DPS, strings):
     orientation = dataclasses.I3Orientation(0, 0, -1, 1, 0, 0)
-    area = 0.5857538*I3Units.meter2
+    area = 4.0*((17.0*2.54*0.01*0.5)**2.0)*np.pi*I3Units.meter2
     geomap = dataclasses.I3OMGeoMap()
 
     radius = np.arange(200, 0, -(200/nCircles))
@@ -40,6 +40,7 @@ def generateGeometry(nCircles, DPS, strings):
         for n in range(0, len(xPos)):
             omkey = OMKey(n, m, 0)
             omGeometry = dataclasses.I3OMGeo()
+            omGeometry.omtype = dataclasses.I3OMGeo.OMType.mDOM
             omGeometry.orientation = orientation
             omGeometry.area = area
             omGeometry.position = dataclasses.I3Position(xPos[n], yPos[n], zPos[m][n])
@@ -51,13 +52,37 @@ geometry = dataclasses.I3Geometry()
 
 geometry.start_time = gcdHelpers.start_time
 geometry.end_time = gcdHelpers.end_time
-geometry.omgeo = generateGeometry(numberOfCircles, domsPerString, stringsPerCircle)
+geomap = generateGeometry(numberOfCircles, domsPerString, stringsPerCircle)
+geometry.omgeo = geomap
 
 gframe = icetray.I3Frame(icetray.I3Frame.Geometry)
 cframe = gcdHelpers.generateCFrame(geometry)
 dframe = gcdHelpers.generateDFrame(geometry)
 
+geomap = generateGeometry(numberOfCircles, domsPerString, stringsPerCircle)
+
 gframe["I3Geometry"] = geometry
+gframe["I3OMGeoMap"] = geomap
+modgeomap = dataclasses.I3ModuleGeoMap()
+for dom in geomap.keys() :
+	mkey = dataclasses.ModuleKey(dom.string,dom.om)
+	module = dataclasses.I3ModuleGeo()
+	module.module_type = dataclasses.I3ModuleGeo.ModuleType.mDOM
+	module.orientation = geomap[dom].orientation
+        module.pos = geomap[dom].position
+        module.radius = np.sqrt(geomap[dom].area/(4.0*np.pi))
+	modgeomap[mkey] = module
+
+gframe["I3ModuleGeoMap"] = modgeomap;
+subdetec = dataclasses.I3MapModuleKeyString() 
+for dom in geomap.keys() :
+        mkey = dataclasses.ModuleKey(dom.string,dom.om)
+	subdetec[mkey] = "Upgrade";
+        
+gframe["Subdetectors"] = subdetec
+
+gframe["StartTime"] = gcdHelpers.start_time
+gframe["EndTime"] = gcdHelpers.end_time
 
 outfile.push(gframe)
 outfile.push(cframe)

@@ -63,7 +63,15 @@ tray.AddModule(SimpleDOMSimulation, 'DOMLauncher',
                GCDFile=gcd_file,
                inputmap = "TimeShiftedMCPEMap",
                outputmap = "I3Photons_PMTResponse",
-               RandomService = randomService
+               RandomService = randomService,
+               minTsep = 0.000001,
+               LPprob = 0.00000001,
+               DNprob = 0.000000000001,
+               APprob = 0.000000000001,
+               SplitDoms = True,
+               DOMAcceptanceFile = "/home/users/tmcelroy/pone_offline/data/config_13.txt",
+               PMTQEFile = "/home/users/tmcelroy/pone_offline/data/PMTQE.txt",
+               AcceptBaseValue = -1.0
               )
 
 #tray.AddModule(WaveformBuilder,'waveformbuilder',
@@ -86,6 +94,8 @@ tray.AddModule(likelihoodreco,"likelihoodreco",
                pulseseries = "SignificanHits",
                seedtrack = "linefit",
                output = "llhfit",
+               SplitDoms = True,
+               DOMAcceptanceFile = "/home/users/tmcelroy/pone_offline/data/config_13.txt",
 #	       UseMC = True
               ) 
 

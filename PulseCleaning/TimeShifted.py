@@ -49,8 +49,8 @@ class timeShift(icetray.I3ConditionalModule):
           return
 
         for omkey in mcpeOMKeys:                                                
-          newMCPEList = simclasses.I3CompressedPhotonSeries()                             
           mcpeList = mcpeMap[omkey]
+          newMCPEList = simclasses.I3CompressedPhotonSeries()   
           
           for mcpe in mcpeList:
             mcpe.time = (mcpe.time - min_time) + self.mintime*I3Units.ns #[Units: ns]
