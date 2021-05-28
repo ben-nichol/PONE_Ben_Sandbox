@@ -26,8 +26,8 @@ class SignificantHitPulseCleaning(icetray.I3ConditionalModule):
         self.gcdFile = self.GetParameter("GCDFile")
         self.input = self.GetParameter("inputseries")
         self.output = self.GetParameter("output")
-        self.geometry = self.gcdFile.pop_frame()["I3Geometry"]
-        self.domsUsed = self.geometry.omgeo.keys()
+        #self.geometry = self.gcdFile.pop_frame()["I3Geometry"]
+        #self.domsUsed = self.geometry.omgeo.keys()
         self.window = self.GetParameter("window")
 
     # A modified binary search algorithm to find all hits within a 20ns time 
@@ -102,9 +102,9 @@ class SignificantHitPulseCleaning(icetray.I3ConditionalModule):
         mcpeMap = frame[self.input]
         significantMCPEMap = dataclasses.I3RecoPulseSeriesMap()
 
-        for omkey in self.domsUsed:
-            if omkey not in mcpeMap:
-              continue
+        for omkey in mcpeMap.keys():
+            #if omkey not in mcpeMap:
+            #  continue
             if len(mcpeMap[omkey]) < 1 :
               continue
             significantMCPEMap[omkey] = self.getSignificantMCPEs(mcpeMap[omkey])  

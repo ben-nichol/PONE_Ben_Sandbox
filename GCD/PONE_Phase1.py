@@ -65,19 +65,19 @@ gframe["I3Geometry"] = geometry
 gframe["I3OMGeoMap"] = geomap
 modgeomap = dataclasses.I3ModuleGeoMap()
 for dom in geomap.keys() :
-	mkey = dataclasses.ModuleKey(dom.string,dom.om)
-	module = dataclasses.I3ModuleGeo()
-	module.module_type = dataclasses.I3ModuleGeo.ModuleType.mDOM
-	module.orientation = geomap[dom].orientation
+        mkey = dataclasses.ModuleKey(dom.string,dom.om)
+        module = dataclasses.I3ModuleGeo()
+        module.module_type = dataclasses.I3ModuleGeo.ModuleType.mDOM
+        module.orientation = geomap[dom].orientation
         module.pos = geomap[dom].position
         module.radius = np.sqrt(geomap[dom].area/(4.0*np.pi))
-	modgeomap[mkey] = module
+        modgeomap[mkey] = module
 
 gframe["I3ModuleGeoMap"] = modgeomap;
 subdetec = dataclasses.I3MapModuleKeyString() 
 for dom in geomap.keys() :
-        mkey = dataclasses.ModuleKey(dom.string,dom.om)
-	subdetec[mkey] = "Upgrade";
+    mkey = dataclasses.ModuleKey(dom.string,dom.om)
+    subdetec[mkey] = "Upgrade"
         
 gframe["Subdetectors"] = subdetec
 

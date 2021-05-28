@@ -17,6 +17,7 @@ from Reconstruction.nutau.NuTauReco_tables import nutaureco
 from PulseCleaning.SignificantHitPulseCleaning import SignificantHitPulseCleaning
 from Reconstruction.nutau.curveFit import curveFit
 from Reconstruction.nutau.curveFit_tables import curveFit_tables 
+from Trigger.trigger import Trigger
 
 # This script will perform a hybridCLSim propagation.
 #
@@ -51,6 +52,7 @@ tray.AddModule('I3Reader', 'reader',
             FilenameList = [args.gcdfile, args.infile+file_list[args.runnumber]]
             )
 
+print(args.gcdfile)
 gcd_file = dataio.I3File(args.gcdfile)
 
 tray.AddModule(timeShift,"MCtimeShift",
@@ -72,6 +74,11 @@ tray.AddModule(SimpleDOMSimulation, 'DOMLauncher',
                DOMAcceptanceFile = "/home/users/tmcelroy/pone_offline/data/config_13.txt",
                PMTQEFile = "/home/users/tmcelroy/pone_offline/data/PMTQE.txt",
                AcceptBaseValue = -1.0
+              )
+
+tray.AddModule(Trigger,"PONE_Trigger",
+               GCDFile=gcd_file,
+               inputmap = "I3Photons_PMTResponse",
               )
 
 #tray.AddModule(WaveformBuilder,'waveformbuilder',
@@ -118,7 +125,7 @@ tray.AddModule(likelihoodreco,"likelihoodreco",
 
 
 tray.AddModule("I3Writer","writer",
-               Filename = args.outfile+"/Reco_"+file_list[args.runnumber],
+               Filename = args.outfile+"/TrigReco_"+file_list[args.runnumber],
                Streams = [icetray.I3Frame.DAQ, icetray.I3Frame.Physics, icetray.I3Frame.TrayInfo],
               )
 

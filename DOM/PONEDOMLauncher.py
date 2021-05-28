@@ -236,7 +236,7 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
                    newmcpulsemap[newomkey].append(mcpulse)
         mcpulsemap = newmcpulsemap
         mcpulseOMKeys = mcpulsemap.keys()
-        print(str(float(passed))+"/"+str(float(total)))
+        #print(str(float(passed))+"/"+str(float(total)))
 
     for omkey in mcpulseOMKeys:
       pulsetimelist = []
