@@ -210,6 +210,7 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
     mcpulseOMKeys = mcpulsemap.keys()
     sqrt2 = 1.414213562373095
 
+    #print("splitting pulses")
     if self.splitDOMs :
         newmcpulsemap = {}
         #make new map with individual PMTs
@@ -237,7 +238,9 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
         mcpulsemap = newmcpulsemap
         mcpulseOMKeys = mcpulsemap.keys()
         #print(str(float(passed))+"/"+str(float(total)))
+    #print("done splitting pulses")
 
+    #print("apply PMT response")
     for omkey in mcpulseOMKeys:
       pulsetimelist = []
       pulseseries = dataclasses.I3RecoPulseSeries()
@@ -321,7 +324,7 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
       newomkey = OMKey(omkey.string, omkey.om, omkey.pmt)
       outputpulsemap[newomkey]=pulseseries 
       outputmcpulsemap[newomkey] = mcpulseseries  
-
+    #print("done applying pmt response")
     frame[self.outputmap] = outputpulsemap
     frame[self.outputmap+"_MCpulses"] = outputmcpulsemap
     

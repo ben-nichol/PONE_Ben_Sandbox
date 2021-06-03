@@ -53,6 +53,7 @@ popd >/dev/null
 
 _I3_SRC=$BASEDIR
 _I3_BUILD=$BASEDIR
+#_PONE_SRC=$_PONE_SRC
 _PONE_SRC='/home/users/tmcelroy/pone_offline'
 
 # Check for I3_BUILD mismatch
