@@ -54,7 +54,8 @@ popd >/dev/null
 _I3_SRC=$BASEDIR
 _I3_BUILD=$BASEDIR
 #_PONE_SRC=$_PONE_SRC
-_PONE_SRC='/home/users/tmcelroy/pone_offline'
+#_PONE_SRC='/home/users/tmcelroy/pone_offline'
+_PONE_SRC="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
 # Check for I3_BUILD mismatch
 if [ -n "$I3_BUILD" -a "$I3_BUILD" != "$_I3_BUILD" ]
