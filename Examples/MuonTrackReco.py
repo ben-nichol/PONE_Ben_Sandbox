@@ -15,8 +15,7 @@ from Reconstruction.linefit.SimAnalysis import LineFitReco
 from Reconstruction.llh.likelihoodreco import likelihoodreco
 from Reconstruction.nutau.NuTauReco_tables import nutaureco
 from PulseCleaning.SignificantHitPulseCleaning import SignificantHitPulseCleaning
-from Reconstruction.nutau.curveFit import curveFit
-from Reconstruction.nutau.curveFit_tables import curveFit_tables 
+from Reconstruction.nutau.NuTauReco import nutaureco
 from Trigger.trigger import Trigger
 
 # This script will perform a hybridCLSim propagation.
@@ -101,15 +100,15 @@ tray.AddModule(likelihoodreco,"likelihoodreco",
                pulseseries = "SignificanHits",
                seedtrack = "linefit",
                output = "llhfit",
-               SplitDoms = True,
+#               SplitDoms = True,
                DOMAcceptanceFile = "/home/users/tmcelroy/pone_offline/data/config_13.txt",
-#	       UseMC = True
+##	       UseMC = True
               ) 
 
-#tray.AddModule(nutaureco,"NuTauReconstructin",
-#              pulseseries = "SignificanHits",
-#              output = "NuTau"
-#              )
+tray.AddModule(nutaureco,"NuTauReconstructin",
+              pulseseries = "SignificanHits",
+              output = "NuTau"
+              )
 
 #tray.AddModule(curveFit_tables,"CurveFit_tables",
 #                pulseseries = "SignificanHits",
