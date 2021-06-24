@@ -13,10 +13,9 @@ from icecube import phys_services, sim_services
 import argparse  
 from Reconstruction.linefit.SimAnalysis import LineFitReco
 from Reconstruction.llh.likelihoodreco import likelihoodreco
-from Reconstruction.nutau.NuTauReco_tables import nutaureco
 from PulseCleaning.SignificantHitPulseCleaning import SignificantHitPulseCleaning
-from Reconstruction.nutau.curveFit import curveFit
-from Reconstruction.nutau.curveFit_tables import curveFit_tables 
+from Reconstruction.nutau.NuTauReco import NuTauReco
+from Trigger.trigger import Trigger
 
 # This script will perform a hybridCLSim propagation.
 #
@@ -51,6 +50,7 @@ tray.AddModule('I3Reader', 'reader',
             FilenameList = [args.gcdfile, args.infile+file_list[args.runnumber]]
             )
 
+print(args.gcdfile)
 gcd_file = dataio.I3File(args.gcdfile)
 
 tray.AddModule(timeShift,"MCtimeShift",
@@ -74,6 +74,11 @@ tray.AddModule(SimpleDOMSimulation, 'DOMLauncher',
                AcceptBaseValue = -1.0
               )
 
+tray.AddModule(Trigger,"PONE_Trigger",
+               GCDFile=gcd_file,
+               inputmap = "I3Photons_PMTResponse",
+              )
+
 #tray.AddModule(WaveformBuilder,'waveformbuilder',
 #              inputmap = "I3Photons_PMTResponse_MCpulses",
 #              outputmap = "waveform_pulses")
@@ -94,15 +99,15 @@ tray.AddModule(likelihoodreco,"likelihoodreco",
                pulseseries = "SignificanHits",
                seedtrack = "linefit",
                output = "llhfit",
-               SplitDoms = True,
-               DOMAcceptanceFile = "/home/users/tmcelroy/pone_offline/data/config_13.txt",
-#	       UseMC = True
+#               SplitDoms = True,
+#               DOMAcceptanceFile = "/home/users/tmcelroy/pone_offline/data/config_13.txt",
+##	       UseMC = True
               ) 
 
-#tray.AddModule(nutaureco,"NuTauReconstructin",
-#              pulseseries = "SignificanHits",
-#              output = "NuTau"
-#              )
+tray.AddModule(NuTauReco,"NuTauReconstructin",
+              pulseseries = "SignificanHits",
+              output = "NuTau"
+              )
 
 #tray.AddModule(curveFit_tables,"CurveFit_tables",
 #                pulseseries = "SignificanHits",
@@ -118,7 +123,7 @@ tray.AddModule(likelihoodreco,"likelihoodreco",
 
 
 tray.AddModule("I3Writer","writer",
-               Filename = args.outfile+"/Reco_"+file_list[args.runnumber],
+               Filename = args.outfile+"/TrigReco_"+file_list[args.runnumber],
                Streams = [icetray.I3Frame.DAQ, icetray.I3Frame.Physics, icetray.I3Frame.TrayInfo],
               )
 
