@@ -46,29 +46,50 @@ tray.Add("I3MCEventHeaderGenerator",
 #                GCDFile=args.gcdfile
 #               )
 
-tray.AddSegment(Corsika5ComponentGenerator,"makeCRs",
-                nshowers=100000,
-                procnum=args.run,
-                nproc=1000,
-                seed=args.run*args.run,
-                gcdfile=args.gcdfile,
-                outputfile="pone_corsika_"+str(args.run)+".i3.zst",
-                RunCorsika=True,
-                sumaryfile="summary1.json",
-                pnorm=[5,2.25,1.1,1.2,1],
-                pgam=[2.65,2.6,2.6,2.6,2.6],
-                CORSIKAseed=args.run,
-                eprimarymax=100000,
-                eprimarymin=600,
-                OverSampling=1,
-                corsikaVersion="76900g",
-                CutoffType="EnergyPerParticle",
+#tray.AddSegment(Corsika5ComponentGenerator,"makeCRs",
+#                nshowers=100000,
+#                procnum=args.run,
+#                nproc=1000,
+#                seed=args.run*args.run,
+#                gcdfile=args.gcdfile,
+#                outputfile="pone_corsika_"+str(args.run)+".i3.zst",
+#                RunCorsika=True,
+#                sumaryfile="summary1.json",
+#                pnorm=[5,2.25,1.1,1.2,1],
+#                pgam=[2.65,2.6,2.6,2.6,2.6],
+#                CORSIKAseed=args.run,
+#                eprimarymax=100000,
+#                eprimarymin=600,
+#                OverSampling=1,
+#                corsikaVersion="76900g",
+#                CutoffType="EnergyPerParticle",
                 #RepoURL="http://prod-exe.icecube.wisc.edu/",
-                UsePipe=True,
-                compress=True,
-                HistogramFilename="hist.pkl",
-                EnableHistogram=True
-               )                 
+#                UsePipe=True,
+#                compress=True,
+#                HistogramFilename="hist.pkl",
+#                EnableHistogram=True
+#               )    
+
+tray.AddSegment(GenerateCosmicRayMuons,"CosmicRayMuons",
+		mctree_name='I3MCTree_preMuonProp',
+		num_events=10000,
+		flux_model='Hoerandel5_atmod12_SIBYLL',
+		gamma_index=2.0,
+		energy_offset=700.0,
+		energy_min=10.0,
+		energy_max=10000.0,
+		cylinder_length=1080.0,
+		cylinder_radius=240.0,
+		cylinder_x=0.0,
+		cylinder_y=0.0,
+		cylinder_z=0.0,
+#		inner_cylinder_length=500.0,
+#		inner_cylinder_radius=150.0,
+#		inner_cylindedr_x=46.3,
+#		inner_cylinder_y=-34.9,
+#		inner_cylinder_z=-300.0,
+#		use_inner_cylinder=False
+                )
 
 tray.Add(segments.PropagateMuons, 'ParticlePropagators',
                                   RandomService=randomService,
@@ -81,7 +102,7 @@ tray.AddModule('I3Writer',
                 Streams=[icetray.I3Frame.Stream('S'),
                 icetray.I3Frame.TrayInfo,
                 icetray.I3Frame.DAQ],
-                filename=args.outfile+"Corsika_"+str(args.run)+".i3.gz")
+                filename=args.outfile+"Corsika_lowE"+str(args.run)+".i3.gz")
 #tray.Add(printfunc,"print5",message = 'print5')
 #tray.AddModule('TrashCan','YesWeCan')
 

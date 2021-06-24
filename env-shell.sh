@@ -53,8 +53,6 @@ popd >/dev/null
 
 _I3_SRC=$BASEDIR
 _I3_BUILD=$BASEDIR
-#_PONE_SRC=$_PONE_SRC
-#_PONE_SRC='/home/users/tmcelroy/pone_offline'
 _PONE_SRC="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
 # Check for I3_BUILD mismatch
@@ -121,7 +119,7 @@ fi
 
 _LD_LIBRARY_PATH=${_LD_LIBRARY_PATH}:$LD_LIBRARY_PATH
 _DYLD_LIBRARY_PATH=${_DYLD_LIBRARY_PATH}:$DYLD_LIBRARY_PATH
-_PYTHONPATH=$BASEDIR/lib:$_PONE_SRC:$PYTHONPATH
+_PYTHONPATH=$_PONE_SRC:$BASEDIR/lib:$PYTHONPATH
 _PATH=$BASEDIR/bin:$PATH
 
 TOPBAR="************************************************************************"
@@ -145,7 +143,7 @@ if [[ -z "$ARGV" ]]
     printctr ""
     printctr "W E L C O M E  to  I C E T R A Y"
     printctr ""
-    printctr "Version combo.stable     r184128"
+    printctr "Version combo.stable     r184918"
     printctr ""
     printctr "You are welcome to visit our Web site"
     printctr "http://icecube.umd.edu"
@@ -168,7 +166,7 @@ if [[ -z "$I3_SHELL" ]] # a clean, first invocation
 	I3_BUILD=$_I3_BUILD \
 	ROOTSYS=$_ROOTSYS \
 	I3_SHELL=$_I3_SHELL \
-  PONESRCDIR=$_PONE_SRC \
+	PONESRCDIR=$_PONE_SRC \
 	$NEW_SHELL $ARGV
 
 else  # not clean, use previous environment
