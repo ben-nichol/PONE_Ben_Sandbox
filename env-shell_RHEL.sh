@@ -48,7 +48,7 @@ _I3_SHELL=$NEW_SHELL
 # Determine directory that this shell lives in.
 #
 pushd `dirname $0` >/dev/null
-BASEDIR='/cvmfs/icecube.opensciencegrid.org/py3-v4.1.1/RHEL_7_x86_64/metaprojects/combo/stable'
+BASEDIR='/cvmfs/icecube.opensciencegrid.org/py3-v4.1.1/Ubuntu_20.04_x86_64/metaprojects/combo/V01-00-02'
 popd >/dev/null
 
 _I3_SRC=$BASEDIR
@@ -119,7 +119,7 @@ fi
 
 _LD_LIBRARY_PATH=${_LD_LIBRARY_PATH}:$LD_LIBRARY_PATH
 _DYLD_LIBRARY_PATH=${_DYLD_LIBRARY_PATH}:$DYLD_LIBRARY_PATH
-_PYTHONPATH=$_PONE_SRC:$BASEDIR/lib:$PYTHONPATH
+_PYTHONPATH=$BASEDIR/lib:$_PONE_SRC:$PYTHONPATH
 _PATH=$BASEDIR/bin:$PATH
 
 TOPBAR="************************************************************************"
