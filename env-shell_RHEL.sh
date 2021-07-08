@@ -48,11 +48,12 @@ _I3_SHELL=$NEW_SHELL
 # Determine directory that this shell lives in.
 #
 pushd `dirname $0` >/dev/null
-BASEDIR='/cvmfs/icecube.opensciencegrid.org/py3-v4.1.1/RHEL_7_x86_64/metaprojects/combo/stable'
+BASEDIR='/cvmfs/icecube.opensciencegrid.org/py3-v4.1.1/RHEL_7_x86_64/metaprojects/combo/V01-01-01'
 popd >/dev/null
 
 _I3_SRC=$BASEDIR
 _I3_BUILD=$BASEDIR
+_I3_TESTDATA=/cvmfs/icecube.opensciencegrid.org/data/i3-test-data-svn/releases/V01-01-00
 _PONE_SRC="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
 # Check for I3_BUILD mismatch
@@ -119,7 +120,7 @@ fi
 
 _LD_LIBRARY_PATH=${_LD_LIBRARY_PATH}:$LD_LIBRARY_PATH
 _DYLD_LIBRARY_PATH=${_DYLD_LIBRARY_PATH}:$DYLD_LIBRARY_PATH
-_PYTHONPATH=$_PONE_SRC:$BASEDIR/lib:$PYTHONPATH
+_PYTHONPATH=$BASEDIR/lib:$_PONE_SRC:$PYTHONPATH
 _PATH=$BASEDIR/bin:$PATH
 
 TOPBAR="************************************************************************"
@@ -143,7 +144,7 @@ if [[ -z "$ARGV" ]]
     printctr ""
     printctr "W E L C O M E  to  I C E T R A Y"
     printctr ""
-    printctr "Version combo.stable     r184918"
+    printctr "Version combo.releases.V01-01-01     r184985"
     printctr ""
     printctr "You are welcome to visit our Web site"
     printctr "http://icecube.umd.edu"
@@ -164,6 +165,7 @@ if [[ -z "$I3_SHELL" ]] # a clean, first invocation
 	PYTHONPATH=$_PYTHONPATH \
 	I3_SRC=$_I3_SRC \
 	I3_BUILD=$_I3_BUILD \
+	I3_TESTDATA=$_I3_TESTDATA \
 	ROOTSYS=$_ROOTSYS \
 	I3_SHELL=$_I3_SHELL \
 	PONESRCDIR=$_PONE_SRC \
