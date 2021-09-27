@@ -16,7 +16,7 @@ from Reconstruction.llh.likelihoodreco import likelihoodreco
 from PulseCleaning.SignificantHitPulseCleaning import SignificantHitPulseCleaning
 from Reconstruction.nutau.NuTauReco import NuTauReco
 from Trigger.trigger import Trigger
-
+from Reconstruction.linefit.ImprovedLineFit import ImprovedLineFitReco 
 # This script will perform a hybridCLSim propagation.
 #
 # NOTE: There is no bad_dom_cleaning!!!
@@ -28,6 +28,7 @@ parser.add_argument("-i", "--infile",type=str, default="./test_input.i3", help="
 parser.add_argument("-r", "--runnumber", type=int, default="1", help="The run/dataset number for this simulation, is used as seed for random generator")
 parser.add_argument("-l", "--filenr",type=int,default=1, help="File number, stream of I3SPRNGRandomService")
 parser.add_argument("-g", "--gcdfile",default=os.getenv('PONESRCDIR')+"/GCD/PONE_Phase1.i3.gz", help="Read in GCD file")
+parser.add_argument("-t", "--pulsesep",default=0.000001,help="Time needed to separate two pulses. Assume that this is 3.5*sample time.")
 
 args = parser.parse_args()
 photon_series = "I3Photons"
@@ -64,7 +65,7 @@ tray.AddModule(SimpleDOMSimulation, 'DOMLauncher',
                inputmap = "TimeShiftedMCPEMap",
                outputmap = "I3Photons_PMTResponse",
                RandomService = randomService,
-               minTsep = 0.000001,
+               minTsep = args.pulsesep,
                LPprob = 0.00000001,
                DNprob = 0.000000000001,
                APprob = 0.000000000001,
@@ -83,31 +84,41 @@ tray.AddModule(Trigger,"PONE_Trigger",
 #              inputmap = "I3Photons_PMTResponse_MCpulses",
 #              outputmap = "waveform_pulses")
 
-tray.AddModule(SignificantHitPulseCleaning,"SignificantHit",
-              GCDFile=gcd_file,
-              inputseries = "I3Photons_PMTResponse",
-              output = "SignificanHits",
-              window = 1000
-              )
+#tray.AddModule(SignificantHitPulseCleaning,"SignificantHit",
+#              GCDFile=gcd_file,
+#              inputseries = "I3Photons_PMTResponse",
+#              output = "SignificanHits",
+#              window = 1000
+#              )
 
-tray.AddModule(LineFitReco, "LineFit",
-              inputseries = "SignificanHits",
-              output = "linefit"
-              )
+#tray.AddModule(ImprovedLineFitReco,"ImprovedLineFit",
+#               inputseries = "SignificanHits",
+#               output = "improvedlinefit"
+#                )
 
-tray.AddModule(likelihoodreco,"likelihoodreco",
-               pulseseries = "SignificanHits",
-               seedtrack = "linefit",
-               output = "llhfit",
+#tray.AddModule(LineFitReco, "LineFit",
+#              inputseries = "SignificanHits",
+#              output = "linefit"
+#              )
+
+#tray.AddModule(LineFitReco, "LineFit_HuberSeries",
+#              inputseries = "improvedlinefit_pulseseries",
+#              output = "linefit_cleaned"
+#              )
+
+#tray.AddModule(likelihoodreco,"likelihoodreco",
+#               pulseseries = "SignificanHits",
+#               seedtrack = "improvedlinefit",
+#               output = "llhfit",
 #               SplitDoms = True,
 #               DOMAcceptanceFile = "/home/users/tmcelroy/pone_offline/data/config_13.txt",
 ##	       UseMC = True
-              ) 
+#              ) 
 
-tray.AddModule(NuTauReco,"NuTauReconstructin",
-              pulseseries = "SignificanHits",
-              output = "NuTau"
-              )
+#tray.AddModule(NuTauReco,"NuTauReconstructin",
+#              pulseseries = "SignificanHits",
+#              output = "NuTau"
+#              )
 
 #tray.AddModule(curveFit_tables,"CurveFit_tables",
 #                pulseseries = "SignificanHits",

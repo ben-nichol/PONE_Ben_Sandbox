@@ -1,327 +1,262 @@
 #!/usr/bin/env python                                                                                                
+# This is meant to be a slightly more robust approach to reconstruction of a muon event.                               
+# The physics and likelihood model is heavily based off of the ICECUBE model and can be found at                      
+# "https://publications.ub.uni-mainz.de/theses/volltexte/2014/3869/pdf/3869.pdf"                                     
+# The time residuals are computed by myself though. The techniques used are detailed in a text document I have somewhere -dg
  
 # Import some useful ICECUBE modules                                                                                  
 from icecube import icetray, dataclasses, dataio, simclasses
-from icecube.icetray import I3Units, I3Frame  
+from icecube.icetray import I3Units, I3Frame, OMKey 
 from icecube.dataclasses import I3Particle 
-import numpy as np                 
+import numpy as np
+import time
+from Reconstruction.llh.reco_pdfs import cpandel as pdf               # This module is used to store the pdf
 from scipy import special as sp                        # For the Gamma function 
-import sys, os
-from iminuit import Minuit
+from scipy import optimize as op
+from scipy import interpolate as interp
+import sys
+#from iminuit import Minuit
 import argparse
 import math as m
+import random as rand
 
+# Geometric Time computation:
+def GetGeoTime(position,vert) :
+    c = 0.299792458                                 # speed of light 
+    n = 1.34
+    ngroup = 1.35557                                # 1.33 is the refractive index of water at 20 degrees C
+    c_n = c/ngroup                                     # light in water
+    x = position.x - vert.x
+    y = position.y - vert.y
+    z = position.z - vert.z
+    dc = np.sqrt(x*x + y*y + z*z)
+    t = dc/c_n
+    return dc,t
 
+def anisotropy(position,vert,direction,interpolation):
 
-def LikelihoodFunctor(data,domsUsed,pdf,time_lim,dist_lim):
-                
+    x1 = position.x - vert.x
+    y1 = position.y - vert.y
+    z1 = position.z - vert.z
+    r1= m.sqrt(x1*x1+y1*y1+z1*z1)
+
+    x2= direction.x
+    y2= direction.y
+    z2= direction.z
+    theta = 0.0
+    if r1 > 0.0 :
+    	theta=np.arccos((x1*x2+y1*y2+z1*z2)/r1)
+    return interpolation(min(3.11018,theta))
+
+# Functional that is fed data from InitialGuess for PMT locations and the PDF we wish to use. Uses those locations to build a Pandel Function for a given track
+def LikelihoodFunctor(data,domsUsed,interpfunc):
+    # turn PMT locations and time hits into numpy arrays for easier numpy algebra
     pulse_series = data
     geo_doms = domsUsed
+    interpolation = interpfunc
+
+    vx = 0.0
+    vy = 0.0
+    vz = 0.0 
+    v =np.array([0.0,0.0,0.0])
 
     c = 0.299792458                                 # speed of light 
-    n = 1.34                                        # 1.33 is the refractive index of water at 20 degrees C
-    c_n = c/n                                       # light in water
-    theta_c = np.arccos(1./n)                       # Cherenkov angle in water in radians
+    n = 1.34
+    ngroup = 1.35557                                # 1.33 is the refractive index of water at 20 degrees C
+    c_n = c/ngroup                                     # light in water
     lambda_s = 120.                                 # scattering length of light for violet light
     lambda_a = 15.                                  # absorption length of light for violet light
-    tau = 557                                       # time parameter that has to be fit using simulations or data 
-    pdf_tables = pdf
-    table_time_lim = time_lim
-    table_dist_lim = dist_lim
-    darkprob = 1e-5
-
-    def GetProbability(time,distance) :
-  
-      if time < table_time_lim[0] or time > table_time_lim[1] :
-        return 0.0
-      if distance < table_dist_lim[0] or distance > table_dist_lim[1] :
-        return 0.0
-
-      dist_bin = max(min(int(distance),len(pdf_tables)-1),0)
-      time_bin = max(min(int(time-table_time_lim[0]),len(pdf_tables[dist_bin])-1),0)
-
-      return pdf_tables[dist_bin][time_bin]
+    tau = 18.949132224466762                                        # time parameter that has to be fit using simulations or data      
 
     # uses the prior defined functions to build a likelihood function that when given a track (linefit) will produce a negative loglikelihood value
-    def likelihoodFunction(t0,dt,v1x,v1y,v1z,dtheta,dphi,br):
-        v2x = v1x + c*dt*np.cos(dphi)*np.sin(dtheta)
-        v2y = v1y + c*dt*np.sin(dphi)*np.sin(dtheta)
-        v2z = v1z + c*dt*np.cos(dtheta) 
-        darkrate = 1.e-7
+    def likelihoodFunction(vx,vy,vz,theta,phi,t0):
+        dark = 1.e-16
 
-        nloglike = 0.0
-
+        vertex = dataclasses.I3Position(vx,vy,vz)
+        direction = dataclasses.I3Direction(np.sin(theta)*np.cos(phi),np.sin(theta)*np.sin(phi),np.cos(theta)) 
+        sum_nloglike = 0.0
         for dom in pulse_series.keys() :
-
-            pmt_x = geo_doms[dom].position.x
-            pmt_y = geo_doms[dom].position.y
-            pmt_z = geo_doms[dom].position.z
-
+            domkey =  OMKey(dom.string, dom.om, 0) 
+            dc,t = GetGeoTime(geo_doms[domkey].position,vertex)
+            p_charge = np.exp(-dc/tau)/max(dc,0.25)
+            anisotropyweight = anisotropy(geo_doms[domkey].position,vertex,direction,interpolation)
             for pulse in pulse_series[dom] :
-                t = pulse.time
-                charge = pulse.charge
-                #vertex 1 
-                distance = np.sqrt((v1x-pmt_x)**2.0 + (v1y-pmt_y)**2.0 + (v1z-pmt_z)**2.0) 
-                t_trav = distance/c_n
-                t_resid = t-t0-t_trav
-                prob = br*GetProbability(t_resid,distance)
+                charge = 1.0
+                cpandel_out = pdf(pulse.time - t0 - t ,dc)
+                if(type(pulse_series) == 'icecube.dataclasses.I3RecoPulseSeriesMap') :
+                    charge = pulse.charge
+                sum_nloglike -= charge*np.log(cpandel_out*p_charge*anisotropyweight+dark)
+                sum_nloglike -= charge*min(0.0,pulse.time - t0 - t)
 
-                #vertex2
-                distance = np.sqrt((v2x-pmt_x)**2.0 + (v2y-pmt_y)**2.0 + (v2z-pmt_z)**2.0) 
-                t_trav = distance/c_n
-                t_resid = t-t0-dt-t_trav
-                prob += (1.-br)*GetProbability(t_resid,distance)
-
-                prob += darkrate
-
-                nloglike += -charge*np.log(prob)
-
-        return nloglike
+        return sum_nloglike
 
     return likelihoodFunction
 
-class nutaureco(icetray.I3ConditionalModule):
+def GetVertexTime(pulse_series,geo_doms):                                 
+
+	c = 0.299792458                                 # speed of light 
+	n = 1.34
+	ngroup = 1.35557                                # 1.33 is the refractive index of water at 20 degrees C
+	c_n = c/ngroup                                     # light in water
+	ismc = False
+	if(type(pulse_series) == 'icecube.dataclasses.I3RecoPulseSeriesMap') :
+		ismc = True
+	
+	totalcharge = 0.0
+	vx = 0.0
+	vy = 0.0
+	vz = 0.0
+
+	for domkey in pulse_series.keys() :
+		domkey_nopmt =  OMKey(domkey.string, domkey.om, 0)
+		for pulse in pulse_series[domkey] :
+			totalcharge += pulse.charge
+			vx += geo_doms[domkey_nopmt].position.x*pulse.charge
+			vy += geo_doms[domkey_nopmt].position.y*pulse.charge
+			vz += geo_doms[domkey_nopmt].position.z*pulse.charge
+
+	if totalcharge < 5.0 :
+		return 0.0, dataclasses.I3Position(0.0,0.0,0.0), totalcharge
+	vertex = dataclasses.I3Position(vx/totalcharge,vy/totalcharge,vz/totalcharge)
+
+	T0 = 0.0
+
+	for domkey in pulse_series.keys() :
+		domkey_nopmt =  OMKey(domkey.string, domkey.om, 0)
+		for pulse in pulse_series[domkey] :
+			dx = vertex.x - geo_doms[domkey_nopmt].position.x
+			dy = vertex.y - geo_doms[domkey_nopmt].position.y
+			dz = vertex.z - geo_doms[domkey_nopmt].position.z
+			dist = np.sqrt(dx*dx+dy*dy+dz*dz)
+			T0 += pulse.time - dist/c_n
+            
+	if totalcharge < 5.0 :
+		return T0, vertex, totalcharge
+	T0 /= totalcharge
+	T0 -= 5.0
+	return T0, vertex, totalcharge
+
+class NuTauRecoTable(icetray.I3ConditionalModule):
 
     def __init__(self, context):
         icetray.I3ConditionalModule.__init__(self, context)
 
         self.AddParameter("pulseseries","Name of the Merged MCPE tree name","MergedSeriesMap")
-        self.AddParameter("output","Track to store fit.","taufit")
-        self.AddParameter("tables","tablesfile","")
+        self.AddParameter("output","Track to store fit.","llnfit")
+        self.AddParameter("tablefiles","","")
         self.AddOutBox("OutBox")
-
-    def ReadTables(self) :
-
-        infile = open(self.tablesfiles,"r")
-        lines = infile.readlines()
-        linecount = 0
-        self.pdf = [[]]
-        xcount = 0
-        ny = 0
-        nx = 0
-        minx = 0.0
-        maxx = 0.0
-        miny = 0.0
-        maxy = 0.0
-        for line in lines :
-            splitline = line.split(",",100)
-            if linecount == 0 :
-                nx = int(splitline[0].replace("\n",""))
-                ny = int(splitline[1].replace("\n",""))
-                minx = float(splitline[2].replace("\n",""))
-                maxx = float(splitline[3].replace("\n",""))
-                miny = float(splitline[4].replace("\n",""))
-                maxy = float(splitline[5].replace("\n",""))
-                linecount += 1
-            else :
-                if xcount == ny :
-                    self.pdf.append([])
-                    xcount = 0
-                for value in splitline :
-                    self.pdf[-1].append(float(value.replace("\n","")))
-                    xcount += 1
-            linecount += 1
-        self.time_lim = [minx,maxx]
-        self.dist_lim = [miny,maxy]
 
     def Configure(self):
 
         self.pulseseries = self.GetParameter("pulseseries")
         self.output = self.GetParameter("output")
 
+        # Some quantities that are environment dependent
         self.c = 0.299792458                                 # speed of light 
-        self.n = 1.34                                        # 1.33 is the refractive index of water at 20 degrees C
-        self.c_n = self.c/self.n                             # light in water
-        self.theta_c = np.arccos(1./self.n)                  # Cherenkov angle in water in radians
+        self.n = 1.34  
+        self.ngroup = 1.3555714017                                      # 1.33 is the refractive index of water at 20 degrees C
+        self.c_n = self.c/self.ngroup                                       # light in water
         self.lambda_s = 120.                                 # scattering length of light for violet light
-        self.lambda_a = 15.                                  # absorption length of light for violet light
-        self.tau = 557                                       # time parameter that has to be fit using simulations or data   
- 
-        self.tablesfiles = self.GetParameter("Tables")
-        if self.tablesfiles == "" :
-          self.tablesfiles = default=os.getenv('PONESRCDIR')+"/data/fittertables.dat"
+        self.lambda_a = 18.949132224466762                                  # absorption length of light for violet light
+        self.tau = 557                                       # time parameter that has to be fit using simulations or data
 
-        self.ReadTables() 
+        #Read Electron File
+        infile = open(self.GetParameter("tablefiles")+"/Electon_Dist.dat","r")
+        lines = infile.readlines()
+        linecount = 0
+        self.x_e = list()
+        self.y_e = list()
+        for line in lines :
+            splitline = line.split(" ",100)
+            self.x_e.append(float(splitline[0]))
+            self.y_e.append(float(splitline[1]))
+        self.f_electron = interp.interp1d(self.x_e, self.y_e)
 
-    # Main function of this file. Structured this way so that it can be easily imported aswell in any other implementation.                                   
+        #Read Tau File
+        infile = open(self.GetParameter("tablefiles")+"/Tau_Dist.dat","r")
+        lines = infile.readlines()
+        linecount = 0 
+        self.x_t = list()
+        self.y_t = list()
+        for line in lines :
+            splitline = line.split(" ",100)
+            self.x_t.append(float(splitline[0]))
+            self.y_t.append(float(splitline[1]))
+        self.f_tau = interp.interp1d(self.x_t, self.y_t)
+
+    # Main function of this file. Structured this way so that it can be easily imported aswell in any other implementation. 
+
     def DAQ(self,frame): 
-        
-
         data = frame[self.pulseseries]
+
         domsUsed = frame['I3Geometry'].omgeo
-        sumcharge = 0.0
 
-        _T0  = 0.0
-        _V1x = 0.0
-        _V1y = 0.0
-        _V1z = 0.0
+        qFunctor_elec = LikelihoodFunctor(data,domsUsed,self.f_electron)
+        qFunctor_tau = LikelihoodFunctor(data,domsUsed,self.f_tau)
 
-        pulsecount = 0
-        
-        for dom in data.keys() :
+        T0, vertex, totalcharge = GetVertexTime(data,domsUsed)
 
-            pmt_x = domsUsed[dom].position.x
-            pmt_y = domsUsed[dom].position.y
-            pmt_z = domsUsed[dom].position.z
+        if totalcharge < 5.0 :
+            return 
 
-            for pulse in data[dom] :
-                    pulsecount += 1
-                    _T0 += pulse.time*pulse.charge
-                    _V1x += pmt_x*pulse.charge
-                    _V1y += pmt_y*pulse.charge
-                    _V1z += pmt_z*pulse.charge
-                    sumcharge += pulse.charge
-        
-        if pulsecount < 100 :
-          return
+        # Minimize using scipy
+        def func_elec(x):
+            vx, vy, vz,theta,phi,t0 = x
+            return qFunctor_elec(vx,vy,vz,theta,phi,t0)
+        def func_tau(x):
+            vx, vy, vz,theta,phi,t0 = x
+            return qFunctor_tau(vx,vy,vz,theta,phi,t0)
 
-        _T0 = _T0/sumcharge
-        _V1x = _V1x/sumcharge
-        _V1y = _V1y/sumcharge
-        _V1z = _V1z/sumcharge
+        solution_elec = op.minimize(fun=func_elec, 
+                               x0=np.array([vertex.x,vertex.y,vertex.z,0.0,0.0,T0]), 
+                               method='Nelder-Mead')
 
-        T0 = _T0
-        V1x = _V1x
-        V1y = _V1y
-        V1z = _V1z
+        solution_tau = op.minimize(fun=func_tau,
+                               x0=np.array([vertex.x,vertex.y,vertex.z,0.0,0.0,T0]),
+                               method='Nelder-Mead')
 
-        dT = 0.0
-        Dtheta = 0.0
-        Dphi = 0.0
-        Br = 1.0
-
-        qFunctor = LikelihoodFunctor(data,domsUsed,self.pdf,self.time_lim,self.dist_lim)   
-          
-        minimizer_single = Minuit(qFunctor, 
-                            t0=T0,
-                            error_t0=1.0,
-                            dt=dT,
-                            error_dt=1.0,
-                            limit_dt=(0.0,10000.0),
-                            v1x=V1x,
-                            error_v1x=1.0,
-                            limit_v1x=(-500.,500.),
-                            v1y=V1y,
-                            error_v1y=1.0,
-                            limit_v1y=(-500.,500.),
-                            v1z=V1z,
-                            error_v1z=1.0,
-                            limit_v1z=(-500.,500.),
-                            dtheta=Dtheta,
-                            error_dtheta=1.0,
-                            limit_dtheta=(0.0,np.pi),
-                            dphi=Dphi,
-                            error_dphi=1.0,
-                            limit_dphi=(0.0,2.0*np.pi),
-                            br=Br,
-                            error_br=1.0,
-                            limit_br=(0.0,1.0),
-                            errordef=0.5,
-                           )
-
-        minimizer_single.fixed["dt"]=True
-        minimizer_single.fixed["dtheta"]=True
-        minimizer_single.fixed["dphi"]=True
-        minimizer_single.fixed["br"]=True
-
-        minimizer_single.migrad()
-
-        T0=_T0
-        dT = 60*0.3
-        V1x = _V1x
-        V1y = _V1y
-        V1z = _V1z-30
-        Dtheta = 0.0
-        Dphi = 0.0
-        Br = 0.5
-
-        minimizer_double = Minuit(qFunctor,                                     
-                                            t0=T0,                                 
-                                            error_t0=1.0,
-                                            dt=dT,                                              
-                                            error_dt=1.0,                                       
-                                            limit_dt=(0.0,10000.0),                            
-                                            v1x=V1x,                                           
-                                            error_v1x=1.0,                                     
-                                            limit_v1x=(-500.,500.),                             
-                                            v1y=V1y,                                            
-                                            error_v1y=1.0,                                      
-                                            limit_v1y=(-500.,500.),                           
-                                            v1z=V1z,                                           
-                                            error_v1z=1.0,                                      
-                                            limit_v1z=(-500.,500.),                             
-                                            dtheta=Dtheta,                                      
-                                            error_dtheta=1.0,                                   
-                                            limit_dtheta=(0.0,np.pi),                           
-                                            dphi=Dphi,                                          
-                                            error_dphi=1.0,                                     
-                                            limit_dphi=(0.0,2.0*np.pi),                         
-                                            br=Br,                                            
-                                            error_br=1.0,                                       
-                                            limit_br=(0.0,1.0),                                 
-                                            errordef=0.5,                                       
-                                            )
-
-        solution_single = minimizer_single.values
-        loglikelihood_single = minimizer_single.fval
-
-        v0x = solution_single['v1x']
-        v0y = solution_single['v1y']
-        v0z = solution_single['v1z']
-
-        v0 = dataclasses.I3Position(v0x,v0y,v0z)
-        recoParticle_cascade = dataclasses.I3Particle()
-        recoParticle_cascade.shape = dataclasses.I3Particle.InfiniteTrack
-        recoParticle_cascade.dir = dataclasses.I3Direction(0.0,0.0,0.0)
-        recoParticle_cascade.speed = self.c
-        recoParticle_cascade.pos = v0
-        recoParticle_cascade.time = solution_single['t0']
-
-        minimizer_double.migrad()
-
-        solution_double = minimizer_double.values
-        loglikelihood_double = minimizer_double.fval
-            
-        # For likelihood
-        v1x = solution_double['v1x']
-        v1y = solution_double['v1y']
-        v1z = solution_double['v1z']
-
-        v2x = v1x + self.c*solution_double['dt']*np.cos(solution_double['dphi'])*np.sin(solution_double['dtheta'])
-        v2y = v1y + self.c*solution_double['dt']*np.sin(solution_double['dphi'])*np.sin(solution_double['dtheta'])
-        v2z = v1z + self.c*solution_double['dt']*np.cos(solution_double['dtheta'])
-      
-        v1 = dataclasses.I3Position(v1x,v1y,v1z)
-        v2 = dataclasses.I3Position(v2x,v2y,v2z)
-        phi = solution_double['dphi'] 
-        theta = solution_double['dtheta']
-        u = dataclasses.I3Direction(np.sin(theta)*np.cos(phi), np.sin(theta)*np.sin(phi), np.cos(theta))
-
-        intensity = solution_double['br']
-
+        q = dataclasses.I3Position(solution_elec.x[0],solution_elec.x[1],solution_elec.x[2])
+        theta = solution_elec.x[3]
+        phi = solution_elec.x[4] 
+        d = dataclasses.I3Direction(np.sin(theta)*np.cos(phi),np.sin(theta)*np.sin(phi),np.cos(theta))  
         # Record the final result
-        recoParticle_create = dataclasses.I3Particle()
-        recoParticle_create.shape = dataclasses.I3Particle.InfiniteTrack
-        recoParticle_create.dir = u
-        recoParticle_create.speed = self.c
-        recoParticle_create.pos = v1
-        recoParticle_create.time = solution_double['t0']
+        recoParticle_elec = dataclasses.I3Particle()
+        recoParticle_elec.shape = dataclasses.I3Particle.Cascade
+                
+        # record on particle whether reconstruction was successful
+        if solution_elec.success == True:
+            recoParticle_elec.fit_status = dataclasses.I3Particle.OK
+        else:
+            recoParticle_elec.fit_status = dataclasses.I3Particle.InsufficientQuality
+                                            
+        recoParticle_elec.dir = d
+        recoParticle_elec.speed = self.c
+        recoParticle_elec.pos = q
+        recoParticle_elec.time = solution_elec.x[5]
 
-        recoParticle_decay = dataclasses.I3Particle()
-        recoParticle_decay.shape = dataclasses.I3Particle.InfiniteTrack                        
-        recoParticle_decay.dir = u
-        recoParticle_decay.speed = self.c
-        recoParticle_decay.pos = v2
-        recoParticle_decay.time = solution_double['t0']+solution_double['dt']
+        q = dataclasses.I3Position(solution_tau.x[0],solution_tau.x[1],solution_tau.x[2])
+        theta = solution_tau.x[3]
+        phi = solution_tau.x[4]
+        d = dataclasses.I3Direction(np.sin(theta)*np.cos(phi),np.sin(theta)*np.sin(phi),np.cos(theta))
+        # Record the final result
+        recoParticle_tau = dataclasses.I3Particle()
+        recoParticle_tau.shape = dataclasses.I3Particle.Cascade
 
-            
+        # record on particle whether reconstruction was successful
+        if solution_tau.success == True:
+            recoParticle_tau.fit_status = dataclasses.I3Particle.OK
+        else:
+            recoParticle_tau.fit_status = dataclasses.I3Particle.InsufficientQuality
+
+        recoParticle_tau.dir = d
+        recoParticle_tau.speed = self.c
+        recoParticle_tau.pos = q
+        recoParticle_tau.time = solution_tau.x[5]
+
         # include both linefit and improved recos for comparison
-        frame[self.output+"_double_v1"] = recoParticle_create
-        frame[self.output+"_double_v2"] = recoParticle_decay 
-        frame[self.output+"_double_t0"] = dataclasses.I3Double(intensity)
-        frame[self.output+"_double_intensity"] = dataclasses.I3Double(intensity)
-        frame[self.output+"_double_nlogl"] =  dataclasses.I3Double(loglikelihood_double)
-        frame[self.output+"_single_v0"] = recoParticle_cascade
-        frame[self.output+"_single_nlogl"] =  dataclasses.I3Double(loglikelihood_single)
+        frame[self.output+"_electron"] = recoParticle_elec  
+        frame[self.output+"_electron_nloglike"] =  dataclasses.I3Double(solution_elec.fun)
+        frame[self.output+"_tau"] = recoParticle_tau  
+        frame[self.output+"_tau_nloglike"] =  dataclasses.I3Double(solution_tau.fun)
         self.PushFrame(frame)    
 

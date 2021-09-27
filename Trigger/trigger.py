@@ -13,10 +13,11 @@ class Trigger(icetray.I3ConditionalModule):
   def __init__(self, context):
     icetray.I3ConditionalModule.__init__(self, context)
     self.AddParameter("GCDFile","GCD to be simulated",'')
+    self.AddParameter("output","Append the outputs",'')
     self.AddParameter("inputmap","Name of the Physics I3MCTree name","I3RecoPulseSeriesMap")
     self.AddParameter("PEthreshold"," Pulse charge threshold",0.25)
-    self.AddParameter("CutOnTrigger","Cut events that do not trigger.","False")
-    self.AddParameter("FullDetectorCoincidenceN","",2)
+    self.AddParameter("CutOnTrigger","Cut events that do not trigger.",False)
+    self.AddParameter("FullDetectorCoincidenceN","",3)
     self.AddParameter("FullDetectorCoincidenceWindow","",1.1)
     self.AddParameter("StringCoincidenceN","",2)
     self.AddParameter("StringCoincidenceWindow","",1.1)
@@ -24,7 +25,7 @@ class Trigger(icetray.I3ConditionalModule):
     self.AddParameter("InterStringCoincidenceWindow","",1.1)
     self.AddParameter("InterStringNRows","",3)
     self.AddParameter("InterStringDist","",1.5)
-    self.AddParameter("SingleDOMCoincidenceN","",3)
+    self.AddParameter("SingleDOMCoincidenceN","",2)
     self.AddParameter("SingleDOMCoincidenceWindow","",10)
     self.AddParameter("SingleStringNRows","",3)
     self.AddParameter("OMPlaneCoincidenceN","",2)
@@ -36,6 +37,7 @@ class Trigger(icetray.I3ConditionalModule):
   def Configure(self):
 
     self.gcdFile = self.GetParameter("GCDFile")
+    self.output = self.GetParameter("output")
     self.inputmap = self.GetParameter("inputmap")
     self.PEthreshold = self.GetParameter("PEthreshold")
     self.CutOnTrigger = self.GetParameter("CutOnTrigger")
@@ -43,6 +45,7 @@ class Trigger(icetray.I3ConditionalModule):
     self.StringCoincidenceN = self.GetParameter("StringCoincidenceN")
     self.InterStringCoincidenceN = self.GetParameter("InterStringCoincidenceN")
     self.SingleDOMCoincidenceN = self.GetParameter("SingleDOMCoincidenceN")
+    self.SingleDOMCoincidenceWindow = self.GetParameter("SingleDOMCoincidenceWindow")
     self.OMPlaneCoincidenceN = self.GetParameter("OMPlaneCoincidenceN")
     self.OMPlaneCoincidenceWindow = self.GetParameter("OMPlaneCoincidenceWindow")
     self.ForceAdjacency = self.GetParameter("ForceAdjacency")
@@ -63,7 +66,7 @@ class Trigger(icetray.I3ConditionalModule):
       #there is a better way for this.
       for frame in self.gcdFile:
         domsUsed = frame['I3Geometry'].omgeo
-
+      self.gcdFile.rewind()
       for domkey in domsUsed.keys() :
         if domkey.string > self.nstrings :
           self.nstrings = int(domkey.string)
@@ -166,7 +169,7 @@ class Trigger(icetray.I3ConditionalModule):
     for j in range(len(self.InterStringTriggerGroups)) :
         self.Empty_InterStringCoincidence.append([])
 
-    for i in range(1000) :
+    for i in range(10000) :
       self.Empty_FullDetectCoincidence.append(0.0)
       for j in range(len(self.SingleStringTriggerGroups)) :
         self.Empty_StringCoincidence[j].append(0.0)
@@ -179,15 +182,16 @@ class Trigger(icetray.I3ConditionalModule):
     self.eventcount = 0
   def DetectorStatus(self,frame) :
 
-    frame["FullDetectorCoincidenceWindow"] = dataclasses.I3Double(self.FullDetectorCoincidenceWindow)
-    frame["InterStringCoincidenceWindow"] = dataclasses.I3Double(self.InterStringCoincidenceWindow)
-    frame["OMPlaneCoincidenceWindow"] = dataclasses.I3Double(self.OMPlaneCoincidenceWindow) 
-    frame["FullDetectorCoincidenceN"] = dataclasses.I3Double(self.FullDetectorCoincidenceN) 
-    frame["StringCoincidenceN"] = dataclasses.I3Double(self.StringCoincidenceN) 
-    frame["InterStringCoincidenceN"] = dataclasses.I3Double(self.InterStringCoincidenceN)
-    frame["SingleDOMCoincidenceN"] = dataclasses.I3Double(self.SingleDOMCoincidenceN)
-    frame["OMPlaneCoincidenceN"] = dataclasses.I3Double(self.OMPlaneCoincidenceN)
-    frame["TriggerForceAdjacency"] = dataclasses.I3Double(self.ForceAdjacency)
+    frame["FullDetectorCoincidenceWindow"+self.output] = dataclasses.I3Double(self.FullDetectorCoincidenceWindow)
+    frame["InterStringCoincidenceWindow"+self.output] = dataclasses.I3Double(self.InterStringCoincidenceWindow)
+    frame["OMPlaneCoincidenceWindow"+self.output] = dataclasses.I3Double(self.OMPlaneCoincidenceWindow) 
+    frame["FullDetectorCoincidenceN"+self.output] = dataclasses.I3Double(self.FullDetectorCoincidenceN) 
+    frame["StringCoincidenceN"+self.output] = dataclasses.I3Double(self.StringCoincidenceN) 
+    frame["InterStringCoincidenceN"+self.output] = dataclasses.I3Double(self.InterStringCoincidenceN)
+    frame["SingleDOMCoincidenceN"+self.output] = dataclasses.I3Double(self.SingleDOMCoincidenceN)
+    frame["SingleDOMCoincidenceWindow"+self.output] = dataclasses.I3Double(self.SingleDOMCoincidenceWindow)
+    frame["OMPlaneCoincidenceN"+self.output] = dataclasses.I3Double(self.OMPlaneCoincidenceN)
+    frame["TriggerForceAdjacency"+self.output] = dataclasses.I3Double(self.ForceAdjacency)
     
     self.PushFrame(frame)
     
@@ -209,19 +213,19 @@ class Trigger(icetray.I3ConditionalModule):
     last_detectorTriggerTime = 0
     detectorTriggerTime = dataclasses.I3VectorInt()
 
-    npulses = 0
-    for omkey in PulseSeriesMap.keys() :
-        npulses += len(PulseSeriesMap[omkey])
-
     self.eventcount += 1
-    
+
+    npulses = 0
+    for omkey in PulseSeriesMap.keys() :                                                                                                                 
+        for pulse in PulseSeriesMap[omkey]: 
+             npulses += 1.0    
+
     if npulses < self.SingleDOMCoincidenceN*min([self.StringCoincidenceN,self.InterStringCoincidenceN,self.FullDetectorCoincidenceN]) :
         if self.CutOnTrigger :
             return
-
-        frame["DetectorTriggers"] = detectorTriggerTime
-        frame["SingleStringTriggers"] = stringTriggerTime
-        frame["InterStringTriggers"] = interStringTriggerTime
+        frame["DetectorTriggers"+self.output] = detectorTriggerTime
+        frame["SingleStringTriggers"+self.output] = stringTriggerTime
+        frame["InterStringTriggers"+self.output] = interStringTriggerTime
 
         self.PushFrame(frame)
         return
@@ -231,8 +235,8 @@ class Trigger(icetray.I3ConditionalModule):
         #if pulse.charge < 0.25 :
         #  continue
 
-        mintimebin = max(0,min(int(pulse.time/10.0),1000))
-        dommaxtimebin = max(0,min(int((pulse.time+self.StringCoincidenceWindow)/10.0),1000))
+        mintimebin = max(0,min(int(pulse.time),10000))
+        dommaxtimebin = max(0,min(int((pulse.time+self.SingleDOMCoincidenceWindow)),10000))
 
         for i in range(mintimebin,dommaxtimebin) :
           DOMCoincidence[omkey.string][omkey.om][i] += 1
@@ -245,17 +249,17 @@ class Trigger(icetray.I3ConditionalModule):
                 if DOMCoincidence[i][j][k] > self.SingleDOMCoincidenceN :
                     for l in range(len(self.SingleStringTriggerGroups)) :
                         if omkey in self.SingleStringTriggerGroups[l] :
-                            for n in range(k,min(1000,k+int(self.StringCoincidenceWindow/10.0))):
+                            for n in range(k,min(10000,k+int(self.StringCoincidenceWindow))):
                                 StringCoincidence[l][n] += 1
                     for l in range(len(self.InterStringTriggerGroups)) :
                         if omkey in self.InterStringTriggerGroups[l] :
-                            for n in range(k,min(1000,k+int(self.InterStringCoincidenceWindow/10.0))) :
+                            for n in range(k,min(10000,k+int(self.InterStringCoincidenceWindow))) :
                                 InterStringCoincidence[l][n] += 1
-                    for n in range(k,min(1000,k+int(self.FullDetectorCoincidenceWindow/10.0))) :
+                    for n in range(k,min(10000,k+int(self.FullDetectorCoincidenceWindow))) :
                         FullDetectCoincidence[n] += 1
 
-    for i in range(1000) :
-      if (i - last_stringTriggerTime) > 1000 :
+    for i in range(10000) :
+      if (i - last_stringTriggerTime) > 10000 :
         stringTrigger = False
       if not stringTrigger :
         for j in range(len(StringCoincidence)) :
@@ -264,7 +268,7 @@ class Trigger(icetray.I3ConditionalModule):
             last_stringTriggerTime = i
             stringTriggerTime.append(i)
             break
-      if (i - last_interStringTriggerTime) > 1000 :
+      if (i - last_interStringTriggerTime) > 10000 :
         interStringTrigger = False
       if not interStringTrigger :
         for j in range(len(InterStringCoincidence)) :
@@ -273,7 +277,7 @@ class Trigger(icetray.I3ConditionalModule):
             last_interStringTriggerTime = i
             interStringTriggerTime.append(i)
             break
-      if (i - last_detectorTriggerTime) > 1000 :
+      if (i - last_detectorTriggerTime) > 10000 :
         detectorTrigger = False
       if not detectorTrigger and FullDetectCoincidence[i] >= self.FullDetectorCoincidenceN :
         last_detectorTriggerTime = i
@@ -290,8 +294,8 @@ class Trigger(icetray.I3ConditionalModule):
     #print("interstring")
     #print(interStringTriggerTime)
 
-    frame["DetectorTriggers"] = detectorTriggerTime
-    frame["SingleStringTriggers"] = stringTriggerTime
-    frame["InterStringTriggers"] = interStringTriggerTime
+    frame["DetectorTriggers"+self.output] = detectorTriggerTime
+    frame["SingleStringTriggers"+self.output] = stringTriggerTime
+    frame["InterStringTriggers"+self.output] = interStringTriggerTime
 
     self.PushFrame(frame)

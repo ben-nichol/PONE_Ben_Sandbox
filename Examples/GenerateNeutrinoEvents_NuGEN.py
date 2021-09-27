@@ -13,7 +13,7 @@ import argparse
 parser = argparse.ArgumentParser(description = "A scripts to run the neutrino generation simulation step using Neutrino Generator")
 
 parser.add_argument('-emin', '--energyMin', default = 5.0,                                            help="the minimum energy")
-parser.add_argument('-emax', '--energyMax', default = 8.0,                                            help="the maximum energy")
+parser.add_argument('-emax', '--energyMax', default = 7.0,                                            help="the maximum energy")
 parser.add_argument('-n',    '--numEvents', default = 1000,                                           help="number of events produced by the simulation")
 parser.add_argument('-o',    '--outfile',   default = "output.i3",                                    help="name and path of output file")
 parser.add_argument('-r',    '--runNum',    default = 0,                                              help="run Number")
