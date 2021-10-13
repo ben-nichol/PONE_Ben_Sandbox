@@ -18,36 +18,7 @@ import sys
 import argparse
 import math as m
 import random as rand
-
-# Geometric Time computation:
-def GetGeoTime(position,vert) :
-    c = 0.299792458                                 # speed of light 
-    n = 1.34
-    ngroup = 1.35557                                # 1.33 is the refractive index of water at 20 degrees C
-    c_n = c/ngroup                                     # light in water
-    x = position.x - vert.x
-    y = position.y - vert.y
-    z = position.z - vert.z
-    dc = np.sqrt(x*x + y*y + z*z)
-    t = dc/c_n
-    return dc,t
-
-def anisotropy(position,vert,direction):
-
-    x1 = position.x - vert.x
-    y1 = position.y - vert.y
-    z1 = position.z - vert.z
-    r1= m.sqrt(x1*x1+y1*y1+z1*z1)
-
-    x2= direction.x
-    y2= direction.y
-    z2= direction.z
-    zeta = 0.0
-    if r1 > 0.0 :
-    	zeta=np.arccos((x1*x2+y1*y2+z1*z2)/r1)
-    
-
-    return weight
+from Utilities.RecoUtilities import GetPhotonTravelTime
 
 # Functional that is fed data from InitialGuess for PMT locations and the PDF we wish to use. Uses those locations to build a Pandel Function for a given track
 def LikelihoodFunctor(data,domsUsed):
@@ -77,15 +48,14 @@ def LikelihoodFunctor(data,domsUsed):
         sum_nloglike = 0.0
         for dom in pulse_series.keys() :
             domkey =  OMKey(dom.string, dom.om, 0) 
-            dc,t = GetGeoTime(geo_doms[domkey].position,vertex)
+            dc,t = GetPhotonTravelTime(geo_doms[domkey].position,vertex)
             p_charge = np.exp(-dc/tau)/max(dc,0.25)
-            anisotropyweight = anisotropy(geo_doms[domkey].position,vertex,direction)
             for pulse in pulse_series[dom] :
                 charge = 1.0
                 cpandel_out = pdf(pulse.time - t0 - t ,dc)
                 if(type(pulse_series) == 'icecube.dataclasses.I3RecoPulseSeriesMap') :
                     charge = pulse.charge
-                sum_nloglike -= charge*np.log(cpandel_out*p_charge*anisotropyweight+dark)
+                sum_nloglike -= charge*np.log(cpandel_out*p_charge+dark)
                 sum_nloglike -= charge*min(0.0,pulse.time - t0 - t)
 
         return sum_nloglike

@@ -61,3 +61,27 @@ def GetGeoTime(position,vert,direction) :
     d = dc/np.sin(theta_c)
     t = d/c_n + dotprod/c - dc/(np.tan(theta_c)*c)
     return d,dc,t
+
+"""!
+GetPhotonTravelTime(position,vert)
+Inputs:
+    position = I3Position for the DOM position
+    vert = I3Position for vertex position.
+Operation:
+    Computes the distance traveled and travel time for the 
+    photon assuming an isotropic emmission from the vertex.
+
+"""
+
+def GetPhotonTravelTime(position,vert):
+    c = 0.299792458                                 # speed of light 
+    n = 1.34
+    ngroup = 1.35557                                # 1.33 is the refractive index of water at 20 degrees C
+    c_n = c/ngroup                                     # light in water
+
+    x = position.x - vert.x
+    y = position.y - vert.y
+    z = position.z - vert.z
+    dc = np.sqrt(x*x + y*y + z*z)
+    t = dc/c_n
+    return dc,t
