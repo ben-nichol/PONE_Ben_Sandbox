@@ -11,46 +11,11 @@ from icecube.dataclasses import I3Particle
 import numpy as np
 import time
 from Reconstruction.llh.reco_pdfs import cpandel as pdf               # This module is used to store the pdf
-from scipy import special as sp                        # For the Gamma function 
 from scipy import optimize as op
 import sys
-#from iminuit import Minuit
 import argparse
 import math as m
-import random as rand
-
-# A function that returns a unit vector direction such that it forms the angle alpha with the given direction. 
-# Works for alpha in (0, pi/2) exclusive
-def rand_dir(theta_dir, phi_dir, alpha):
-    theta = 2*np.pi*rand.uniform(0,1)
-    ct_dir = np.cos(theta_dir)
-    st_dir = np.sin(theta_dir)
-    cp_dir = np.cos(phi_dir)
-    sp_dir = np.sin(phi_dir)
-    ca = np.cos(alpha)
-    sa = np.sin(alpha)
-    ct = np.cos(theta)
-    st = np.sin(theta)
-    dir_x = cp_dir*ct_dir*sa*ct + st_dir*ca*cp_dir - sp_dir*sa*st
-    dir_y = sp_dir*ct_dir*sa*ct + st_dir*ca*sp_dir + cp_dir*sa*st
-    dir_z = ca*ct_dir - sa*ct*st_dir
-    return np.array([dir_x, dir_y, dir_z])
-
-# Geometric Time computation:
-def GetGeoTime(position,vert,direction) :
-    c = 0.299792458                                 # speed of light 
-    n = 1.34
-    ngroup = 1.35557                                # 1.33 is the refractive index of water at 20 degrees C
-    c_n = c/ngroup                                     # light in water
-    theta_c = np.arccos(1./n)
-    x = position.x - vert.x
-    y = position.y - vert.y
-    z = position.z - vert.z
-    dotprod = x*direction.x + y*direction.y + z*direction.z
-    dc = np.sqrt(x*x + y*y + z*z-dotprod*dotprod)
-    d = dc/np.sin(theta_c)
-    t = d/c_n + dotprod/c - dc/(np.tan(theta_c)*c)
-    return d,dc,t
+from Utilities.RecoUtilities import GetGeoTime
 
 
 # Functional that is fed data from InitialGuess for PMT locations and the PDF we wish to use. Uses those locations to build a Pandel Function for a given track
@@ -101,33 +66,6 @@ def LikelihoodFunctor(data,domsUsed,vertexrad):
         return sum_nloglike
 
     return likelihoodFunction
-
-def GetStartStop(vertex,direction,pulse_series,geo_doms) :
-        n = 1.34
-        theta_c = np.arccos(1./n)  
-
-        start = 99999999999
-        stop = 0.0
-
-        for dom in pulse_series.keys() :
-            dompos = geo_doms[dom].position
-
-            x = dompos.x - vertex.x
-            y = dompos.y - vertex.y
-            z = dompos.z - vertex.z
-            # Compute (\vec{r} - vec{x}) dot \vec{v}
-            dotprod = x*direction.x + y*direction.y + z*direction.z
-            # Compute the final vector components
-            # Compute t_i,c and d_i,c
-            dc = np.sqrt(x*x + y*y + z*z-dotprod*dotprod)
-            l = dotprod - dc/np.tan(theta_c)
-
-            if l < start :
-                start = l
-            if l > stop :
-                stop = l
-
-        return start, stop
 
 def GetVertexTime(vertex,direction,pulse_series,geo_doms):                                 
 
@@ -201,7 +139,6 @@ class likelihoodreco(icetray.I3ConditionalModule):
         self.AddParameter("output","Track to store fit.","llnfit")
         self.AddParameter("vertexRad","Radius to put vertex at",550.)
         self.AddParameter("UseMC","Use MC Truth Track to seed",False)
-        self.AddParameter("group","Used to fix at true direction, vertex or time",False)
         self.AddOutBox("OutBox")
 
     def Configure(self):
@@ -211,7 +148,6 @@ class likelihoodreco(icetray.I3ConditionalModule):
         self.output = self.GetParameter("output")
         self.vertexRad = self.GetParameter("vertexRad")
         self.useMC = self.GetParameter("UseMC")
-        self.group = self.GetParameter("group")
 
         # Some quantities that are environment dependent
         self.c = 0.299792458                                 # speed of light 
@@ -226,25 +162,13 @@ class likelihoodreco(icetray.I3ConditionalModule):
     # Main function of this file. Structured this way so that it can be easily imported aswell in any other implementation. 
 
     def DAQ(self,frame): 
-        tic = time.perf_counter() #Check start time
         data = frame[self.pulseseries]
-        # Clean the data to get rid of repeated events
-        #data = clean_data(data)
 
-        if self.seedtrack != 'linefit':	
-            linefit = frame['linefit']
-            muon = frame['MMCTrackList'][0].GetI3Particle()
-            new_dir = rand_dir(muon.dir.theta, muon.dir.phi, self.seedtrack)
-            linefit.dir = dataclasses.I3Direction(new_dir[0],new_dir[1],new_dir[2])
-        else:
-            linefit = frame[self.seedtrack]
+        linefit = frame[self.seedtrack]
 
         domsUsed = frame['I3Geometry'].omgeo
 
-        direction = dataclasses.I3Direction(linefit.dir.x,linefit.dir.y,linefit.dir.z)
-        
-        #linefit = frame[self.seedtrack]
-        #domsUsed = frame['I3Geometry'].omgeo 
+        direction = dataclasses.I3Direction(linefit.dir.x,linefit.dir.y,linefit.dir.z) 
 
         qFunctor = LikelihoodFunctor(data,domsUsed,self.vertexRad)
 
@@ -258,47 +182,11 @@ class likelihoodreco(icetray.I3ConditionalModule):
         L = -pd - np.sqrt(pd**2.0-p_2+r_2)
 
         vertex = dataclasses.I3Position(linefit.pos.x+L*direction.x,linefit.pos.y+L*direction.y,linefit.pos.z+L*direction.z)
-        # Load muon information
-        MMCTrackList = frame['MMCTrackList']
-        muon = MMCTrackList[0].GetI3Particle()
-
-        if self.useMC :
-            MMCTrackList = frame['MMCTrackList']
-            linefit = MMCTrackList[0].GetI3Particle()
-            direction = dataclasses.I3Direction(linefit.dir.x,linefit.dir.y,linefit.dir.z)
-            p_2 = linefit.pos.x**2.0+linefit.pos.y**2.0+linefit.pos.z**2.0
-            pd = (linefit.pos.x*linefit.dir.x+linefit.pos.y*linefit.dir.y+linefit.pos.z*linefit.dir.z)
-            r_2 = self.vertexRad**2.0
-            L = -pd - np.sqrt(pd**2.0-p_2+r_2)
-            t_offset = float(frame["TimeShiftedMCPEMap_toffset"].value)
-            T0_mc = linefit.time -t_offset + L/self.c
-            vertex = dataclasses.I3Position(linefit.pos.x+L*direction.x,linefit.pos.y+L*direction.y,linefit.pos.z+L*direction.z)
-
-
-        # Set the seed as either true vertex, true dir, or true time.
-        if self.group == "dir":
-            direction = dataclasses.I3Direction(muon.dir.x,muon.dir.y,muon.dir.z)
-        elif self.group == "vert":
-            p_2 = muon.pos.x**2.0+muon.pos.y**2.0+muon.pos.z**2.0
-            pd = (muon.pos.x*muon.dir.x+muon.pos.y*muon.dir.y+muon.pos.z*muon.dir.z)
-            r_2 = self.vertexRad**2.0
-            L = -pd - np.sqrt(pd**2.0-p_2+r_2)
-            vertex = dataclasses.I3Position(muon.pos.x+L*muon.dir.x,muon.pos.y+L*muon.dir.y,muon.pos.z+L*muon.dir.z)
-        elif self.group == "time":
-            p_2 = muon.pos.x**2.0+muon.pos.y**2.0+muon.pos.z**2.0
-            pd = (muon.pos.x*muon.dir.x+muon.pos.y*muon.dir.y+muon.pos.z*muon.dir.z)
-            r_2 = self.vertexRad**2.0
-            L = -pd - np.sqrt(pd**2.0-p_2+r_2)
-            t_offset = float(frame["TimeShiftedMCPEMap_toffset"].value)
-            T0_mc = muon.time -t_offset + L/self.c
         
         VTheta = vertex.theta
         VPhi = vertex.phi
 
         T0 = GetVertexTime(vertex,direction,data,domsUsed)
-
-        if self.group == "time":
-            T0 = T0_mc
 
         # Minimize using scipy
         def func(x):
@@ -308,53 +196,6 @@ class likelihoodreco(icetray.I3ConditionalModule):
                                x0=np.array([VTheta, VPhi, direction.theta, direction.phi, T0]), 
                                method='Nelder-Mead')
 
-        #minimizer = minimizer = Minuit(qFunctor,
-         #               t0=T0,
-          #              error_t0=100.0,
-           #             vtheta=VTheta,
-            #            error_vtheta=2.0,
-             #           limit_vtheta=(-np.pi,np.pi),
-              #          vphi=VPhi,
-               #         error_vphi=2.0,
-                #        limit_vphi=(-2.0*np.pi,2.0*np.pi),
-                 #       phi=direction.phi,
-                  #      error_phi=2.0,
-                   #     limit_phi=(-2.0*np.pi,2.0*np.pi),
-                    #    theta=direction.theta,
-                     #   error_theta=2.0,
-                      #  limit_theta=(-np.pi,np.pi),
-                       # errordef=0.5,
-           #             print_level=3
-                       # )
-
-        #minimizer.fixed["vtheta"] = True
-        #minimizer.fixed["vphi"] = True
-        #minimizer.fixed["phi"] = True
-        #minimizer.fixed["theta"] = True
-
-        #minimizer.migrad()
-        #minimizer.simplex()
-
-        #minimizer.errors["t0"]=100.0
-        #minimizer.fixed["vtheta"] = False
-        #minimizer.fixed["vphi"] = False
-        #minimizer.fixed["phi"] = False
-        #minimizer.fixed["theta"] = False
-
-        #minimizer.simplex()
-        #minimizer.migrad()
-
-        #solution = minimizer.values
-            
-        # For likelihood
-        #vx = self.vertexRad*np.sin(solution['vtheta'])*np.cos(solution['vphi'])
-        #vy = self.vertexRad*np.sin(solution['vtheta'])*np.sin(solution['vphi'])
-        #vz = self.vertexRad*np.cos(solution['vtheta'])
-        #q = dataclasses.I3Position(vx,vy,vz)
-        #phi = solution['phi'] 
-        #theta = solution['theta']
-        #u = dataclasses.I3Direction(np.sin(theta)*np.cos(phi), np.sin(theta)*np.sin(phi), np.cos(theta))
-
         vx = self.vertexRad*np.sin(solution.x[0])*np.cos(solution.x[1])
         vy = self.vertexRad*np.sin(solution.x[0])*np.sin(solution.x[1])
         vz = self.vertexRad*np.cos(solution.x[0])
@@ -362,11 +203,6 @@ class likelihoodreco(icetray.I3ConditionalModule):
         phi = solution.x[3] 
         theta = solution.x[2]
         u = dataclasses.I3Direction(np.sin(theta)*np.cos(phi), np.sin(theta)*np.sin(phi), np.cos(theta))
-
-        #print("tau = "+str(solution['tau']))
-
-        #print("post fit")
-        #print(str(q.x)+","+str(q.y)+","+str(q.z))
 
         # Record the final result
         recoParticle = dataclasses.I3Particle()
@@ -384,13 +220,9 @@ class likelihoodreco(icetray.I3ConditionalModule):
         recoParticle.pos = q
         recoParticle.time = solution.x[4]
 
-        toc = time.perf_counter() # End timer
-
         # include both linefit and improved recos for comparison
         frame[self.output] = recoParticle  
-        #frame[self.output+"_nloglike"] =  dataclasses.I3Double(minimizer.fval)
         frame[self.output+"_nloglike"] =  dataclasses.I3Double(solution.fun)
-        frame[self.output+"_time1"] = dataclasses.I3Double(toc - tic)
         frame[self.output+"_seed_llhval"] = dataclasses.I3Double(qFunctor(VTheta, VPhi, direction.theta, direction.phi, T0))
         
         self.PushFrame(frame)    
