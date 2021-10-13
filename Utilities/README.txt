@@ -1,0 +1,1 @@
+The Utilities folder is for storing scripts that contain methods for computing common things used across many functions. Using these functions allow use to have consistance computations of critical values. 
