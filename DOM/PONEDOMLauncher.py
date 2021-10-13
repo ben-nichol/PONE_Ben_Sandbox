@@ -66,7 +66,6 @@ def ApplyPMTResponce(mcpulsemap,random_service,PMT_tts,PMT_ts,LPprob,APprob,APCo
     outputpulsemap = dataclasses.I3RecoPulseSeriesMap()
     outputmcpulsemap = simclasses.I3MCPulseSeriesMap()
 
-
     for omkey in mcpulsemap.keys():
         pulsetimelist = []
         pulseseries = dataclasses.I3RecoPulseSeries()
@@ -141,7 +140,7 @@ def ApplyPMTResponce(mcpulsemap,random_service,PMT_tts,PMT_ts,LPprob,APprob,APCo
         outputpulsemap[newomkey]=pulseseries
         outputmcpulsemap[newomkey] = mcpulseseries
 
-    return outputpulsemap, outputmcpulsemap
+    return outputpulsemap, outputmcpulsemap 
 
 
 class SimpleDOMSimulation(icetray.I3ConditionalModule):
@@ -207,7 +206,11 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
         if self.GetParameter("DOMAcceptanceFile") != "" :
             GetPMTAcceptanceTable(self.GetParameter("DOMAcceptanceFile"))
             if self.GetParameter("AcceptBaseValue") < 0.0 :
+<<<<<<< HEAD
                 AccBase = GetMaxAngularAcceptance()
+=======
+                AccBase = GetPMTAcceptanceMax(self.GetParameter("DOMAcceptanceFile"))
+>>>>>>> fecf936196246d73e244ea67b500652ee18a99d0
             else :
                 AccBase = self.GetParameter("AcceptBaseValue")
         else :
@@ -216,6 +219,7 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
             GetPMTQETable(self.GetParameter("PMTQEFile"))
 
     def DAQ(self,frame) :
+<<<<<<< HEAD
 
         random_service = self.randomService
         outputpulsemap = dataclasses.I3RecoPulseSeriesMap()
@@ -253,4 +257,47 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
                                                             self.PEthreshold)
 
         self.PushFrame(frame)
+=======
+>>>>>>> fecf936196246d73e244ea67b500652ee18a99d0
 
+        passnum = 0
+    
+        random_service = self.randomService
+        outputpulsemap = dataclasses.I3RecoPulseSeriesMap()
+        outputmcpulsemap = simclasses.I3MCPulseSeriesMap()  
+        mcpulsemap = frame[self.inputmap]
+        mcpulseOMKeys = mcpulsemap.keys()
+        sqrt2 = 1.414213562373095
+    
+        domsUsed = frame['I3Geometry'].omgeo    
+        max_pt = -999999999.
+        min_pt = 999999999.
+
+        # print("splitting pulses")
+        if self.splitDOMs :
+            mcpulsemap = SplitPMTs(mcpulsemap,random_service)
+            mcpulseOMKeys = mcpulsemap.keys()
+
+        max_pt, min_pt = GetMaxMinTimes(mcpulsemap)
+
+        #add dark noise
+
+        AddDarkHits(domsUsed,mcpulsemap,random_service,self.DNprob,max_pt,min_pt,self.splitDOMs)
+
+        frame[self.outputmap], frame[self.outputmap+"_MCpulses"] = ApplyPMTResponce(mcpulsemap,
+                                                            random_service,
+                                                            self.PMT_tts,
+                                                            self.PMT_ts,
+                                                            self.LPprob,
+                                                            self.APprob,
+                                                            self.APComponetRatio,
+                                                            self.APmeantime_1,
+                                                            self.APmeantime_2,
+                                                            self.APtimesigma_1,
+                                                            self.APtimesigma_2,
+                                                            self.chargemean,
+                                                            self.chargesigma,
+                                                            self.PEsaturation,
+                                                            self.PEthreshold)
+    
+        self.PushFrame(frame) 

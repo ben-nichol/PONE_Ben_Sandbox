@@ -9,6 +9,7 @@ import random
 from icecube import icetray, dataclasses, dataio, simclasses
 from icecube import phys_services, sim_services
 from icecube import clsim
+import WaterOpticalModel.MakePoneMediumPropertiesConservative as Medium
 
 def GetPMTAcceptanceMax() :
 
@@ -109,7 +110,8 @@ tray.AddSegment(clsim.I3CLSimMakePhotons, 'goCLSIM',
                 MCPESeriesName='',
                 #ParallelEvents=1000,
                 RandomService=randomService,
-                IceModelLocation="/home/users/tmcelroy/pone_offline/WaterOpticalModel/STRAW_Andy_20200328_MattewEta",
+                IceModelLocation=Medium.MakePoneMediumProperties(),
+                #IceModelLocation="/home/users/tmcelroy/pone_offline/WaterOpticalModel/STRAW_Andy_20200328_MattewEta",
                 #IceModelLocation=mediumProperties,
                 UnWeightedPhotons=True, #turn off optimizations
                 UnWeightedPhotonsScalingFactor = GetPMTAcceptanceMax(),
