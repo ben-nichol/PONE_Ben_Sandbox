@@ -51,7 +51,11 @@ class SignificantHitPulseCleaning(icetray.I3ConditionalModule):
 
         window_integral = {}
 
-        if len(mcpeList) < 5 :
+        npulse = 0
+        for pulse in mcpeList:
+            npulse += 1
+
+        if npulse < 5 :
           return  mcpeList
 
         for pulse in mcpeList:
@@ -98,10 +102,10 @@ class SignificantHitPulseCleaning(icetray.I3ConditionalModule):
     # The frame inputted to the function after the significant MCPESeriesMap object
     # was appended to it with the key word "MCPESerieMap_significant_hits" 
     def DAQ(self,frame):
-
+        #print("sig hit")
         mcpeMap = frame[self.input]
         significantMCPEMap = dataclasses.I3RecoPulseSeriesMap()
-
+        #print("this is working")
         for omkey in mcpeMap.keys():
             #if omkey not in mcpeMap:
             #  continue

@@ -23,9 +23,6 @@ c = 2.99792458e8                                # speed of light
 n = 1.34                                        # 1.33 is the refractive index of water at 20 degrees C
 c_m = c/n                                       # light in water
 theta_c = np.arccos(1./n)                       # Cherenkov angle in water
-#lambda_s = 120 * I3Units.m                     # scattering length of light for violet light
-#lambda_a = 15 * I3Units.m                      # absorption length of light for violet light
-#tau = 557E-9 * I3Units.second                  # time parameter that has to be fit using simulations or data      
 
 # Pandel function
 def pandel(t, d, lambda_a = 15., lambda_s = 120., tau = 557E-9):
@@ -54,28 +51,18 @@ def cpandel(t, d, sigma = 1.1339139328144132, lambda_s = 317.50178764954626, rho
     t = min(150.,max(-3.0*sigma,t))
     eta = rho*sigma - (t/sigma)
 
-    #if t<-25.*sigma or t>3500. :
-    #    return 0.0
-    #print(scale)
     if (t>-5.0*sigma and t<30.0*sigma) and xi<5.0 :
         # Define our region dependent approximations of the CPandel function
         _pdf = sp.hyp1f1(0.5*xi,0.5,0.5*eta**2)/sp.gamma(0.5*(xi + 1.))
-     #   print(_pdf)
         _pdf -= np.sqrt(2.)*eta*sp.hyp1f1(0.5*(xi+1.),1.5,0.5*eta**2)/sp.gamma(0.5*xi) 
-      #  print(_pdf)
         _pdf *= (rho**xi)*(sigma**(xi - 1.))*np.exp(-(t**2)/(2.*sigma**2))
-       # print(_pdf)
         _pdf /= 2.**((1.+xi)/2.)
-     #   print("1")
-     #   print(_pdf*scale)
         return _pdf*scale
 
     elif xi <= 1. and t > 30.*sigma :
         _pdf = np.exp((rho**2)*(sigma**2)/2.)
         _pdf *= (rho**xi)*(t**(xi-1.))*np.exp(-rho*t)
         _pdf /= sp.gamma(xi)
-    #    print("2")
-    #    print(_pdf*scale)
         return _pdf*scale
 
     elif xi>1.0 and t>(rho*(sigma**2.0)) :
@@ -87,8 +74,6 @@ def cpandel(t, d, sigma = 1.1339139328144132, lambda_s = 317.50178764954626, rho
         phi = 1. - N1/(2.*xi - 1.) + N2/((2.*xi - 1.)**2)
         alpha = -t**2/(2*sigma**2) + 0.25*eta**2 - xi*0.5 + 0.25 + k*(2*xi - 1.) - 0.25*np.log(1 + z**2) - 0.5*xi*np.log(2) + 0.5*(xi-1.)*np.log(2*xi-1.) + xi*np.log(rho) + (xi-1.)*np.log(sigma)
         _pdf = np.exp(alpha)*phi/sp.gamma(xi)
-    #    print("3")
-    #    print(_pdf*scale)
         return _pdf*scale
 
     elif xi>1.0 and t<=(rho*(sigma**2.0)) :
@@ -105,8 +90,6 @@ def cpandel(t, d, sigma = 1.1339139328144132, lambda_s = 317.50178764954626, rho
         _pdf *= np.exp(-k*(2*xi-1.))
         _pdf *= (1. + z**2)**(-0.25)
         _pdf *= psi
-    #    print("4")
-    #    print(_pdf*scale)
         return _pdf*scale
 
     elif xi<=1. and t<=(rho*(sigma**2.0)) :
@@ -114,12 +97,8 @@ def cpandel(t, d, sigma = 1.1339139328144132, lambda_s = 317.50178764954626, rho
         _pdf *= eta**(-xi)
         _pdf *= np.exp(-t**2.0/(2.0*sigma**2.0))
         _pdf /= np.sqrt(2.*np.pi*sigma**2.0)
-    #    print("5")
-    #    print(_pdf*scale)
         return _pdf*scale
 
-    #print("6")
-    #print([eta,t,xi])
     return 0.0
 
 # -log(CPandel) so that the result can be a sum instead of a product. Multiple cases are used as approximations are needed for different domains of t-d. #
@@ -209,17 +188,6 @@ def log_cpandel(t, d, sigma = 10, lambda_s = 120., rho = 0.004):
     result3 = region3(t[r3], d[r3], eta[r3], xi[r3])
     result4 = region4(t[r4], d[r4], eta[r4], xi[r4]) 
     result5 = region5(t[r5], d[r5], eta[r5], xi[r5])
-
-    # Debugging
-    
-    #print("r1 = " + str(t[r1]))
-    #print("r2 = " + str(t[r2]))
-    #print("r3 = " + str(t[r3]))
-    #print("r4 = " + str(t[r4]))
-    #print("r5 = " + str(t[r5]))
-    
-#    print("r3 sum = " + str(np.sum(result3))) 
-#    print("r4 sum = " + str(np.sum(result4))) 
 
     # Replace result in correct locations and return 
     result = np.zeros(len(t))
@@ -318,9 +286,6 @@ def mod_logcpandel(t, d, sigma = 10., lambda_s = 120., rho = 0.004):
 
 #def xnorm_pdf(t, d, sigma = 10., lambda_s = 120., rho = 0.004):
 
-
-
-
 # Use interpolate and produce a pdf based off of a particular data set from STRAW. 
 # Ideally we would normalize via integration, and find the 'zero' residual time by integrating and comparing with cpandel. 
 # For now, however, it is simple and easier to normalize by matching the peak value with the cpandel peak. Then the zero is matched the same way. 
@@ -401,15 +366,7 @@ savgolEnd = savgol_filter(smoothPointsY, 451, 4)
 
 sav_combined = np.concatenate((savgolBegin,savgolMid,savgolEnd),axis=None) #put the points back together
 
-# yfilt = savgol_filter(-np.log(y), 451, 4) # savgol_filter method (not currently used)
-
 f4 = inter.interp1d(x, gauss_combined, kind='cubic')
-
-# Save as numpy array
-#xylog = np.zeros((2, len(x)))
-#xylog[0,:] = x
-#xylog[1,:] = -np.log(y)
-#np.save("/home/users/ghuman/simAnalysis/output/npy/log_data_array.npy", xylog)
 
 def straw_pdf(t,d,fit='filter'):
     # If the time is greater than t_max seconds or less than t_min, we can assume it is the minimum value above zero
@@ -427,46 +384,4 @@ def straw_pdf(t,d,fit='filter'):
     else:
         return -np.log(f2(time))
 
-'''
-rv = stats.exponnorm(K=1, loc=3)
-xnew = np.linspace(-50, 100, 10000)
-
-# plot
-plt.plot(x, y, linestyle='', marker='.', color='b', label='straw data')
-plt.plot(xnew, rv.pdf(xnew), linestyle='-', color='k', label='exponnorm')
-plt.title('Exponnorm')
-plt.xlabel(r'time(ns)')
-plt.ylabel(r'Effective Likelihood')
-plt.grid()
-plt.legend()
-plt.xlim(-25, 50)
-plt.savefig('/home/users/ghuman/simAnalysis/output/plots/straw-b/straw_exponnorm.png', dpi=300)
-#plt.plot(xnew, f(xnew), linestyle='-', color='r', label='linear interpolated')
-#plt.plot(xnew, f2(xnew), linestyle='--', color='g', label='cubic interpolation')
-#plt.plot(xnew, ynew, linestyle=':', color='k', label='spline fit')
-#plt.plot(x, sav_combined, linestyle='-', color='c', label='savgol filtered')
-#plt.plot(x, gauss_combined, linestyle='-', color='r', label='gauss filtered')
-#plt.xlim(-50, 150)
-#plt.legend()
-#plt.savefig('/home/users/ghuman/simAnalysis/output/plots/straw-b/pdf_spline_straw.png', dpi=400)
-'''
-
-'''
-# plot
-plt.plot(x, -np.log(y), linestyle='', marker='.', color='b', label='straw data')
-plt.title('STRAW pdf')
-plt.xlabel(r'time(ns)')
-plt.ylabel(r'Effective Likelihood')
-plt.grid()
-#plt.savefig('/home/users/ghuman/simAnalysis/output/plots/straw-b/plot_straw.png', dpi=300)
-#plt.plot(xnew, f(xnew), linestyle='-', color='r', label='linear interpolated')
-#plt.plot(xnew, f2(xnew), linestyle='--', color='g', label='cubic interpolation')
-#plt.plot(xnew, ynew, linestyle=':', color='k', label='spline fit')
-plt.plot(x, sav_combined, linestyle='-', color='c', label='savgol filtered')
-plt.plot(x, gauss_combined, linestyle='-', color='r', label='gauss filtered')
-plt.xlim(-50, 150)
-plt.legend()
-#plt.savefig('/home/users/ghuman/simAnalysis/output/plots/straw-b/pdf_spline_straw.png', dpi=400)
-plt.savefig('/home/users/ghuman/simAnalysis/output/plots/straw-b/pdf_interpolation_straw_gauss_zoomed.png', dpi=400)
-'''
 

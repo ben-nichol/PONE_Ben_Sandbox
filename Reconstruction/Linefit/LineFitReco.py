@@ -9,7 +9,7 @@ geometries/cuts could be tried out without running the simulation again.
 '''
 
 from icecube import dataclasses, dataio, icetray, simclasses
-from icecube.icetray import I3Units, I3Frame
+from icecube.icetray import I3Units, I3Frame, OMKey
 import numpy as np
 from numpy import linalg as la
 from icecube.phys_services import I3Calculator
@@ -52,14 +52,10 @@ class LineFitReco(icetray.I3ConditionalModule):
     def passFrame(self,frame):
         if frame.Stop != I3Frame.DAQ:
             return False
-        geoMap = frame['I3Geometry'].omgeo 
         mcpeMap = frame[self.input]
     
         domCount = 0
-        for dom in geoMap.keys():
-            position = geoMap[dom].position
-            if dom not in mcpeMap:
-                continue
+        for dom in mcpeMap.keys():
             if len(mcpeMap[dom]) >= self.hitThresh:
                 domCount += 1
         
@@ -99,7 +95,8 @@ class LineFitReco(icetray.I3ConditionalModule):
               continue
             time = min(timeList)
             charge = sum(npeList)
-            position = geoMap[omkey].position
+            key = OMKey(omkey.string,omkey.om,0)
+            position = geoMap[key].position
             for i in range(len(timeList)):
                 data.append( (position.x, position.y, position.z, time, charge) )
     
@@ -146,6 +143,8 @@ class LineFitReco(icetray.I3ConditionalModule):
     # speed, and an I3Position object for the particle vertex (position at t=0)  
     def DAQ(self,frame):
 
+      #print("in line")
+
       if not self.passFrame(frame) :
         return
       datapoints = self.getLinefitDataPoints(frame)
@@ -171,6 +170,10 @@ class LineFitReco(icetray.I3ConditionalModule):
       linefit.speed = speed
       linefit.pos = vertex        
       linefit.time = weighted_time
+
+      #print(self.output)
+      #print(linefit.dir)
+      #print(linefit.pos)
 
       frame[self.output] = linefit
       self.PushFrame(frame)  

@@ -10,28 +10,16 @@ from icecube.icetray import I3Units, I3Frame, OMKey
 from icecube.dataclasses import I3Particle 
 import numpy as np
 import time
-from Reconstruction.llh.reco_pdfs import cpandel as pdf               # This module is used to store the pdf
+from Utilities.PandelPDFs import cpandel as pdf               # This module is used to store the pdf
 from scipy import special as sp                        # For the Gamma function 
 from scipy import optimize as op
+from scipy import interpolate as interp
 import sys
 #from iminuit import Minuit
 import argparse
 import math as m
 import random as rand
-
-# Geometric Time computation:
-def GetGeoTime(position,vert) :
-    c = 0.299792458                                 # speed of light 
-    n = 1.34
-    ngroup = 1.35557                                # 1.33 is the refractive index of water at 20 degrees C
-    c_n = c/ngroup                                     # light in water
-    x = position.x - vert.x
-    y = position.y - vert.y
-    z = position.z - vert.z
-    dc = np.sqrt(x*x + y*y + z*z)
-    t = dc/c_n
-    return dc,t
-
+from Utilities.RecoUtility import GetPhotonTravelTime
 
 # Functional that is fed data from InitialGuess for PMT locations and the PDF we wish to use. Uses those locations to build a Pandel Function for a given track
 def LikelihoodFunctor(data,domsUsed):
@@ -54,20 +42,19 @@ def LikelihoodFunctor(data,domsUsed):
 
     # uses the prior defined functions to build a likelihood function that when given a track (linefit) will produce a negative loglikelihood value
     def likelihoodFunction(vx,vy,vz,t0):
-        dark = 1.e-8
+        dark = 1.e-16
 
         vertex = dataclasses.I3Position(vx,vy,vz)
-
         sum_nloglike = 0.0
         for dom in pulse_series.keys() :
             domkey =  OMKey(dom.string, dom.om, 0) 
-            dc,t = GetGeoTime(geo_doms[domkey].position,vertex)
+            dc,t = GetPhotonTravelTime([geo_doms[domkey].position.x,geo_doms[domkey].position.y,geo_doms[domkey].position.z],[vertex.x,vertex.y,vertex.z])
             p_charge = np.exp(-dc/tau)/max(dc,0.25)
             for pulse in pulse_series[dom] :
                 charge = 1.0
                 cpandel_out = pdf(pulse.time - t0 - t ,dc)
                 if(type(pulse_series) == 'icecube.dataclasses.I3RecoPulseSeriesMap') :
-                    charge = pulse.charge                
+                    charge = pulse.charge
                 sum_nloglike -= charge*np.log(cpandel_out*p_charge+dark)
                 sum_nloglike -= charge*min(0.0,pulse.time - t0 - t)
 
@@ -77,45 +64,49 @@ def LikelihoodFunctor(data,domsUsed):
 
 def GetVertexTime(pulse_series,geo_doms):                                 
 
-    c = 0.299792458                                 # speed of light 
-    n = 1.34
-    ngroup = 1.35557                                # 1.33 is the refractive index of water at 20 degrees C
-    c_n = c/ngroup                                     # light in water
-    ismc = False
-    if(type(pulse_series) == 'icecube.dataclasses.I3RecoPulseSeriesMap') :
-        ismc = True
+	c = 0.299792458                                 # speed of light 
+	n = 1.34
+	ngroup = 1.35557                                # 1.33 is the refractive index of water at 20 degrees C
+	c_n = c/ngroup                                     # light in water
+	ismc = False
+	if(type(pulse_series) == 'icecube.dataclasses.I3RecoPulseSeriesMap') :
+		ismc = True
 	
-    totalcharge = 0.0
-    vx = 0.0
-    vy = 0.0
-    vz = 0.0
+	totalcharge = 0.0
+	vx = 0.0
+	vy = 0.0
+	vz = 0.0
 
-    for domkey in pulse_series.keys() :
-        domkey_nopmt =  OMKey(domkey.string, domkey.om, 0)
-        for pulse in pulse_series[domkey] :
-            totalcharge += pulse.charge
-            vx = geo_doms[domkey_nopmt].position.x*pulse.charge
-            vy = geo_doms[domkey_nopmt].position.y*pulse.charge
-            vz = geo_doms[domkey_nopmt].position.z*pulse.charge
+	for domkey in pulse_series.keys() :
+		domkey_nopmt =  OMKey(domkey.string, domkey.om, 0)
+		for pulse in pulse_series[domkey] :
+			totalcharge += pulse.charge
+			vx += geo_doms[domkey_nopmt].position.x*pulse.charge
+			vy += geo_doms[domkey_nopmt].position.y*pulse.charge
+			vz += geo_doms[domkey_nopmt].position.z*pulse.charge
 
-    vertex = dataclasses.I3Position(vx/totalcharge,vy/totalcharge,vz/totalcharge)
+	if totalcharge < 5.0 :
+		return 0.0, dataclasses.I3Position(0.0,0.0,0.0), totalcharge
+	vertex = dataclasses.I3Position(vx/totalcharge,vy/totalcharge,vz/totalcharge)
 
-    T0 = 0.0
+	T0 = 0.0
 
-    for domkey in pulse_series.keys() :
-        domkey_nopmt =  OMKey(domkey.string, domkey.om, 0)
-        for pulse in pulse_series[domkey] :
-            dx = vertex.x - geo_doms[domkey_nopmt].position.x
-            dy = vertex.y - geo_doms[domkey_nopmt].position.y
-            dz = vertex.z - geo_doms[domkey_nopmt].position.z
-            dist = np.sqrt(dx*dx+dy*dy+dz*dz)
-            T0 += pulse.time - dist/c_n
+	for domkey in pulse_series.keys() :
+		domkey_nopmt =  OMKey(domkey.string, domkey.om, 0)
+		for pulse in pulse_series[domkey] :
+			dx = vertex.x - geo_doms[domkey_nopmt].position.x
+			dy = vertex.y - geo_doms[domkey_nopmt].position.y
+			dz = vertex.z - geo_doms[domkey_nopmt].position.z
+			dist = np.sqrt(dx*dx+dy*dy+dz*dz)
+			T0 += pulse.time - dist/c_n
             
-    T0 /= totalcharge
-    T0 -= 5.0
-    return T0, vertex
+	if totalcharge < 5.0 :
+		return T0, vertex, totalcharge
+	T0 /= totalcharge
+	T0 -= 5.0
+	return T0, vertex, totalcharge
 
-class NuTauReco(icetray.I3ConditionalModule):
+class CascadeReco(icetray.I3ConditionalModule):
 
     def __init__(self, context):
         icetray.I3ConditionalModule.__init__(self, context)
@@ -146,23 +137,23 @@ class NuTauReco(icetray.I3ConditionalModule):
         domsUsed = frame['I3Geometry'].omgeo
 
         qFunctor = LikelihoodFunctor(data,domsUsed)
+        T0, vertex, totalcharge = GetVertexTime(data,domsUsed)
 
-        T0, vertex = GetVertexTime(data,domsUsed)
+        if totalcharge < 5.0 :
+            return 
 
         # Minimize using scipy
         def func(x):
-            vx, vy, vz, t0 = x
+            vx, vy, vz,t0 = x
             return qFunctor(vx,vy,vz,t0)
+
         solution = op.minimize(fun=func, 
                                x0=np.array([vertex.x,vertex.y,vertex.z,T0]), 
                                method='Nelder-Mead')
 
-        vx = solution.x[0]
-        vy = solution.x[1]
-        vz = solution.x[2]
-        q = dataclasses.I3Position(vx,vy,vz)
+        q = dataclasses.I3Position(solution.x[0],solution.x[1],solution.x[2])
 
-        # Record the final result
+# Record the final result
         recoParticle = dataclasses.I3Particle()
         recoParticle.shape = dataclasses.I3Particle.Cascade
                 
@@ -172,7 +163,6 @@ class NuTauReco(icetray.I3ConditionalModule):
         else:
             recoParticle.fit_status = dataclasses.I3Particle.InsufficientQuality
                                             
-        recoParticle.dir = dataclasses.I3Direction(0.0,0.0,0.0)
         recoParticle.speed = self.c
         recoParticle.pos = q
         recoParticle.time = solution.x[3]
@@ -180,6 +170,5 @@ class NuTauReco(icetray.I3ConditionalModule):
         # include both linefit and improved recos for comparison
         frame[self.output] = recoParticle  
         frame[self.output+"_nloglike"] =  dataclasses.I3Double(solution.fun)
-        
         self.PushFrame(frame)    
 
