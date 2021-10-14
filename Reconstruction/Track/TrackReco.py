@@ -10,13 +10,13 @@ from icecube.icetray import I3Units, I3Frame, OMKey
 from icecube.dataclasses import I3Particle 
 import numpy as np
 import time
-from Reconstruction.llh.reco_pdfs import cpandel as pdf               # This module is used to store the pdf
+from Utilities.PandelPDFs import cpandel as pdf               # This module is used to store the pdf
 from scipy import optimize as op
 import sys
 import argparse
 import math as m
-from Utilities.RecoUtilities import GetGeoTime
-
+from Utilities.RecoUtility import GetGeoTime
+from Utilities.DOMUtility import GetNPMTs
 
 # Functional that is fed data from InitialGuess for PMT locations and the PDF we wish to use. Uses those locations to build a Pandel Function for a given track
 def LikelihoodFunctor(data,domsUsed,vertexrad):
@@ -50,7 +50,9 @@ def LikelihoodFunctor(data,domsUsed,vertexrad):
         sum_nloglike = 0.0
         for dom in pulse_series.keys() :
             domkey =  OMKey(dom.string, dom.om, 0) 
-            d,dc,t = GetGeoTime(geo_doms[domkey].position,vertex,direction)
+            d,dc,t = GetGeoTime([geo_doms[domkey].position.x,geo_doms[domkey].position.y,geo_doms[domkey].position.z],
+                                [vertex.x,vertex.y,vertex.z],
+                                [direction.x,direction.y,direction.z])
             p_charge = np.exp(-d/tau)/max(dc,0.25)
             for pulse in pulse_series[dom] :
                 charge = 1.0
@@ -72,41 +74,46 @@ def GetVertexTime(vertex,direction,pulse_series,geo_doms):
     totalcharge = 0.0
     MaxChargeDOM = None
     maxCharge=0.0
+    DOMCharge = {}
 
     c = 0.299792458                                 # speed of light 
     n = 1.34
     ngroup = 1.35557                                # 1.33 is the refractive index of water at 20 degrees C
     c_n = c/ngroup                                     # light in water
     theta_c = np.arccos(1./n) 
-    if(type(pulse_series) == 'icecube.dataclasses.I3RecoPulseSeriesMap') :
-        for dom in pulse_series.keys() :
-            totalcharge = 0.0
-            for pulse in pulse_series[dom] :
-                totalcharge += pulse.charge
-            if totalcharge > maxCharge :
-                maxCharge = totalcharge
-                MaxChargeDOM = OMKey(dom.string,dom.om,0)
-    else :
-        for dom in pulse_series.keys() :
-            totalcharge = 0.0
-            for pulse in pulse_series[dom] :
-                totalcharge += 1.0
-            if totalcharge > maxCharge :
-                maxCharge = totalcharge
-                MaxChargeDOM = OMKey(dom.string,dom.om,0)
+    for dom in pulse_series.keys() :
+        totalcharge = 0.0
+        for pulse in pulse_series[dom] :
+            totalcharge += pulse.charge
+        if OMKey(dom.string,dom.om,0) in DOMCharge.keys() :
+            DOMCharge[OMKey(dom.string,dom.om,0)] += totalcharge
+        else :
+            DOMCharge[OMKey(dom.string,dom.om,0)] = totalcharge
 
     #time of largest pulse
     maxCharge=0.0
     maxCharge_time = 0.0
+    for dom in DOMCharge.keys() :
+        if DOMCharge[dom] > maxCharge :
+            maxCharge = DOMCharge[dom]
+            MaxChargeDOM = dom
+
     if type(MaxChargeDOM) != type(OMKey(0,0,0)) :
         return 7200
+
     DOMPos = geo_doms[MaxChargeDOM].position
-	
-    for pulse in pulse_series[MaxChargeDOM] :
-        #print("charge = "+str(pulse.charge)+" time = "+str(pulse.time))
-        if pulse.charge > maxCharge :
-            maxCharge = pulse.charge
-            maxCharge_time = pulse.time
+
+    npmts = GetNPMTs()
+
+    maxCharge=0.0
+    maxCharge_time = 0.0
+    for ipmt in range(npmts) :
+        domkey = OMKey(MaxChargeDOM.string,MaxChargeDOM.om,ipmt)
+        if domkey in pulse_series.keys() :
+            for pulse in pulse_series[domkey] :
+                if pulse.charge > maxCharge :
+                    maxCharge = pulse.charge
+                    maxCharge_time = pulse.time
 
     x = DOMPos.x - vertex.x
     y = DOMPos.y - vertex.y
@@ -118,21 +125,18 @@ def GetVertexTime(vertex,direction,pulse_series,geo_doms):
     dc = np.sqrt(x*x + y*y + z*z - dotprod*dotprod)
     #time to travel to closest approach
     tc = dotprod/c
-    #print("tc = "+str(tc))
 
     # Now we find the time of the photon emission
     _tc = tc - dc/(np.tan(theta_c)*c)
     # The first component of the geometric time
     d = dc/np.sin(theta_c)
     t_geo = d/c_n   
-    #print("t_geo = " + str(t_geo))
     # The total geometric time
     t_geo = t_geo + _tc
-    #print("maxcharge_time = "+str(maxCharge_time))
     # Residual time is now the difference between the geometric time and the observed time. This won't work with just the Pandel Function
     return maxCharge_time - t_geo
 
-class likelihoodreco(icetray.I3ConditionalModule):
+class TrackReco(icetray.I3ConditionalModule):
 
     def __init__(self, context):
         icetray.I3ConditionalModule.__init__(self, context)

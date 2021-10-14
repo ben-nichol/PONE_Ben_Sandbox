@@ -2,6 +2,7 @@
 DOM Utilities is a collection of functions and variables for the DOMs. 
 """
 import numpy as np
+import os
 
 #List for PMT acceptance table
 PMTacceptance = list()
@@ -28,13 +29,13 @@ Operation:
 	note that the PMT direction if defined by the photon travel direction and is opposite
 	the PMT mounting direction.
 """
-def GetPMTAcceptance(infile) :
-	global PMTacceptance
-	global PMTDirection
+def GetPMTAcceptance(infile = os.getenv('PONESRCDIR')+"/data/PMTAcceptance_13PMTConfig.txt") :
+    global PMTacceptance
+    global PMTDirection
     global maxAngularAcceptance
     global AcceptanceLoaded
 
-   	domaccFile = open(infile,"r")
+    domaccFile = open(infile,"r")
     lines = domaccFile.readlines()
     maxTotaleff = 0.0;
 
@@ -56,30 +57,30 @@ def GetPMTAcceptance(infile) :
         zenithcount += 1
 
         #Compute PMT view direction from the centroid of the acceptance.
-        for i in range(len(PMTacceptance)):
-            acceptancesum = 0.0
-            x,y,z = 0.0,0.0,0.0
-            for theta in range(len(PMTacceptance[i])):
-                for phi in range(len(PMTacceptance[i][theta])):
-                    x += np.sin(float(theta)*np.pi/180.)*np.cos(float(phi)*np.pi/180.)*PMTacceptance[i][theta][phi]
-                    y += np.sin(float(theta)*np.pi/180.)*np.sin(float(phi)*np.pi/180.)*PMTacceptance[i][theta][phi]
-                    z += np.cos(float(theta)*np.pi/180.)*PMTacceptance[i][theta][phi]
-                    acceptancesum += PMTacceptance[i][theta][phi]
-            x /= acceptancesum
-            y /= acceptancesum
-            z /= acceptancesum
-            r = np.sqrt(x*x+y*y+z*z)
-            x /= r
-            y /= r
-            z /= r
-            theta = np.arccos(z)
-            phi = 0.0
-            if theta != 0.0 or theta != np.pi :
-                phi = np.arctan2(y,x)
+    for i in range(len(PMTacceptance)):
+        acceptancesum = 0.0
+        x,y,z = 0.0,0.0,0.0
+        for theta in range(len(PMTacceptance[i])):
+            for phi in range(len(PMTacceptance[i][theta])):
+                x += np.sin(float(theta)*np.pi/180.)*np.cos(float(phi)*np.pi/180.)*PMTacceptance[i][theta][phi]
+                y += np.sin(float(theta)*np.pi/180.)*np.sin(float(phi)*np.pi/180.)*PMTacceptance[i][theta][phi]
+                z += np.cos(float(theta)*np.pi/180.)*PMTacceptance[i][theta][phi]
+                acceptancesum += PMTacceptance[i][theta][phi]
+        x /= acceptancesum
+        y /= acceptancesum
+        z /= acceptancesum
+        r = np.sqrt(x*x+y*y+z*z)
+        x /= r
+        y /= r
+        z /= r
+        theta = np.arccos(z)
+        phi = 0.0
+        if theta != 0.0 or theta != np.pi :
+            phi = np.arctan2(y,x)
 
-            if phi < 0.0 :
-                phi += 2.0*np.pi
-            PMTDirection.append([theta,phi])
+        if phi < 0.0 :
+            phi += 2.0*np.pi
+        PMTDirection.append([theta,phi])
     AcceptanceLoaded = True
 
 
@@ -91,13 +92,13 @@ Operation:
 """
 def GetPMTDirection(pmtid):
 
-	global PMTDirection
+    global PMTDirection
     global AcceptanceLoaded
     if not AcceptanceLoaded:
         GetPMTAcceptance(infile)
-	x = np.sin(PMTDirection[pmtid][0])*np.cos(PMTDirection[pmtid][1])
-	y = np.sin(PMTDirection[pmtid][0])*np.sin(PMTDirection[pmtid][1])
-	z = np.cos(PMTDirection[pmtid][0])
+    x = np.sin(PMTDirection[pmtid][0])*np.cos(PMTDirection[pmtid][1])
+    y = np.sin(PMTDirection[pmtid][0])*np.sin(PMTDirection[pmtid][1])
+    z = np.cos(PMTDirection[pmtid][0])
     return x, y, z
 
 """!
@@ -106,7 +107,7 @@ Inputs: infile = file that contains the PMT QE information.
 Operation:
     Reads the file and buils the PMT QE table.
 """
-def GetPMTQETable(infile) :
+def GetPMTQETable(infile = os.getenv('PONESRCDIR')+"/data/PMTQE.txt") :
     global PMTQE
     global maxQE
     global QELoaded
@@ -137,6 +138,8 @@ def GetPMTQETable(infile) :
             j += 1
         QE = PMTQE_value[j-1] + (PMTQE_value[j]-PMTQE_value[j-1])*((float(i)-PMTQE_wl[j-1])/(PMTQE_wl[j]-PMTQE_wl[j-1]))
         PMTQE.append(QE)
+        if QE > maxQE :
+            maxQE = QE
 
     QELoaded = True
 
@@ -259,8 +262,8 @@ def GetPMT(photonDir,wl,random):
         theta = photonDir[0]
         phi = photonDir[1]
     else :
-        theta = np.arccos(z)
-        phi = np.arctan2(y,x)
+        theta = np.arccos(photonDir[2])
+        phi = np.arctan2(photonDir[1],photonDir[0])
 
     thetaBin = max(0,min(178,int(180.0*theta/np.pi)))
     phiBin = max(0,min(358,int(180.0*phi/np.pi)))

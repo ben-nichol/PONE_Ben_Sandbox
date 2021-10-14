@@ -11,12 +11,12 @@ import random
 from icecube import icetray, dataclasses, dataio, simclasses                    
 from icecube import phys_services, sim_services           
 import argparse  
-from Reconstruction.linefit.SimAnalysis import LineFitReco
-from Reconstruction.llh.likelihoodreco import likelihoodreco
+from Reconstruction.Linefit.LineFitReco import LineFitReco
+from Reconstruction.Track.TrackReco import TrackReco
 from PulseCleaning.SignificantHitPulseCleaning import SignificantHitPulseCleaning
-from Reconstruction.nutau.NuTauReco import NuTauReco
-from Trigger.trigger import Trigger
-from Reconstruction.linefit.ImprovedLineFit import ImprovedLineFitReco 
+from Reconstruction.Cascade.CascadeReco import CascadeReco
+from Trigger.DOMTrigger import DOMTrigger
+from Trigger.DetectorTrigger import DetectorTrigger
 # This script will perform a hybridCLSim propagation.
 #
 # NOTE: There is no bad_dom_cleaning!!!
@@ -70,68 +70,46 @@ tray.AddModule(SimpleDOMSimulation, 'DOMLauncher',
                DNprob = 0.000000000001,
                APprob = 0.000000000001,
                SplitDoms = True,
-               DOMAcceptanceFile = "/home/users/tmcelroy/pone_offline/data/config_13.txt",
+               DOMAcceptanceFile = "/home/users/tmcelroy/pone_offline/data/PMTAcceptance_13PMTConfig.txt",
                PMTQEFile = "/home/users/tmcelroy/pone_offline/data/PMTQE.txt",
                AcceptBaseValue = -1.0
               )
 
-tray.AddModule(Trigger,"PONE_Trigger",
-               GCDFile=gcd_file,
-               inputmap = "I3Photons_PMTResponse",
+tray.AddModule(DOMTrigger,"DOMTrigger",
+                GCDFile=gcd_file,
+                inputmap = "I3Photons_PMTResponse",
               )
 
-#tray.AddModule(WaveformBuilder,'waveformbuilder',
-#              inputmap = "I3Photons_PMTResponse_MCpulses",
-#              outputmap = "waveform_pulses")
+tray.AddModule(DetectorTrigger,"PONE_Trigger",
+               GCDFile=gcd_file,
+               output="_2PMT_4DOM",
+               DOMPMTCoinc =2,
+               FullDetectorCoincidenceN = 4,
+               CutOnTrigger = True
+              )
 
-#tray.AddModule(SignificantHitPulseCleaning,"SignificantHit",
-#              GCDFile=gcd_file,
-#              inputseries = "I3Photons_PMTResponse",
-#              output = "SignificanHits",
-#              window = 1000
-#              )
+tray.AddModule(SignificantHitPulseCleaning,"SignificantHit",
+              GCDFile=gcd_file,
+              inputseries = "I3Photons_PMTResponse",
+              output = "SignificanHits",
+              window = 1000
+              )
 
-#tray.AddModule(ImprovedLineFitReco,"ImprovedLineFit",
-#               inputseries = "SignificanHits",
-#               output = "improvedlinefit"
-#                )
+tray.AddModule(LineFitReco, "LineFit",
+              inputseries = "SignificanHits",
+              output = "linefit"
+              )
 
-#tray.AddModule(LineFitReco, "LineFit",
-#              inputseries = "SignificanHits",
-#              output = "linefit"
-#              )
+tray.AddModule(TrackReco,"likelihoodreco",
+               pulseseries = "SignificanHits",
+               seedtrack = "linefit",
+               output = "llhfit",
+              )
 
-#tray.AddModule(LineFitReco, "LineFit_HuberSeries",
-#              inputseries = "improvedlinefit_pulseseries",
-#              output = "linefit_cleaned"
-#              )
-
-#tray.AddModule(likelihoodreco,"likelihoodreco",
-#               pulseseries = "SignificanHits",
-#               seedtrack = "improvedlinefit",
-#               output = "llhfit",
-#               SplitDoms = True,
-#               DOMAcceptanceFile = "/home/users/tmcelroy/pone_offline/data/config_13.txt",
-##	       UseMC = True
-#              ) 
-
-#tray.AddModule(NuTauReco,"NuTauReconstructin",
-#              pulseseries = "SignificanHits",
-#              output = "NuTau"
-#              )
-
-#tray.AddModule(curveFit_tables,"CurveFit_tables",
-#                pulseseries = "SignificanHits",
-#                output = "nuTauCurveFit",
-#                HitsInDOMsCut = 120
-#              )
-
-#tray.AddModule(curveFit,"CurveFit",                                             
-#               InputMCPETree = "SignificanHits",                                 
-#               OutputMCPETree = "nuTauOrig",                                       
-#               HitsInDOMsCut = 200                                             
-#              )
-
+tray.AddModule(CascadeReco,"NuTauReconstruction",
+              pulseseries = "SignificanHits",
+              output = "Cascade",
+              )
 
 tray.AddModule("I3Writer","writer",
                Filename = args.outfile+"/TrigReco_"+file_list[args.runnumber],

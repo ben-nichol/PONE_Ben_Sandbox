@@ -1,3 +1,4 @@
+import numpy as np
 
 """!
 rand_dir
@@ -53,10 +54,14 @@ def GetGeoTime(position,vert,direction) :
     ngroup = 1.35557                                # 1.33 is the refractive index of water at 20 degrees C
     c_n = c/ngroup                                     # light in water
     theta_c = np.arccos(1./n)
-    x = position.x - vert.x
-    y = position.y - vert.y
-    z = position.z - vert.z
-    dotprod = x*direction.x + y*direction.y + z*direction.z
+    x = position[0] - vert[0]
+    y = position[1] - vert[1]
+    z = position[2] - vert[2]
+    dotprod = 0.0
+    if len(direction) < 3 :
+        dotprod = x*np.sin(direction[0])*np.cos(direction[1]) + y*np.sin(direction[0])*np.sin(direction[1]) + z*np.cos(direction[0])
+    else :
+        dotprod = x*direction[0] + y*direction[1] + z*direction[2]
     dc = np.sqrt(x*x + y*y + z*z-dotprod*dotprod)
     d = dc/np.sin(theta_c)
     t = d/c_n + dotprod/c - dc/(np.tan(theta_c)*c)
@@ -79,9 +84,9 @@ def GetPhotonTravelTime(position,vert):
     ngroup = 1.35557                                # 1.33 is the refractive index of water at 20 degrees C
     c_n = c/ngroup                                     # light in water
 
-    x = position.x - vert.x
-    y = position.y - vert.y
-    z = position.z - vert.z
+    x = position[0] - vert[0]
+    y = position[1] - vert[1]
+    z = position[2] - vert[2]
     dc = np.sqrt(x*x + y*y + z*z)
     t = dc/c_n
     return dc,t

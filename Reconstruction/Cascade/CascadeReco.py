@@ -10,7 +10,7 @@ from icecube.icetray import I3Units, I3Frame, OMKey
 from icecube.dataclasses import I3Particle 
 import numpy as np
 import time
-from Reconstruction.llh.reco_pdfs import cpandel as pdf               # This module is used to store the pdf
+from Utilities.PandelPDFs import cpandel as pdf               # This module is used to store the pdf
 from scipy import special as sp                        # For the Gamma function 
 from scipy import optimize as op
 from scipy import interpolate as interp
@@ -19,41 +19,13 @@ import sys
 import argparse
 import math as m
 import random as rand
-
-# Geometric Time computation:
-def GetGeoTime(position,vert) :
-    c = 0.299792458                                 # speed of light 
-    n = 1.34
-    ngroup = 1.35557                                # 1.33 is the refractive index of water at 20 degrees C
-    c_n = c/ngroup                                     # light in water
-    x = position.x - vert.x
-    y = position.y - vert.y
-    z = position.z - vert.z
-    dc = np.sqrt(x*x + y*y + z*z)
-    t = dc/c_n
-    return dc,t
-
-def anisotropy(position,vert,direction,interpolation):
-
-    x1 = position.x - vert.x
-    y1 = position.y - vert.y
-    z1 = position.z - vert.z
-    r1= m.sqrt(x1*x1+y1*y1+z1*z1)
-
-    x2= direction.x
-    y2= direction.y
-    z2= direction.z
-    theta = 0.0
-    if r1 > 0.0 :
-    	theta=np.arccos((x1*x2+y1*y2+z1*z2)/r1)
-    return interpolation(min(3.11018,theta))
+from Utilities.RecoUtility import GetPhotonTravelTime
 
 # Functional that is fed data from InitialGuess for PMT locations and the PDF we wish to use. Uses those locations to build a Pandel Function for a given track
-def LikelihoodFunctor(data,domsUsed,interpfunc):
+def LikelihoodFunctor(data,domsUsed):
     # turn PMT locations and time hits into numpy arrays for easier numpy algebra
     pulse_series = data
     geo_doms = domsUsed
-    interpolation = interpfunc
 
     vx = 0.0
     vy = 0.0
@@ -69,23 +41,21 @@ def LikelihoodFunctor(data,domsUsed,interpfunc):
     tau = 18.949132224466762                                        # time parameter that has to be fit using simulations or data      
 
     # uses the prior defined functions to build a likelihood function that when given a track (linefit) will produce a negative loglikelihood value
-    def likelihoodFunction(vx,vy,vz,theta,phi,t0):
+    def likelihoodFunction(vx,vy,vz,t0):
         dark = 1.e-16
 
         vertex = dataclasses.I3Position(vx,vy,vz)
-        direction = dataclasses.I3Direction(np.sin(theta)*np.cos(phi),np.sin(theta)*np.sin(phi),np.cos(theta)) 
         sum_nloglike = 0.0
         for dom in pulse_series.keys() :
             domkey =  OMKey(dom.string, dom.om, 0) 
-            dc,t = GetGeoTime(geo_doms[domkey].position,vertex)
+            dc,t = GetPhotonTravelTime([geo_doms[domkey].position.x,geo_doms[domkey].position.y,geo_doms[domkey].position.z],[vertex.x,vertex.y,vertex.z])
             p_charge = np.exp(-dc/tau)/max(dc,0.25)
-            anisotropyweight = anisotropy(geo_doms[domkey].position,vertex,direction,interpolation)
             for pulse in pulse_series[dom] :
                 charge = 1.0
                 cpandel_out = pdf(pulse.time - t0 - t ,dc)
                 if(type(pulse_series) == 'icecube.dataclasses.I3RecoPulseSeriesMap') :
                     charge = pulse.charge
-                sum_nloglike -= charge*np.log(cpandel_out*p_charge*anisotropyweight+dark)
+                sum_nloglike -= charge*np.log(cpandel_out*p_charge+dark)
                 sum_nloglike -= charge*min(0.0,pulse.time - t0 - t)
 
         return sum_nloglike
@@ -136,14 +106,13 @@ def GetVertexTime(pulse_series,geo_doms):
 	T0 -= 5.0
 	return T0, vertex, totalcharge
 
-class NuTauRecoTable(icetray.I3ConditionalModule):
+class CascadeReco(icetray.I3ConditionalModule):
 
     def __init__(self, context):
         icetray.I3ConditionalModule.__init__(self, context)
 
         self.AddParameter("pulseseries","Name of the Merged MCPE tree name","MergedSeriesMap")
         self.AddParameter("output","Track to store fit.","llnfit")
-        self.AddParameter("tablefiles","","")
         self.AddOutBox("OutBox")
 
     def Configure(self):
@@ -160,30 +129,6 @@ class NuTauRecoTable(icetray.I3ConditionalModule):
         self.lambda_a = 18.949132224466762                                  # absorption length of light for violet light
         self.tau = 557                                       # time parameter that has to be fit using simulations or data
 
-        #Read Electron File
-        infile = open(self.GetParameter("tablefiles")+"/Electon_Dist.dat","r")
-        lines = infile.readlines()
-        linecount = 0
-        self.x_e = list()
-        self.y_e = list()
-        for line in lines :
-            splitline = line.split(" ",100)
-            self.x_e.append(float(splitline[0]))
-            self.y_e.append(float(splitline[1]))
-        self.f_electron = interp.interp1d(self.x_e, self.y_e)
-
-        #Read Tau File
-        infile = open(self.GetParameter("tablefiles")+"/Tau_Dist.dat","r")
-        lines = infile.readlines()
-        linecount = 0 
-        self.x_t = list()
-        self.y_t = list()
-        for line in lines :
-            splitline = line.split(" ",100)
-            self.x_t.append(float(splitline[0]))
-            self.y_t.append(float(splitline[1]))
-        self.f_tau = interp.interp1d(self.x_t, self.y_t)
-
     # Main function of this file. Structured this way so that it can be easily imported aswell in any other implementation. 
 
     def DAQ(self,frame): 
@@ -191,72 +136,39 @@ class NuTauRecoTable(icetray.I3ConditionalModule):
 
         domsUsed = frame['I3Geometry'].omgeo
 
-        qFunctor_elec = LikelihoodFunctor(data,domsUsed,self.f_electron)
-        qFunctor_tau = LikelihoodFunctor(data,domsUsed,self.f_tau)
-
+        qFunctor = LikelihoodFunctor(data,domsUsed)
         T0, vertex, totalcharge = GetVertexTime(data,domsUsed)
 
         if totalcharge < 5.0 :
             return 
 
         # Minimize using scipy
-        def func_elec(x):
-            vx, vy, vz,theta,phi,t0 = x
-            return qFunctor_elec(vx,vy,vz,theta,phi,t0)
-        def func_tau(x):
-            vx, vy, vz,theta,phi,t0 = x
-            return qFunctor_tau(vx,vy,vz,theta,phi,t0)
+        def func(x):
+            vx, vy, vz,t0 = x
+            return qFunctor(vx,vy,vz,t0)
 
-        solution_elec = op.minimize(fun=func_elec, 
-                               x0=np.array([vertex.x,vertex.y,vertex.z,0.0,0.0,T0]), 
+        solution = op.minimize(fun=func, 
+                               x0=np.array([vertex.x,vertex.y,vertex.z,T0]), 
                                method='Nelder-Mead')
 
-        solution_tau = op.minimize(fun=func_tau,
-                               x0=np.array([vertex.x,vertex.y,vertex.z,0.0,0.0,T0]),
-                               method='Nelder-Mead')
+        q = dataclasses.I3Position(solution.x[0],solution.x[1],solution.x[2])
 
-        q = dataclasses.I3Position(solution_elec.x[0],solution_elec.x[1],solution_elec.x[2])
-        theta = solution_elec.x[3]
-        phi = solution_elec.x[4] 
-        d = dataclasses.I3Direction(np.sin(theta)*np.cos(phi),np.sin(theta)*np.sin(phi),np.cos(theta))  
-        # Record the final result
-        recoParticle_elec = dataclasses.I3Particle()
-        recoParticle_elec.shape = dataclasses.I3Particle.Cascade
+# Record the final result
+        recoParticle = dataclasses.I3Particle()
+        recoParticle.shape = dataclasses.I3Particle.Cascade
                 
         # record on particle whether reconstruction was successful
-        if solution_elec.success == True:
-            recoParticle_elec.fit_status = dataclasses.I3Particle.OK
+        if solution.success == True:
+            recoParticle.fit_status = dataclasses.I3Particle.OK
         else:
-            recoParticle_elec.fit_status = dataclasses.I3Particle.InsufficientQuality
+            recoParticle.fit_status = dataclasses.I3Particle.InsufficientQuality
                                             
-        recoParticle_elec.dir = d
-        recoParticle_elec.speed = self.c
-        recoParticle_elec.pos = q
-        recoParticle_elec.time = solution_elec.x[5]
-
-        q = dataclasses.I3Position(solution_tau.x[0],solution_tau.x[1],solution_tau.x[2])
-        theta = solution_tau.x[3]
-        phi = solution_tau.x[4]
-        d = dataclasses.I3Direction(np.sin(theta)*np.cos(phi),np.sin(theta)*np.sin(phi),np.cos(theta))
-        # Record the final result
-        recoParticle_tau = dataclasses.I3Particle()
-        recoParticle_tau.shape = dataclasses.I3Particle.Cascade
-
-        # record on particle whether reconstruction was successful
-        if solution_tau.success == True:
-            recoParticle_tau.fit_status = dataclasses.I3Particle.OK
-        else:
-            recoParticle_tau.fit_status = dataclasses.I3Particle.InsufficientQuality
-
-        recoParticle_tau.dir = d
-        recoParticle_tau.speed = self.c
-        recoParticle_tau.pos = q
-        recoParticle_tau.time = solution_tau.x[5]
+        recoParticle.speed = self.c
+        recoParticle.pos = q
+        recoParticle.time = solution.x[3]
 
         # include both linefit and improved recos for comparison
-        frame[self.output+"_electron"] = recoParticle_elec  
-        frame[self.output+"_electron_nloglike"] =  dataclasses.I3Double(solution_elec.fun)
-        frame[self.output+"_tau"] = recoParticle_tau  
-        frame[self.output+"_tau_nloglike"] =  dataclasses.I3Double(solution_tau.fun)
+        frame[self.output] = recoParticle  
+        frame[self.output+"_nloglike"] =  dataclasses.I3Double(solution.fun)
         self.PushFrame(frame)    
 
