@@ -43,6 +43,7 @@ class DetectorTrigger(icetray.I3ConditionalModule):
         self.StringCoincidenceWindow = self.GetParameter("StringCoincidenceWindow")
         self.DOMPMTCoinc = self.GetParameter("DOMPMTCoinc")
         self.EventLength = self.GetParameter("EventLength")
+        self.DoStringTrigger = (self.StringCoincidenceN < self.FullDetectorCoincidenceN) and (self.StringCoincidenceWindow < self.FullDetectorCoincidenceWindow)
 
         self.nstrings = int(0)
         self.nDOMs = int(0)
@@ -183,13 +184,14 @@ class DetectorTrigger(icetray.I3ConditionalModule):
 
     
         StringTrigOpp = {}
-        for i in StringTriggers.keys() :
-            StringTrigOpp[i] = list()
-            for j in range(len(StringTriggers[i])) :
-                StringTrigOpp[i].append([StringTriggers[i][j][1],[StringTriggers[i][j][0]],[StringTriggers[i][j][1]]])
-            for j in range(len(StringTriggers[i])) :
-                for k in range(len(StringTrigOpp[i])) :
-                    if StringTriggers[i][j][1] - StringTrigOpp[i][k][0] < self.StringCoincidenceWindow and StringTriggers[i][j][1] - StringTrigOpp[i][k][0] >= 0.0 and StringTriggers[i][j][0] not in StringTrigOpp[i][k][1]:
+        if self.DoStringTrigger :
+            for i in StringTriggers.keys() :
+                StringTrigOpp[i] = list()
+                for j in range(len(StringTriggers[i])) :
+                    StringTrigOpp[i].append([StringTriggers[i][j][1],[StringTriggers[i][j][0]],[StringTriggers[i][j][1]]])
+                for j in range(len(StringTriggers[i])) :
+                    for k in range(len(StringTrigOpp[i])) :
+                        if StringTriggers[i][j][1] - StringTrigOpp[i][k][0] < self.StringCoincidenceWindow and StringTriggers[i][j][1] - StringTrigOpp[i][k][0] >= 0.0 and StringTriggers[i][j][0] not in StringTrigOpp[i][k][1]:
                             StringTrigOpp[i][k][1].append(StringTriggers[i][j][0])
                             StringTrigOpp[i][k][2].append(StringTriggers[i][j][1])
 
@@ -220,16 +222,17 @@ class DetectorTrigger(icetray.I3ConditionalModule):
                 if not triggered :
                     detectorTriggerTime.append(max(DetectTrigOpp[i][2]))
 
-        for j in StringTrigOpp.keys() :
-            for i in range(len(StringTrigOpp[j])):
-                if len(StringTrigOpp[j][i][1]) >= self.StringCoincidenceN :
-                    triggered = False
-                    for k in range(len(stringTriggerTime)):
-                        if abs(stringTriggerTime[k] - max(StringTrigOpp[j][i][2]))<self.EventLength :
-                            stringTriggerTime[k] = min(stringTriggerTime[k],max(StringTrigOpp[j][i][2]))
-                            triggered = True
-                    if not triggered :
-                        stringTriggerTime.append(max(StringTrigOpp[j][i][2]))
+        if self.DoStringTrigger :
+            for j in StringTrigOpp.keys() :
+                for i in range(len(StringTrigOpp[j])):
+                    if len(StringTrigOpp[j][i][1]) >= self.StringCoincidenceN :
+                        triggered = False
+                        for k in range(len(stringTriggerTime)):
+                            if abs(stringTriggerTime[k] - max(StringTrigOpp[j][i][2]))<self.EventLength :
+                                stringTriggerTime[k] = min(stringTriggerTime[k],max(StringTrigOpp[j][i][2]))
+                                triggered = True
+                        if not triggered :
+                            stringTriggerTime.append(max(StringTrigOpp[j][i][2]))
 
         if self.CutOnTrigger and len(stringTriggerTime) < 1 and len(detectorTriggerTime) < 1 :
             return
