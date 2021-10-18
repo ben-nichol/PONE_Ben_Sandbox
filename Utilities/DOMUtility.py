@@ -290,3 +290,9 @@ def GetNPMTs() :
     if not AcceptanceLoaded:
         GetPMTAcceptance(infile)
     return len(PMTacceptance)
+
+def NoPMTKey(domkey) :
+    return OMKey(domkey.string,domkey.om.0)
+
+def AddPMTKey(domkey,ipmt) :
+    return OMKey(domkey.string,domkey.om,ipmt)
