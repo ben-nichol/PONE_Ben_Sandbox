@@ -5,12 +5,12 @@
 '''
 
 from icecube import dataclasses, dataio, icetray, simclasses
-from icecube.icetray import I3Units, I3Frame
+from icecube.icetray import I3Units, I3Frame, OMKey
 import numpy as np
 from numpy import linalg as la
 from icecube.phys_services import I3Calculator
 import operator
-from Utilities.DOMUtility import NoPMTKey, AddPMTKey
+from Utilities.DOMUtility import NoPMTKey, AddPMTKey, GetNPMTs
 
 class CausalPulseCleaning(icetray.I3ConditionalModule):
 
@@ -31,7 +31,7 @@ class CausalPulseCleaning(icetray.I3ConditionalModule):
 
     #Compute base time and position that pulses need to be causal 
     #with if no other pulses are causal with it.
-    def getBaseTimeandPosition(self,mcpeList):
+    def getBaseTimeandPosition(self,mcpeMap):
         DOMCharge = {}
 
         for omkey in mcpeMap.keys():
@@ -42,17 +42,21 @@ class CausalPulseCleaning(icetray.I3ConditionalModule):
                 DOMCharge[DOMkey] += pulse.charge
             
         pulses = list()
-        MaxchargeDOM = DOMCharge.keys()[0]
+        first = True
+        MaxchargeDOM = None 
         for DOM in DOMCharge.keys():
+            if first :
+                MaxchargeDOM = DOM
+                first = False
             if DOMCharge[DOM] > DOMCharge[MaxchargeDOM] :
                 MaxchargeDOM = DOM
 
             npmts = GetNPMTs()
             for ipmt in range(npmts):
-                PMTKey = OMKey(MaxchargeDOM.string,MaxchargeDOM.om,ipmt)
+                PMTkey = AddPMTKey(MaxchargeDOM,ipmt)
                 if PMTkey in mcpeMap.keys():
-                    for pulse in mcpeMap[PMTKey] :
-                        pulses.append(pulses.time)
+                    for pulse in mcpeMap[PMTkey] :
+                        pulses.append(pulse.time)
         pulsecoinc = list()
         for ipulse1 in range(len(pulses)) :
                 pulsecoinc.append(0)
@@ -63,7 +67,7 @@ class CausalPulseCleaning(icetray.I3ConditionalModule):
         maxcoince = max(pulsecoinc)
         coincetime = max(pulses)
 
-        for i in range(len(pulsecoince)):
+        for i in range(len(pulsecoinc)):
             if pulsecoinc[i] == maxcoince :
                 if pulses[i] < coincetime :
                     coincetime = pulses[i]
@@ -97,17 +101,18 @@ class CausalPulseCleaning(icetray.I3ConditionalModule):
         #the 10 ns window in theis DOM with the highest charge is 
         # the baseline for other photons being causal.
 
-        MaxchargeDOM, coincetime = self.getBaseTimeandPosition(self,mcpeMap)
+        MaxchargeDOM, coincetime = self.getBaseTimeandPosition(mcpeMap)
 
-        pos1 = domsUsed[MaxChargeDOM].position
+        pos1 = domsUsed[MaxchargeDOM].position
         for omkey in mcpeMap.keys():
             #if omkey not in mcpeMap:
             #  continue
             if len(mcpeMap[omkey]) < 1 :
               continue
             pos2 = domsUsed[NoPMTKey(omkey)].position
-            causalHist = self.getCausalMCPEs(pos1,pos2,mcpeMap[omkey],coincetime)
-            significantMCPEMap[omkey] = self.getSignificantMCPEs(mcpeMap[omkey])
+            causalHits = self.getCausalMCPEs(pos1,pos2,mcpeMap[omkey],coincetime)
+            if len(causalHits) > 0 :
+                causalMCPEMap[omkey] = causalHits
     
         frame[self.output] = causalMCPEMap
         self.PushFrame(frame)

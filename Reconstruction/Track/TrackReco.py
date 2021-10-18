@@ -16,7 +16,7 @@ import sys
 import argparse
 import math as m
 from Utilities.RecoUtility import GetGeoTime
-from Utilities.DOMUtility import GetNPMTs
+from Utilities.DOMUtility import GetNPMTs, NoPMTKey, AddPMTKey
 
 # Functional that is fed data from InitialGuess for PMT locations and the PDF we wish to use. Uses those locations to build a Pandel Function for a given track
 def LikelihoodFunctor(data,domsUsed,vertexrad):
@@ -49,7 +49,7 @@ def LikelihoodFunctor(data,domsUsed,vertexrad):
 
         sum_nloglike = 0.0
         for dom in pulse_series.keys() :
-            domkey =  OMKey(dom.string, dom.om, 0) 
+            domkey =  NoPMTKey(dom) 
             d,dc,t = GetGeoTime([geo_doms[domkey].position.x,geo_doms[domkey].position.y,geo_doms[domkey].position.z],
                                 [vertex.x,vertex.y,vertex.z],
                                 [direction.x,direction.y,direction.z])
@@ -85,10 +85,10 @@ def GetVertexTime(vertex,direction,pulse_series,geo_doms):
         totalcharge = 0.0
         for pulse in pulse_series[dom] :
             totalcharge += pulse.charge
-        if OMKey(dom.string,dom.om,0) in DOMCharge.keys() :
-            DOMCharge[OMKey(dom.string,dom.om,0)] += totalcharge
+        if NoPMTKey(dom) in DOMCharge.keys() :
+            DOMCharge[NoPMTKey(dom)] += totalcharge
         else :
-            DOMCharge[OMKey(dom.string,dom.om,0)] = totalcharge
+            DOMCharge[NoPMTKey(dom)] = totalcharge
 
     #time of largest pulse
     maxCharge=0.0
@@ -108,7 +108,7 @@ def GetVertexTime(vertex,direction,pulse_series,geo_doms):
     maxCharge=0.0
     maxCharge_time = 0.0
     for ipmt in range(npmts) :
-        domkey = OMKey(MaxChargeDOM.string,MaxChargeDOM.om,ipmt)
+        domkey = AddPMTKey(MaxChargeDOM,ipmt)
         if domkey in pulse_series.keys() :
             for pulse in pulse_series[domkey] :
                 if pulse.charge > maxCharge :

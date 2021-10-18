@@ -3,6 +3,7 @@ DOM Utilities is a collection of functions and variables for the DOMs.
 """
 import numpy as np
 import os
+from icecube.icetray import I3Units, OMKey
 
 #List for PMT acceptance table
 PMTacceptance = list()
@@ -292,7 +293,7 @@ def GetNPMTs() :
     return len(PMTacceptance)
 
 def NoPMTKey(domkey) :
-    return OMKey(domkey.string,domkey.om.0)
+    return OMKey(domkey.string,domkey.om,0)
 
 def AddPMTKey(domkey,ipmt) :
     return OMKey(domkey.string,domkey.om,ipmt)

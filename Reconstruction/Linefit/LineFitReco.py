@@ -13,7 +13,7 @@ from icecube.icetray import I3Units, I3Frame, OMKey
 import numpy as np
 from numpy import linalg as la
 from icecube.phys_services import I3Calculator
-
+from Utilities.DOMUtility import NoPMTKey, AddPMTKey
 class LineFitReco(icetray.I3ConditionalModule):
 
     def __init__(self, context):
@@ -95,7 +95,7 @@ class LineFitReco(icetray.I3ConditionalModule):
               continue
             time = min(timeList)
             charge = sum(npeList)
-            key = OMKey(omkey.string,omkey.om,0)
+            key = NoPMTKey(omkey)
             position = geoMap[key].position
             for i in range(len(timeList)):
                 data.append( (position.x, position.y, position.z, time, charge) )

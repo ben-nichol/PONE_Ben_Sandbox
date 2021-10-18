@@ -2,7 +2,7 @@ from icecube import icetray, dataclasses, dataio, simclasses
 from icecube.icetray import I3Units, OMKey, I3Frame
 from icecube.dataclasses import ModuleKey
 import numpy as np
-from Utilities.DOMUtility import GetPMTAcceptance, GetPMTQETable, GetPMTQE, GetPMT, GetNPMTs, GetMaxTotalAcceptance, GetMaxAngularAcceptance
+from Utilities.DOMUtility import NoPMTKey, AddPMTKey, GetPMTAcceptance, GetPMTQETable, GetPMTQE, GetPMT, GetNPMTs, GetMaxTotalAcceptance, GetMaxAngularAcceptance
 
 #split MCPhoton hits into PMTs on the DOMs.
 def SplitPMTs(mcpulsemap,random_service) :
@@ -20,7 +20,7 @@ def SplitPMTs(mcpulsemap,random_service) :
             mcpulse.dir = pulse.dir
             mcpulse.pos = pulse.pos
 
-            newomkey = OMKey(omkey.string, omkey.om, pmtid)
+            newomkey = AddPMTKey(omkey, pmtid)
             if newomkey in newmcpulsemap.keys() :
                 newmcpulsemap[newomkey].append(mcpulse)
             else :
@@ -51,7 +51,7 @@ def AddDarkHits(domsUsed,mcpulsemap,random_service,DNprob,max_pt,min_pt,splitDOM
         if splitDOMs :
             npmts = GetNPMTs()
         for ipmt in range(npmts) :
-            key = OMKey(omkey.string,omkey.om,ipmt)
+            key = AddPMTKey(omkey,ipmt)
             ndarkhists = random_service.poisson((max_pt-min_pt)*DNprob)
             if ndarkhists < 1 :
                 continue
