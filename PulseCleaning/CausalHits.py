@@ -75,8 +75,11 @@ class CausalPulseCleaning(icetray.I3ConditionalModule):
 
         dis = np.sqrt((pos1.x-pos2.x)**2.0+(pos1.y-pos2.y)**2.0+(pos1.z-pos2.z)**2.0)
 
-        windowmin = coincetime - dis*1.5/0.3
-        windowmax = coincetime + dis*1.5/0.3
+        dis_maxphoton = min(dis,50.)
+        dis_part = dis-dis_maxphoton
+
+        windowmin = coincetime - dis_part/0.3 - dis_maxphoton*1.5/0.3
+        windowmax = coincetime + dis_part/0.3 + dis_maxphoton*1.5/0.3
 
         for pulse in mcpeList:
           if pulse.time >  windowmin and pulse.time <  windowmax :
