@@ -2,7 +2,7 @@ from icecube import icetray, dataclasses, dataio, simclasses
 from icecube.icetray import I3Units, OMKey, I3Frame
 from icecube.dataclasses import ModuleKey
 import numpy as np
-from Utilities.DOMUtility import GetPMTAcceptance, GetPMTQETable, GetPMTQE, GetPMT, GetNPMTs, GetMaxTotalAcceptance, GetMaxAngularAcceptance
+from Utilities.DOMUtility import NoPMTKey, AddPMTKey, GetPMTAcceptance, GetPMTQETable, GetPMTQE, GetPMT, GetNPMTs, GetMaxTotalAcceptance, GetMaxAngularAcceptance
 
 #split MCPhoton hits into PMTs on the DOMs.
 def SplitPMTs(mcpulsemap,random_service) :
@@ -20,7 +20,7 @@ def SplitPMTs(mcpulsemap,random_service) :
             mcpulse.dir = pulse.dir
             mcpulse.pos = pulse.pos
 
-            newomkey = OMKey(omkey.string, omkey.om, pmtid)
+            newomkey = AddPMTKey(omkey, pmtid)
             if newomkey in newmcpulsemap.keys() :
                 newmcpulsemap[newomkey].append(mcpulse)
             else :
@@ -51,15 +51,16 @@ def AddDarkHits(domsUsed,mcpulsemap,random_service,DNprob,max_pt,min_pt,splitDOM
         if splitDOMs :
             npmts = GetNPMTs()
         for ipmt in range(npmts) :
-            key = OMKey(omkey.string,omkey.om,ipmt)
+            key = AddPMTKey(omkey,ipmt)
             ndarkhists = random_service.poisson((max_pt-min_pt)*DNprob)
             if ndarkhists < 1 :
                 continue
-            if key not in mcpulseOMkeys :
+            if key not in mcpulsemap.keys() :
                 mcpulsemap[key] = simclasses.I3PhotonSeries()
             for i in range(ndarkhists) :
-                time = random_service.uniform(min_pt,max_pt)
-                mcpulsemap[key].append(time*I3Units.ns)
+                mcphoton = simclasses.I3Photon()
+                mcphoton.time = random_service.uniform(min_pt,max_pt)*I3Units.ns
+                mcpulsemap[key].append(mcphoton)
 
 #Apply the responce of the PMT, this includes pulse combining for pulses too close together. 
 def ApplyPMTResponce(mcpulsemap,random_service,PMT_tts,PMT_ts,LPprob,APprob,APComponetRatio,APmeantime_1,APmeantime_2,APtimesigma_1,APtimesigma_2,chargemean,chargesigma,PEsaturation,PEthreshold) :
@@ -75,7 +76,7 @@ def ApplyPMTResponce(mcpulsemap,random_service,PMT_tts,PMT_ts,LPprob,APprob,APCo
         for pulse in mcpulsemap[omkey]:
             time = random_service.gaus(pulse.time,PMT_tts*I3Units.ns)
             if random_service.uniform(0.0,1.0) < LPprob :
-                time += random_service.gaus(self.PMT_ts,np.sqrt(2.0)*PMT_tts*I3Units.ns)
+                time += random_service.gaus(PMT_ts,np.sqrt(2.0)*PMT_tts*I3Units.ns)
             pulsetimelist.append(time)
 
         for time in pulsetimelist :

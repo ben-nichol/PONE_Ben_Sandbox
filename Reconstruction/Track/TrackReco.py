@@ -16,7 +16,8 @@ import sys
 import argparse
 import math as m
 from Utilities.RecoUtility import GetGeoTime
-from Utilities.DOMUtility import GetNPMTs
+from Utilities.DOMUtility import GetNPMTs, NoPMTKey, AddPMTKey
+from Utilities.OpticalParameters import c, n, ngroup
 
 # Functional that is fed data from InitialGuess for PMT locations and the PDF we wish to use. Uses those locations to build a Pandel Function for a given track
 def LikelihoodFunctor(data,domsUsed,vertexrad):
@@ -29,9 +30,6 @@ def LikelihoodFunctor(data,domsUsed,vertexrad):
     vz = 0.0 
     v =np.array([0.0,0.0,0.0])
 
-    c = 0.299792458                                 # speed of light 
-    n = 1.34
-    ngroup = 1.35557                                # 1.33 is the refractive index of water at 20 degrees C
     c_n = c/ngroup                                     # light in water
     theta_c = np.arccos(1./n)                       # Cherenkov angle in water in radians
     lambda_s = 120.                                 # scattering length of light for violet light
@@ -49,7 +47,7 @@ def LikelihoodFunctor(data,domsUsed,vertexrad):
 
         sum_nloglike = 0.0
         for dom in pulse_series.keys() :
-            domkey =  OMKey(dom.string, dom.om, 0) 
+            domkey =  NoPMTKey(dom) 
             d,dc,t = GetGeoTime([geo_doms[domkey].position.x,geo_doms[domkey].position.y,geo_doms[domkey].position.z],
                                 [vertex.x,vertex.y,vertex.z],
                                 [direction.x,direction.y,direction.z])
@@ -76,19 +74,16 @@ def GetVertexTime(vertex,direction,pulse_series,geo_doms):
     maxCharge=0.0
     DOMCharge = {}
 
-    c = 0.299792458                                 # speed of light 
-    n = 1.34
-    ngroup = 1.35557                                # 1.33 is the refractive index of water at 20 degrees C
     c_n = c/ngroup                                     # light in water
     theta_c = np.arccos(1./n) 
     for dom in pulse_series.keys() :
         totalcharge = 0.0
         for pulse in pulse_series[dom] :
             totalcharge += pulse.charge
-        if OMKey(dom.string,dom.om,0) in DOMCharge.keys() :
-            DOMCharge[OMKey(dom.string,dom.om,0)] += totalcharge
+        if NoPMTKey(dom) in DOMCharge.keys() :
+            DOMCharge[NoPMTKey(dom)] += totalcharge
         else :
-            DOMCharge[OMKey(dom.string,dom.om,0)] = totalcharge
+            DOMCharge[NoPMTKey(dom)] = totalcharge
 
     #time of largest pulse
     maxCharge=0.0
@@ -108,7 +103,7 @@ def GetVertexTime(vertex,direction,pulse_series,geo_doms):
     maxCharge=0.0
     maxCharge_time = 0.0
     for ipmt in range(npmts) :
-        domkey = OMKey(MaxChargeDOM.string,MaxChargeDOM.om,ipmt)
+        domkey = AddPMTKey(MaxChargeDOM,ipmt)
         if domkey in pulse_series.keys() :
             for pulse in pulse_series[domkey] :
                 if pulse.charge > maxCharge :
@@ -157,11 +152,7 @@ class TrackReco(icetray.I3ConditionalModule):
         self.useMC = self.GetParameter("UseMC")
 
         # Some quantities that are environment dependent
-        self.c = 0.299792458                                 # speed of light 
-        self.n = 1.34  
-        self.ngroup = 1.3555714017                                      # 1.33 is the refractive index of water at 20 degrees C
-        self.c_n = self.c/self.ngroup                                       # light in water
-        self.theta_c = np.arccos(1./self.n)                       # Cherenkov angle in water in radians
+        self.theta_c = np.arccos(1./n)                       # Cherenkov angle in water in radians
         self.lambda_s = 120.                                 # scattering length of light for violet light
         self.lambda_a = 18.949132224466762                                  # absorption length of light for violet light
         self.tau = 557                                       # time parameter that has to be fit using simulations or data
@@ -223,7 +214,7 @@ class TrackReco(icetray.I3ConditionalModule):
             recoParticle.fit_status = dataclasses.I3Particle.InsufficientQuality
                                             
         recoParticle.dir = u
-        recoParticle.speed = self.c
+        recoParticle.speed = c
         recoParticle.pos = q
         recoParticle.time = solution.x[4]
 

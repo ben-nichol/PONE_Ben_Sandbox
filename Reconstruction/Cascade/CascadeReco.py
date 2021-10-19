@@ -20,6 +20,8 @@ import argparse
 import math as m
 import random as rand
 from Utilities.RecoUtility import GetPhotonTravelTime
+from Utilities.DOMUtility import NoPMTKey, AddPMTKey
+from Utilities.OpticalParameters import c, n, ngroup
 
 # Functional that is fed data from InitialGuess for PMT locations and the PDF we wish to use. Uses those locations to build a Pandel Function for a given track
 def LikelihoodFunctor(data,domsUsed):
@@ -32,9 +34,6 @@ def LikelihoodFunctor(data,domsUsed):
     vz = 0.0 
     v =np.array([0.0,0.0,0.0])
 
-    c = 0.299792458                                 # speed of light 
-    n = 1.34
-    ngroup = 1.35557                                # 1.33 is the refractive index of water at 20 degrees C
     c_n = c/ngroup                                     # light in water
     lambda_s = 120.                                 # scattering length of light for violet light
     lambda_a = 15.                                  # absorption length of light for violet light
@@ -47,7 +46,7 @@ def LikelihoodFunctor(data,domsUsed):
         vertex = dataclasses.I3Position(vx,vy,vz)
         sum_nloglike = 0.0
         for dom in pulse_series.keys() :
-            domkey =  OMKey(dom.string, dom.om, 0) 
+            domkey =  NoPMTKey(dom) 
             dc,t = GetPhotonTravelTime([geo_doms[domkey].position.x,geo_doms[domkey].position.y,geo_doms[domkey].position.z],[vertex.x,vertex.y,vertex.z])
             p_charge = np.exp(-dc/tau)/max(dc,0.25)
             for pulse in pulse_series[dom] :
@@ -64,9 +63,6 @@ def LikelihoodFunctor(data,domsUsed):
 
 def GetVertexTime(pulse_series,geo_doms):                                 
 
-	c = 0.299792458                                 # speed of light 
-	n = 1.34
-	ngroup = 1.35557                                # 1.33 is the refractive index of water at 20 degrees C
 	c_n = c/ngroup                                     # light in water
 	ismc = False
 	if(type(pulse_series) == 'icecube.dataclasses.I3RecoPulseSeriesMap') :
@@ -78,7 +74,7 @@ def GetVertexTime(pulse_series,geo_doms):
 	vz = 0.0
 
 	for domkey in pulse_series.keys() :
-		domkey_nopmt =  OMKey(domkey.string, domkey.om, 0)
+		domkey_nopmt =  NoPMTKey(domkey)
 		for pulse in pulse_series[domkey] :
 			totalcharge += pulse.charge
 			vx += geo_doms[domkey_nopmt].position.x*pulse.charge
@@ -92,7 +88,7 @@ def GetVertexTime(pulse_series,geo_doms):
 	T0 = 0.0
 
 	for domkey in pulse_series.keys() :
-		domkey_nopmt =  OMKey(domkey.string, domkey.om, 0)
+		domkey_nopmt =  NoPMTKey(domkey)
 		for pulse in pulse_series[domkey] :
 			dx = vertex.x - geo_doms[domkey_nopmt].position.x
 			dy = vertex.y - geo_doms[domkey_nopmt].position.y
@@ -121,10 +117,6 @@ class CascadeReco(icetray.I3ConditionalModule):
         self.output = self.GetParameter("output")
 
         # Some quantities that are environment dependent
-        self.c = 0.299792458                                 # speed of light 
-        self.n = 1.34  
-        self.ngroup = 1.3555714017                                      # 1.33 is the refractive index of water at 20 degrees C
-        self.c_n = self.c/self.ngroup                                       # light in water
         self.lambda_s = 120.                                 # scattering length of light for violet light
         self.lambda_a = 18.949132224466762                                  # absorption length of light for violet light
         self.tau = 557                                       # time parameter that has to be fit using simulations or data
@@ -163,7 +155,7 @@ class CascadeReco(icetray.I3ConditionalModule):
         else:
             recoParticle.fit_status = dataclasses.I3Particle.InsufficientQuality
                                             
-        recoParticle.speed = self.c
+        recoParticle.speed = c
         recoParticle.pos = q
         recoParticle.time = solution.x[3]
 
