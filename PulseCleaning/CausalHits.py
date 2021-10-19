@@ -11,15 +11,20 @@ from numpy import linalg as la
 from icecube.phys_services import I3Calculator
 import operator
 from Utilities.DOMUtility import NoPMTKey, AddPMTKey, GetNPMTs
+from Utilities.OpticalParameters import c, n, ngroup
 
 class CausalPulseCleaning(icetray.I3ConditionalModule):
-
+    '''
+    Causal Pulse Cleaning looks at the brightest DOM and assigns a time and location such that all other 
+    hits must be within a loose causality window. This Window is based on the travel of the particle at 
+    c + at most 50m of photon travel time at velocity c/n.
+    '''
     def __init__(self, context):
         icetray.I3ConditionalModule.__init__(self, context)
         self.AddParameter("GCDFile","GCD to be simulated",'')
         self.AddParameter("inputseries","GCD to be simulated","MCPESeriesMap")
         self.AddParameter("output","GCD to be simulated","causalpulses")
-        self.AddParameter("window","Window used to decide most sig window.",200)
+        self.AddParameter("windowscale","Scale the causality window by factor to make it a looser cut",1.0)
         self.AddOutBox("OutBox")
 
     def Configure(self):
@@ -27,7 +32,7 @@ class CausalPulseCleaning(icetray.I3ConditionalModule):
         self.gcdFile = self.GetParameter("GCDFile")
         self.input = self.GetParameter("inputseries")
         self.output = self.GetParameter("output")
-        self.window = self.GetParameter("window")
+        self.windowscale = self.GetParameter("windowscale")
 
     #Compute base time and position that pulses need to be causal 
     #with if no other pulses are causal with it.
@@ -82,8 +87,10 @@ class CausalPulseCleaning(icetray.I3ConditionalModule):
         dis_maxphoton = min(dis,50.)
         dis_part = dis-dis_maxphoton
 
-        windowmin = coincetime - dis_part/0.3 - dis_maxphoton*1.5/0.3
-        windowmax = coincetime + dis_part/0.3 + dis_maxphoton*1.5/0.3
+        WindowWidth = self.windowscale*(dis_part/c + dis_maxphoton*ngroup/c)
+
+        windowmin = coincetime - WindowWidth
+        windowmax = coincetime + WindowWidth
 
         for pulse in mcpeList:
           if pulse.time >  windowmin and pulse.time <  windowmax :
