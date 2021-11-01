@@ -11,13 +11,13 @@ import random
 from icecube import icetray, dataclasses, dataio, simclasses                    
 from icecube import phys_services, sim_services           
 import argparse  
-from Reconstruction.linefit.SimAnalysis import LineFitReco
-from Reconstruction.llh.likelihoodreco_tables import likelihoodreco
-from Reconstruction.nutau.NuTauReco_tables import nutaureco
+from Reconstruction.Linefit.LineFitReco import LineFitReco
+from Reconstruction.Track.TrackReco import TrackReco
 from PulseCleaning.SignificantHitPulseCleaning import SignificantHitPulseCleaning
-from Reconstruction.nutau.curveFit import curveFit
-from Reconstruction.nutau.curveFit_tables import curveFit_tables 
-
+from PulseCleaning.CausalHits import CausalPulseCleaning
+from Reconstruction.Cascade.CascadeReco import CascadeReco
+from Trigger.DOMTrigger import DOMTrigger
+from Trigger.DetectorTrigger import DetectorTrigger
 # This script will perform a hybridCLSim propagation.
 #
 # NOTE: There is no bad_dom_cleaning!!!
@@ -29,6 +29,7 @@ parser.add_argument("-i", "--infile",type=str, default="./test_input.i3", help="
 parser.add_argument("-r", "--runnumber", type=int, default="1", help="The run/dataset number for this simulation, is used as seed for random generator")
 parser.add_argument("-l", "--filenr",type=int,default=1, help="File number, stream of I3SPRNGRandomService")
 parser.add_argument("-g", "--gcdfile",default=os.getenv('PONESRCDIR')+"/GCD/PONE_Phase1.i3.gz", help="Read in GCD file")
+parser.add_argument("-t", "--pulsesep",default=0.000001,help="Time needed to separate two pulses. Assume that this is 3.5*sample time.")
 
 args = parser.parse_args()
 photon_series = "I3Photons"
@@ -36,7 +37,7 @@ tray = I3Tray()
 
 files_dir = args.infile
 file_list_aux = os.listdir(files_dir)
-file_list = [x for x in file_list_aux if ( '.i3.gz' in x)]
+file_list = [x for x in file_list_aux if ( '.i3.gz' in x and 'PhotonProp' in x and 'Reco' not in x)]
 
 #from globals import max_num_files_per_dataset
 randomService = phys_services.I3SPRNGRandomService(
@@ -51,58 +52,72 @@ tray.AddModule('I3Reader', 'reader',
             FilenameList = [args.gcdfile, args.infile+file_list[args.runnumber]]
             )
 
+print(args.gcdfile)
 gcd_file = dataio.I3File(args.gcdfile)
 
-#Take the MC photons and shifts them so that all events have a similar time structure.
 tray.AddModule(timeShift,"MCtimeShift",
               MergedMCPETreeName = photon_series,
               TimeShiftedMCPE = "TimeShiftedMCPEMap",
               MinTime = 7200
               )
 
-#Takes the MC photons and simulates to characteristics of the DOMs.
 tray.AddModule(SimpleDOMSimulation, 'DOMLauncher',
                GCDFile=gcd_file,
                inputmap = "TimeShiftedMCPEMap",
                outputmap = "I3Photons_PMTResponse",
-               RandomService = randomService
+               RandomService = randomService,
+               minTsep = args.pulsesep,
+               SplitDoms = True,
+               AcceptBaseValue = -1.0
               )
 
-#This is not typically needed but is for building raw waveforms for testing DOMLauncher. 
-tray.AddModule(WaveformBuilder,'waveformbuilder',
-              inputmap = "I3Photons_PMTResponse_MCpulses",
-              outputmap = "waveform_pulses")
+tray.AddModule(DOMTrigger,"DOMTrigger",
+                GCDFile=gcd_file,
+                inputmap = "I3Photons_PMTResponse",
+              )
 
-#This is a first order pulse cleaning method that will just remove pulses with time residualts > 1000 ns. 
+tray.AddModule(DetectorTrigger,"PONE_Trigger",
+               GCDFile=gcd_file,
+               output="_3PMT_2DOM",
+               DOMPMTCoinc =3,
+               FullDetectorCoincidenceN = 2,
+               CutOnTrigger = True
+              )
+
+#This pulse cleaning kinda sucks. 
 tray.AddModule(SignificantHitPulseCleaning,"SignificantHit",
               GCDFile=gcd_file,
               inputseries = "I3Photons_PMTResponse",
               output = "SignificanHits",
               window = 1000
               )
+#This pulse cleaning is promissing but still experimental. 
+tray.AddModule(CausalPulseCleaning,"CausalHit",
+              GCDFile=gcd_file,
+              inputseries = "I3Photons_PMTResponse",
+              output = "CausalHits"
+              )
 
-#First order track reconstruction. 
+#Linefit for tracks
 tray.AddModule(LineFitReco, "LineFit",
-              inputseries = "SignificanHits",
+              inputseries = "CausalHits",
               output = "linefit"
               )
 
-
-#Likelihood based track reconstruction. 
-tray.AddModule(likelihoodreco,"likelihoodreco",
-               pulseseries = "SignificanHits",
+#Track reconstruction
+tray.AddModule(TrackReco,"likelihoodreco",
+               pulseseries = "CausalHits",
                seedtrack = "linefit",
-               output = "llhfit"
-              ) 
+               output = "llhfit",
+              )
 
-#An incomplete cascade reconstruction. 
-tray.AddModule(nutaureco,"NuTauReconstructin",
-              pulseseries = "SignificanHits",
-              output = "NuTau"
+tray.AddModule(CascadeReco,"NuTauReconstruction",
+              pulseseries = "CausalHits",
+              output = "Cascade",
               )
 
 tray.AddModule("I3Writer","writer",
-               Filename = args.outfile+"/NuTauFit_"+file_list[args.runnumber],
+               Filename = args.outfile+"/TrigReco_"+file_list[args.runnumber],
                Streams = [icetray.I3Frame.DAQ, icetray.I3Frame.Physics, icetray.I3Frame.TrayInfo],
               )
 

@@ -96,7 +96,7 @@ def GetPMTDirection(pmtid):
     global PMTDirection
     global AcceptanceLoaded
     if not AcceptanceLoaded:
-        GetPMTAcceptance(infile)
+        GetPMTAcceptance()
     x = np.sin(PMTDirection[pmtid][0])*np.cos(PMTDirection[pmtid][1])
     y = np.sin(PMTDirection[pmtid][0])*np.sin(PMTDirection[pmtid][1])
     z = np.cos(PMTDirection[pmtid][0])
@@ -198,7 +198,7 @@ def GetMaxTotalAcceptance() :
         GetPMTQETable()
 
     if not AcceptanceLoaded:
-        GetPMTAcceptance(infile)
+        GetPMTAcceptance()
 
     return maxQE*maxAngularAcceptance
 
@@ -214,7 +214,7 @@ def GetMaxAngularAcceptance() :
     global AcceptanceLoaded
 
     if not AcceptanceLoaded:
-        GetPMTAcceptance(infile)
+        GetPMTAcceptance()
     return maxAngularAcceptance
 
 def GetMaxPMTQE() :
@@ -244,7 +244,7 @@ def GetPMT(photonDir,wl,random):
     global AcceptanceLoaded
 
     if not AcceptanceLoaded:
-        GetPMTAcceptance(infile)
+        GetPMTAcceptance()
 
     QEProb = 0.0
     if wl < 0.1 :
@@ -289,7 +289,7 @@ def GetNPMTs() :
     global AcceptanceLoaded
 
     if not AcceptanceLoaded:
-        GetPMTAcceptance(infile)
+        GetPMTAcceptance()
     return len(PMTacceptance)
 
 def NoPMTKey(domkey) :

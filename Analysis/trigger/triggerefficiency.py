@@ -65,6 +65,11 @@ AllEvents_Azimuth_Hist = ROOT.TH1F("AllEvents_Azimuth_Hist","",nbinsazimuth,mina
 DetectorTrigger_Energy_3PMT_2DOM_Hist = ROOT.TH1F("DetectorTrigger_Energy_3PMT_2DOM_Hist","",nbinenergy,minenergy,maxenergy)
 DetectorTrigger_Zenith_3PMT_2DOM_Hist = ROOT.TH1F("DetectorTrigger_Zenith_3PMT_2DOM_Hist","",nbinzenith,minzenith,maxzenith)
 DetectorTrigger_Azimuth_3PMT_2DOM_Hist = ROOT.TH1F("DetectorTrigger_Azimuth_3PMT_2DOM_Hist","",nbinsazimuth,minazimuth,maxazimuth)
+
+DetectorTrigger_Energy_3PMT_1DOM_Hist = ROOT.TH1F("DetectorTrigger_Energy_3PMT_1DOM_Hist","",nbinenergy,minenergy,maxenergy)
+DetectorTrigger_Zenith_3PMT_1DOM_Hist = ROOT.TH1F("DetectorTrigger_Zenith_3PMT_1DOM_Hist","",nbinzenith,minzenith,maxzenith)
+DetectorTrigger_Azimuth_3PMT_1DOM_Hist = ROOT.TH1F("DetectorTrigger_Azimuth_3PMT_1DOM_Hist","",nbinsazimuth,minazimuth,maxazimuth)
+
 StringTrigger_Energy_3PMT_2DOM_Hist = ROOT.TH1F("StringTrigger_Energy_3PMT_2DOM_Hist","",nbinenergy,minenergy,maxenergy)
 StringTrigger_Zenith_3PMT_2DOM_Hist = ROOT.TH1F("StringTrigger_Zenith_3PMT_2DOM_Hist","",nbinzenith,minzenith,maxzenith)
 StringTrigger_Azimuth_3PMT_2DOM_Hist = ROOT.TH1F("StringTrigger_Azimuth_3PMT_2DOM_Hist","",nbinsazimuth,minazimuth,maxazimuth)
@@ -148,7 +153,6 @@ for infile in file_list :
         detectorTriggerTime_2PMT_3DOM = frame["DetectorTriggers_2PMT_3DOM"]
         stringTriggerTime_2PMT_3DOM = frame["StringTriggers_2PMT_3DOM"]
 
-
         MMCTrackList = frame['MMCTrackList']
         Muon = MMCTrackList[0].GetI3Particle()
         
@@ -158,6 +162,8 @@ for infile in file_list :
         totalcharge = 0.0
         DOMList = {}
         pulseseries = frame["I3Photons_PMTResponse"]
+
+
 
         for key in pulseseries.keys() :
             omkey = OMKey(key.string,key.om,0)
@@ -170,7 +176,7 @@ for infile in file_list :
 
         if totalcharge < 20.0 :
             continue
-        if len(DOMList.keys()) < 3.0 :
+        if len(DOMList.keys()) < 8.0 :
             continue
 
         maxcoinc = 0
