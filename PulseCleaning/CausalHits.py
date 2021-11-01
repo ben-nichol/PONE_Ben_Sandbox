@@ -11,7 +11,7 @@ from numpy import linalg as la
 from icecube.phys_services import I3Calculator
 import operator
 from Utilities.DOMUtility import NoPMTKey, AddPMTKey, GetNPMTs
-from Utilities.OpticalParameters import c, n, ngroup
+from Utilities.OpticalParameters import c, n, ngroup, theta_c
 
 class CausalPulseCleaning(icetray.I3ConditionalModule):
     '''
@@ -24,7 +24,7 @@ class CausalPulseCleaning(icetray.I3ConditionalModule):
         self.AddParameter("GCDFile","GCD to be simulated",'')
         self.AddParameter("inputseries","GCD to be simulated","MCPESeriesMap")
         self.AddParameter("output","GCD to be simulated","causalpulses")
-        self.AddParameter("windowscale","Scale the causality window by factor to make it a looser cut",1.0)
+        self.AddParameter("windowscale","Scale the causality window by factor to make it a looser cut",1.2)
         self.AddOutBox("OutBox")
 
     def Configure(self):
@@ -56,12 +56,13 @@ class CausalPulseCleaning(icetray.I3ConditionalModule):
             if DOMCharge[DOM] > DOMCharge[MaxchargeDOM] :
                 MaxchargeDOM = DOM
 
-            npmts = GetNPMTs()
-            for ipmt in range(npmts):
-                PMTkey = AddPMTKey(MaxchargeDOM,ipmt)
-                if PMTkey in mcpeMap.keys():
-                    for pulse in mcpeMap[PMTkey] :
-                        pulses.append(pulse.time)
+        npmts = GetNPMTs()
+        for ipmt in range(npmts):
+            PMTkey = AddPMTKey(MaxchargeDOM,ipmt)
+            if PMTkey in mcpeMap.keys():
+                for pulse in mcpeMap[PMTkey] :
+                    pulses.append(pulse.time)
+
         pulsecoinc = list()
         for ipulse1 in range(len(pulses)) :
                 pulsecoinc.append(0)
@@ -84,17 +85,18 @@ class CausalPulseCleaning(icetray.I3ConditionalModule):
 
         dis = np.sqrt((pos1.x-pos2.x)**2.0+(pos1.y-pos2.y)**2.0+(pos1.z-pos2.z)**2.0)
 
-        dis_maxphoton = min(dis,50.)
-        dis_part = dis-dis_maxphoton
+        dis_maxphoton = min(dis,80.)
+        dis_part = 0.0
+        if dis_maxphoton < dis :
+            dis_part = np.sin(theta_c-np.arcsin(np.sin(np.pi-theta_c)*(80./dis)))*dis/np.sin(np.pi-theta_c)
 
-        WindowWidth = self.windowscale*(dis_part/c + dis_maxphoton*ngroup/c)
-
-        windowmin = coincetime - WindowWidth
-        windowmax = coincetime + WindowWidth
+        WindowMin = max(0.0,(dis/c)-235.0)/self.windowscale
+        WindowMax = self.windowscale*(dis_part/c + dis_maxphoton*ngroup/c)+10.0
 
         for pulse in mcpeList:
-          if pulse.time >  windowmin and pulse.time <  windowmax :
-            causalMCPEList.append(pulse)
+            deltaT = abs(pulse.time-coincetime)
+            if deltaT > WindowMin and deltaT < WindowMax :
+                causalMCPEList.append(pulse)
 
         return causalMCPEList
    
@@ -122,4 +124,7 @@ class CausalPulseCleaning(icetray.I3ConditionalModule):
                 causalMCPEMap[omkey] = causalHits
     
         frame[self.output] = causalMCPEMap
+        frame[self.output+"_string"] = dataclasses.I3Double(MaxchargeDOM.string)
+        frame[self.output+"_om"] = dataclasses.I3Double(MaxchargeDOM.om)
+        frame[self.output+"_coincetime"] = dataclasses.I3Double(coincetime)
         self.PushFrame(frame)
