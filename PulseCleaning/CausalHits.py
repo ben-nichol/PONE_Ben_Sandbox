@@ -25,6 +25,9 @@ class CausalPulseCleaning(icetray.I3ConditionalModule):
         self.AddParameter("inputseries","GCD to be simulated","MCPESeriesMap")
         self.AddParameter("output","GCD to be simulated","causalpulses")
         self.AddParameter("windowscale","Scale the causality window by factor to make it a looser cut",1.2)
+        self.AddParameter("maxphotonatten","Maximum number of attenuationlengths photons can travel",2.3)
+        self.AddParameter("MaxTracktoReferenceDOM","Maximum distance between Reference DOM and track",50.0)
+        self.AddParameter("attenlength","Atteneuation length of the light",35.0)
         self.AddOutBox("OutBox")
 
     def Configure(self):
@@ -33,7 +36,9 @@ class CausalPulseCleaning(icetray.I3ConditionalModule):
         self.input = self.GetParameter("inputseries")
         self.output = self.GetParameter("output")
         self.windowscale = self.GetParameter("windowscale")
-
+        self.maxphotonatten = self.GetParameter("maxphotonatten")
+        self.MaxTracktoReferenceDOM = self.GetParameter("MaxTracktoReferenceDOM")
+        self.attenlength = self.GetParameter("attenlength")
     #Compute base time and position that pulses need to be causal 
     #with if no other pulses are causal with it.
     def getBaseTimeandPosition(self,mcpeMap):
@@ -85,13 +90,18 @@ class CausalPulseCleaning(icetray.I3ConditionalModule):
 
         dis = np.sqrt((pos1.x-pos2.x)**2.0+(pos1.y-pos2.y)**2.0+(pos1.z-pos2.z)**2.0)
 
-        dis_maxphoton = min(dis,80.)
+
+        dis_maxphoton = min(dis,self.attenlength*self.maxphotonatten)
         dis_part = 0.0
         if dis_maxphoton < dis :
-            dis_part = np.sin(theta_c-np.arcsin(np.sin(np.pi-theta_c)*(80./dis)))*dis/np.sin(np.pi-theta_c)
+            dis_part = np.sin(theta_c-np.arcsin(np.sin(np.pi-theta_c)*(self.attenlength*self.maxphotonatten/dis)))*dis/np.sin(np.pi-theta_c)
 
-        WindowMin = max(0.0,(dis/c)-235.0)/self.windowscale
-        WindowMax = self.windowscale*(dis_part/c + dis_maxphoton*ngroup/c)+10.0
+        WindowMin = max(0.0,(dis/c)-self.MaxTracktoReferenceDOM*ngroup/c)/self.windowscale
+        WindowMax = self.windowscale*(dis_part/c + dis_maxphoton*ngroup/c)
+
+        if pos1==pos2 :
+            WindowMin = -300.
+            WindowMax = 300.
 
         for pulse in mcpeList:
             deltaT = abs(pulse.time-coincetime)
