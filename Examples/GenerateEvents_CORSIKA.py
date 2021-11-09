@@ -10,8 +10,8 @@ from os.path import expandvars
 import os, sys
 from icecube import phys_services
 #from icecube.simprod.modules import Corsika5ComponentGenerator
-from icecube.simprod.segments.GenerateCosmicRayMuons import GenerateSingleMuons
-from icecube.simprod.segments import GenerateCosmicRayMuons
+from segments.GenerateCosmicRayMuons import GenerateSingleMuons
+from segments import GenerateCosmicRayMuons
 #from icecube.simprod import segments
 
 def printfunc(frame, message = 'test'):
