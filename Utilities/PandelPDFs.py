@@ -188,7 +188,6 @@ def log_cpandel(t, d, sigma = 10, lambda_s = 120., rho = 0.004):
     result3 = region3(t[r3], d[r3], eta[r3], xi[r3])
     result4 = region4(t[r4], d[r4], eta[r4], xi[r4]) 
     result5 = region5(t[r5], d[r5], eta[r5], xi[r5])
-
     # Replace result in correct locations and return 
     result = np.zeros(len(t))
     
@@ -290,44 +289,6 @@ def mod_logcpandel(t, d, sigma = 10., lambda_s = 120., rho = 0.004):
 # Ideally we would normalize via integration, and find the 'zero' residual time by integrating and comparing with cpandel. 
 # For now, however, it is simple and easier to normalize by matching the peak value with the cpandel peak. Then the zero is matched the same way. 
 
-# First we import the data needed
-straw = np.load("/home/users/ghuman/simAnalysis/output/npy/20200630_201044_UTC_SDOM1_FLASHRUN_EDGECOMBE_FLASH_P1_both_1000Hz_blue_8V_RUN1_120s_2020-06-30_2011_20182201054_ch1_cpan-normalized.npy")
-
-# ../straw-b/pdf_plot.py tells us that the 'zero' bin is 434543 when compared with cpandel(t, 40). So, we can build our domain using this 
-# Note: Peak is at bin 303 in the following regime
-x = np.array(range(-300, 3000))
-y = straw[(x[0] + 434543):(x[-1] + 434544)]
-
-# integrate using simpsons rule to normalize
-#print(integrate.simps(y)) # = 0.281694727151
-y = np.divide(y, 0.281694727151)
-
-# Interpolated function using linear fit
-f = inter.interp1d(x, y)
-
-# Interpolated function using a cubic method
-f2 = inter.interp1d(x, y, kind='cubic')
-
-# splinefit
-f3 = inter.splrep(x, y)
-
-# Removing zero values and setting to the next lowest value that occurs, since I will want to eventually compute the logarithm
-
-# Find what value is the second lowest
-above_zero = np.where(np.greater(y, 0.0))
-minimum = min(y[above_zero])
-
-# Find zero values and set to new minimum
-below_min = np.where(np.less(y, minimum))
-y[below_min] = minimum*np.ones(len(below_min[0]))
-
-# Build a filtered distribution
-
-# use -log of y
-ylog = -np.log(y)
-
-# Ken's Work: ---
-
 # Gaussian Filter:
 def gaussWindow(xData,yData,stdDev):
     gaussSmoothedVals = np.zeros(yData.size)#set up the output array
@@ -339,49 +300,4 @@ def gaussWindow(xData,yData,stdDev):
         gaussSmoothedVals[ct] = sum(yData * kernel)  #do the multiplication
         ct+=1
     return gaussSmoothedVals                          #return the points
-
-highEdge = 33 #the upper limit of the part which is left alone (the peak)
-lowEdge = -12 #the lower limit of the same as above
-stdDev = 50 #the standard deviation of the gaussian used to do the smoothing
-
-smoothPointsX = x[x>highEdge] #get the points after the peak to smooth
-smoothPointsY = ylog[x>highEdge]
-
-prePointsX = x[x<=lowEdge] #get the points before the peak to smooth
-prePointsY = ylog[x<=lowEdge]
-
-okPointsX = x[(x>lowEdge) & (x<=highEdge)] #leave the peak alone
-okPointsY = ylog[(x>lowEdge) & (x<=highEdge)] 
-
-gaussSmoothedBegin = gaussWindow(prePointsX,prePointsY,stdDev) #same on the low side
-gaussSmoothedMid = gaussWindow(okPointsX,okPointsY,stdDev) # and the peak
-gaussSmoothedEnd = gaussWindow(smoothPointsX,smoothPointsY,stdDev) #do the smoothing on the high side
-
-gauss_combined = np.concatenate((gaussSmoothedBegin,gaussSmoothedMid,gaussSmoothedEnd),axis=None) #put the points back together
-# ---
-
-savgolBegin = savgol_filter(prePointsY, 101, 4)
-savgolMid = savgol_filter(okPointsY, 11, 4)
-savgolEnd = savgol_filter(smoothPointsY, 451, 4)
-
-sav_combined = np.concatenate((savgolBegin,savgolMid,savgolEnd),axis=None) #put the points back together
-
-f4 = inter.interp1d(x, gauss_combined, kind='cubic')
-
-def straw_pdf(t,d,fit='filter'):
-    # If the time is greater than t_max seconds or less than t_min, we can assume it is the minimum value above zero
-    time = t.copy()
-    t_max = 150.
-    t_min = -12.
-    too_high = np.where(np.greater_equal(time, t_max))
-    too_low = np.where(np.less_equal(time, t_min))
-    time[too_high] = t_max*np.ones(len(too_high[0]))
-    time[too_low] = t_min*np.ones(len(too_low[0]))
-    if fit=='spline':
-        return -np.log(inter.splev(time, f3))
-    elif fit=='filter':
-        return f4(time)
-    else:
-        return -np.log(f2(time))
-
 

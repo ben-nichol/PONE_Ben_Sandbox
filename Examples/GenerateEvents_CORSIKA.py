@@ -12,7 +12,7 @@ from icecube import phys_services
 #from icecube.simprod.modules import Corsika5ComponentGenerator
 from icecube.simprod.segments.GenerateCosmicRayMuons import GenerateSingleMuons
 from icecube.simprod.segments import GenerateCosmicRayMuons
-from icecube.simprod import segments
+#from icecube.simprod import segments
 
 def printfunc(frame, message = 'test'):
 	print(message)
@@ -20,9 +20,9 @@ def printfunc(frame, message = 'test'):
 
 parser = argparse.ArgumentParser()                                              
 parser.add_argument("-o", "--outfile",type = str,default="./test_output.root",help="")
-parser.add_argument("-i", "--infile",type=str,default="./test_input.i3",help="")
 parser.add_argument("-r", "--run",type=int,default=0,help="")                                                       
 parser.add_argument("-g", "--gcdfile",default=os.getenv('PONESRCDIR')+"/GCD/PONE_Phase1.i3.gz", help="Readin GCD file")
+parser.add_argument("-n", "--nevents",type=int,default=10,help="Number of events to run.")
 
 args = parser.parse_args()
 
@@ -72,7 +72,7 @@ tray.Add("I3MCEventHeaderGenerator",
 
 tray.AddSegment(GenerateCosmicRayMuons,"CosmicRayMuons",
 		mctree_name='I3MCTree_preMuonProp',
-		num_events=1000,
+		num_events=args.nevents,
 		flux_model='Hoerandel5_atmod12_SIBYLL',
 		gamma_index=2.0,
 		energy_offset=700.0,
