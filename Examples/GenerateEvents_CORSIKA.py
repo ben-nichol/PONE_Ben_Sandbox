@@ -11,7 +11,7 @@ import os, sys
 from icecube import phys_services
 #from icecube.simprod.modules import Corsika5ComponentGenerator
 from segments.GenerateCosmicRayMuons import GenerateSingleMuons
-from segments import GenerateCosmicRayMuons
+from segments import GenerateCosmicRayMuons, PropagateMuons
 #from icecube.simprod import segments
 
 def printfunc(frame, message = 'test'):
@@ -91,11 +91,14 @@ tray.AddSegment(GenerateCosmicRayMuons,"CosmicRayMuons",
 #		use_inner_cylinder=False
                 )
 
-tray.Add(segments.PropagateMuons, 'ParticlePropagators',
+_kwargs = {"PROPOSAL_config_file":os.getenv('PONESRCDIR')+"/configs/PROPOSAL_config.json"}
+
+tray.Add(PropagateMuons, 'ParticlePropagators',
                                   RandomService=randomService,
                                   SaveState=True,
                                   InputMCTreeName="I3MCTree_preMuonProp",
-                                  OutputMCTreeName="I3MCTree")
+                                  OutputMCTreeName="I3MCTree",
+                                  PROPOSAL_config_file=os.getenv('PONESRCDIR')+"/configs/PROPOSAL_config.json")
 #tray.Add(printfunc,"print4",message = 'print4')
 tray.AddModule('I3Writer',   
                 'writer',
