@@ -18,10 +18,6 @@ from PulseCleaning.CausalHits import CausalPulseCleaning
 from Reconstruction.Cascade.CascadeReco import CascadeReco
 from Trigger.DOMTrigger import DOMTrigger
 from Trigger.DetectorTrigger import DetectorTrigger
-# This script will perform a hybridCLSim propagation.
-#
-# NOTE: There is no bad_dom_cleaning!!!
-#       This you still have to do after the propagation!!!
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-o", "--outfile",type = str, default="./test_output.i3", help="Write output to OUTFILE (.i3{.gz} format)")
@@ -35,10 +31,6 @@ args = parser.parse_args()
 photon_series = "I3Photons"
 tray = I3Tray()
 
-files_dir = args.infile
-file_list_aux = os.listdir(files_dir)
-file_list = [x for x in file_list_aux if ( '.i3.gz' in x and 'PhotonProp' in x and 'Reco' not in x)]
-
 #from globals import max_num_files_per_dataset
 randomService = phys_services.I3SPRNGRandomService(
                                                    seed = 1234567,
@@ -49,7 +41,7 @@ randomService = phys_services.I3SPRNGRandomService(
 tray.context['I3RandomService'] = randomService
 
 tray.AddModule('I3Reader', 'reader',
-            FilenameList = [args.gcdfile, args.infile+file_list[args.runnumber]]
+            FilenameList = [args.gcdfile, args.infile]
             )
 
 print(args.gcdfile)
@@ -117,7 +109,7 @@ tray.AddModule(CascadeReco,"NuTauReconstruction",
               )
 
 tray.AddModule("I3Writer","writer",
-               Filename = args.outfile+"/TrigReco_"+file_list[args.runnumber],
+               Filename = args.outfile,
                Streams = [icetray.I3Frame.DAQ, icetray.I3Frame.Physics, icetray.I3Frame.TrayInfo],
               )
 
