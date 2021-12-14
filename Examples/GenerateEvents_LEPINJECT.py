@@ -4,6 +4,7 @@ from icecube import phys_services
 from icecube import LeptonInjector 
 from icecube.icetray import I3Units
 from icecube import PROPOSAL
+from segments import PropagateMuons
 import os
 from os.path import expandvars
 import numpy as np
@@ -11,7 +12,7 @@ import argparse
 
 parser = argparse.ArgumentParser(description = "A scripts to run the neutrino generation simulation step using Neutrino Generator")
 
-parser.add_argument('-emin', '--energyMin', default = 5.0,                                            help="the minimum energy")
+parser.add_argument('-emin', '--energyMin', default = 3.0,                                            help="the minimum energy")
 parser.add_argument('-emax', '--energyMax', default = 7.0,                                            help="the maximum energy")
 parser.add_argument('-n',    '--numEvents', default = 1000,                                           help="number of events produced by the simulation")
 parser.add_argument('-o',    '--outfile',   default = "output.i3",                                    help="name and path of output file")
@@ -49,7 +50,7 @@ gcd = args.gcd
 tray = I3Tray()
 
 #Random
-randomService = phys_services.I3GSLRandomService(seed=args.runNum)
+randomService = phys_services.I3GSLRandomService(seed=int(args.runNum))
 tray.context["I3RandomService"] = randomService
 tray.AddService("I3EarthModelServiceFactory", "Earth")
 tray.AddModule("I3InfiniteSource", "TheSource", Stream=icetray.I3Frame.DAQ)
@@ -66,20 +67,20 @@ tray.Add("I3EarthModelServiceFactory", "EarthModelService",
 injector_list = []
 injector_list.append(
     LeptonInjector.injector(
-        NEvents         = 100,
+        NEvents         = args.numEvents,
         FinalType1      = dataclasses.I3Particle.ParticleType.MuMinus,
         FinalType2      = dataclasses.I3Particle.ParticleType.Hadrons,
-        DoublyDifferentialCrossSectionFile  = xs_folder + "/dsdxdy_nu_CC_iso.fits",
-        TotalCrossSectionFile               = xs_folder + "/sigma_nu_CC_iso.fits",
+        DoublyDifferentialCrossSectionFile  = args.crossdir + "/dsdxdy_nu_CC_iso.fits",
+        TotalCrossSectionFile               = args.crossdir + "/sigma_nu_CC_iso.fits",
         Ranged = True)
     )
 injector_list.append(
     LeptonInjector.injector(
-        NEvents         = 100,
+        NEvents         = args.numEvents,
         FinalType1      = dataclasses.I3Particle.ParticleType.EMinus,
         FinalType2      = dataclasses.I3Particle.ParticleType.Hadrons,
-        DoublyDifferentialCrossSectionFile  = xs_folder + "/dsdxdy_nu_CC_iso.fits",
-        TotalCrossSectionFile               = xs_folder + "/sigma_nu_CC_iso.fits",
+        DoublyDifferentialCrossSectionFile  = args.crossdir + "/dsdxdy_nu_CC_iso.fits",
+        TotalCrossSectionFile               = args.crossdir + "/sigma_nu_CC_iso.fits",
         Ranged = False)
     )
 
@@ -87,31 +88,32 @@ injector_list.append(
 tray.AddModule("MultiLeptonInjector",
     EarthModel      = "Earth",
     Generators      = injector_list,
-    MinimumEnergy   = 100. * I3Units.GeV,
-    MaximumEnergy   = (1e6) * I3Units.GeV,
+    MinimumEnergy   = (10.0**(args.energyMin)) * I3Units.GeV,
+    MaximumEnergy   = (10.0**(args.energyMax)) * I3Units.GeV,
     MinimumZenith   = 90 * I3Units.deg,
     MaximumZenith   = 180 * I3Units.deg, 
     PowerLawIndex   = 2.,
-    InjectionRadius = 1200 * I3Units.meter,
+    InjectionRadius = 500 * I3Units.meter,
     EndcapLength    = 1200 * I3Units.meter,
-    CylinderRadius  = 800 * I3Units.meter,
-    CylinderHeight  = 800 * I3Units.meter,
+    CylinderRadius  = 400 * I3Units.meter,
+    CylinderHeight  = 1000 * I3Units.meter,
     MinimumAzimuth  = 0. * I3Units.deg,
     MaximumAzimuth  = 360. * I3Units.deg,
     RandomService   = "I3RandomService")
 
-tray.Add(segments.PropagateMuons, 'ParticlePropagators',
+tray.Add(PropagateMuons, 'ParticlePropagators',
          RandomService=randomService,
          SaveState=True,
-         InputMCTreeName="I3MCTree_NuGen",
-         OutputMCTreeName="I3MCTree")
+         InputMCTreeName="I3MCTree",
+         OutputMCTreeName="I3MCTree_postprop",
+         PROPOSAL_config_file=os.getenv('PONESRCDIR')+"/configs/PROPOSAL_config.json")
 
 event_id = 1
 def get_header(frame):
     global event_id 
     header          = dataclasses.I3EventHeader()
     header.event_id = event_id
-    header.run_id   = seed
+    header.run_id   = int(args.runNum)
     frame["I3EventHeader"] = header
 
     event_id += 1

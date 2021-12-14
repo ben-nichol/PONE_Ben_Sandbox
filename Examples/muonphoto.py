@@ -1,5 +1,3 @@
-#!/bin/sh /cvmfs/icecube.opensciencegrid.org/py2-v3.1.1/icetray-start
-#METAPROJECT combo/V00-00-04
 
 import argparse
 from os.path import expandvars
@@ -10,39 +8,7 @@ from icecube import icetray, dataclasses, dataio, simclasses
 from icecube import phys_services, sim_services
 from icecube import clsim
 import WaterOpticalModel.MakePoneMediumPropertiesConservative as Medium
-
-def GetPMTAcceptanceMax() :
-
-    domaccFile = open('/home/users/tmcelroy/pone_offline/data/config_13.txt',"r")
-    lines = domaccFile.readlines()
-    QEmax = 0.4;
-    maxTotaleff = 0.0;
-
-    PMTacceptance = list()
-
-    zenithcount = 0
-    for line in lines :
-        splitline = line.split(" ",1000)
-        if zenithcount % 179 == 0 :
-            zenithcount = 0
-            PMTacceptance.append([])
-        PMTacceptance[-1].append([])
-        for value in splitline :
-            PMTacceptance[-1][-1].append(float(value))
-        zenithcount += 1
-
-    for theta in range(179) :
-        for phi in range(359) :
-            sum_acceptance = 0.0
-            for ipmt in range(len(PMTacceptance)) :
-                sum_acceptance += PMTacceptance[ipmt][theta][phi]    
-            if maxTotaleff < sum_acceptance*QEmax :
-                maxTotaleff = sum_acceptance*QEmax
-
-    print("maxTotaleff")
-    print(maxTotaleff)
-    return maxTotaleff
-
+from Utilities.DOMUtility import GetMaxTotalAcceptance
 
 parser = argparse.ArgumentParser(description = "Takes I3Photons from step2 of the simulations and generates DOM hits")
 parser.add_argument("-i", "--infile",default="./test_input.i3", help="Write output to OUTFILE (.i3{.gz} format)")
@@ -71,15 +37,7 @@ randomService = phys_services.I3SPRNGRandomService(
 
 tray.context['I3RandomService'] = randomService
 
-def PrintMessage(frame,message="") :
-  global count
-
-  print(message)
-  print(count)
-  count += 1
-  return True
-
-outfile = args.outfile + "_PhotonProp_"+str(args.runnumber)+".i3.gz"
+outfile = args.outfile +str(args.runnumber)+".i3.gz"
 
 infile = args.infile + str(args.runnumber)+".i3.gz"
 
@@ -114,7 +72,7 @@ tray.AddSegment(clsim.I3CLSimMakePhotons, 'goCLSIM',
                 #IceModelLocation="/home/users/tmcelroy/pone_offline/WaterOpticalModel/STRAW_Andy_20200328_MattewEta",
                 #IceModelLocation=mediumProperties,
                 UnWeightedPhotons=True, #turn off optimizations
-                UnWeightedPhotonsScalingFactor = GetPMTAcceptanceMax(),
+                UnWeightedPhotonsScalingFactor = GetMaxTotalAcceptance(),
 		DOMRadius = (17.0*2.54*0.01/2.0)*icetray.I3Units.m,
                 #UseGeant4=True,
                 CrossoverEnergyEM=0.1,

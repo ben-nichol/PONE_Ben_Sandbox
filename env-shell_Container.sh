@@ -53,7 +53,7 @@ _I3_SHELL=$NEW_SHELL
 
 _I3_SRC=/app/icetray_offline/src
 _I3_BUILD=/app/icetray_offline/build
-_I3_TESTDATA=/app/icetray_offline/build/test-data
+_I3_TESTDATA="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )/test-data"
 _PONE_SRC="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
 # Check for I3_BUILD mismatch
