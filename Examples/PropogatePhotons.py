@@ -1,127 +1,101 @@
-#!/bin/sh /cvmfs/icecube.opensciencegrid.org/py2-v3.1.1/icetray-start
-#METAPROJECT combo/V00-00-04
 
-from optparse import OptionParser
+import argparse
 from os.path import expandvars
 import os, sys, random
-
-# This script will perform a hybridCLSim propagation.
-#
-# NOTE: There is no bad_dom_cleaning!!!
-#       This you still have to do after the propagation!!!
-
-usage = "usage: %prog [options]"
-parser = OptionParser(usage)
-parser.add_option("-o", "--outfile",default="./test_output.i3", dest="OUTFILE", help="Write output to OUTFILE (.i3{.gz} format)")
-parser.add_option("-i", "--infile",default="./test_input.i3", dest="INFILE", help="Read input from INFILE (.i3{.gz} format)")
-parser.add_option("-r", "--runnumber", type="string", default="1", dest="RUNNUMBER", help="The run/dataset number for this simulation, is used as seed for random generator")
-parser.add_option("-l", "--filenr",type="string",default="1", dest="FILENR", help="File number, stream of I3SPRNGRandomService")
-parser.add_option("-g", "--gcdfile",default=os.getenv('PONESRCDIR')+"/GCD/PONE_Phase1.i3.gz", dest="GCDFILE", help="Read in GCD file")
-parser.add_option("-e","--efficiency", type="float",default=1.0, dest="EFFICIENCY",help="DOM Efficiency ... the same as UnshadowedFraction")
-parser.add_option("-m","--icemodel", default="spice_3.2.1", dest="ICEMODEL",help="Ice model (spice_mie, spice_lea, etc)")
-parser.add_option("-c","--crossenergy", type="float",default=200.0, dest="CROSSENERGY",help="The cross energy where the hybrid clsim approach will be used")
-parser.add_option("-t", action="store_true",  dest="GPU", default=True ,help="Run on GPUs or CPUs")
-
-(options,args) = parser.parse_args()
-if len(args) != 0:
-        error_message = "Got undefined options:"
-        for a in args:
-                error_message += a
-                error_message += " "
-        parser.error(error_message)
-
-options.FILENR=int(options.FILENR)
-options.RUNNUMBER=int(options.RUNNUMBER)
-if options.GPU:
-        CPU=False
-else:
-        CPU=True
-
 from I3Tray import *
 import random
 from icecube import icetray, dataclasses, dataio, simclasses
 from icecube import phys_services, sim_services
-#from icecube import diplopia
 from icecube import clsim
+import WaterOpticalModel.MakePoneMediumPropertiesConservative as Medium
+from Utilities.DOMUtility import GetMaxTotalAcceptance
+
+parser = argparse.ArgumentParser(description = "Takes I3Photons from step2 of the simulations and generates DOM hits")
+parser.add_argument("-i", "--infile",default="./test_input.i3", help="Write output to OUTFILE (.i3{.gz} format)")
+parser.add_argument("-o", "--outfile",default="./test_output.i3", help="Write output to OUTFILE (.i3{.gz} format)")
+parser.add_argument("-r", "--runnumber", type=int, default=1, help="The run/dataset number for this simulation, is used as seed for random generator")
+parser.add_argument("-l", "--filenr",type=int, default=1, help="File number, stream of I3SPRNGRandomService")
+parser.add_argument("-g", "--gcdfile",default=os.getenv('PONESRCDIR')+"/GCD/PONE_Phase1.i3.gz", help="Read in GCD file")
+parser.add_argument("-e", "--efficiency", type=float,default=1.0,help="DOM Efficiency ... the same as UnshadowedFraction")
+parser.add_argument("-m", "--icemodel", default="spice_3.2.1",help="Ice model (spice_mie, spice_lea, etc)")
+parser.add_argument("-c", "--crossenergy", type=float,default=200.0,help="The cross energy where the hybrid clsim approach will be used")
+parser.add_argument("-f", "--frames", type=int,default=100,help="N Frames")
+args = parser.parse_args()
+count = 0
+CPU=False
 
 photon_series = "I3Photons"
 #print 'CUDA devices: ', options.DEVICE
 tray = I3Tray()
-print 'Using RUNNUMBER: ', options.RUNNUMBER
 
 # Now fire up the random number generator with that seed
 #from globals import max_num_files_per_dataset
 randomService = phys_services.I3SPRNGRandomService(
-    seed = 1234567,
-    nstreams = 10000,
-    streamnum = options.RUNNUMBER)
+                seed = int(args.runnumber),
+               nstreams = int(4e7),
+                streamnum = int(args.runnumber))
 
 tray.context['I3RandomService'] = randomService
 
-def BasicHitFilter(frame):
-    hits = 0
-    if frame.Has(photon_series):
-       hits = len(frame.Get(photon_series))
-    if hits>0:
-       return True
-    else:
-       return False
+outfile = args.outfile +str(args.runnumber)+".i3.gz"
 
+infile = args.infile + str(args.runnumber)+".i3.gz"
 
-### START ###
+icemodel_path =  args.icemodel
+
+#gcd_file = dataio.I3File(args.gcdfile)
+print(args.gcdfile)
 
 tray.AddModule('I3Reader', 'reader',
-            FilenameList = [options.GCDFILE, options.INFILE]
+            FilenameList = [infile]
             )
 
-tray.AddModule("I3GeometryDecomposer", "I3ModuleGeoMap")
-
-icemodel_path =  options.ICEMODEL
-print 'Ice model ', icemodel_path
-print "DOM efficiency: ", options.EFFICIENCY
-# Only the photons are made. Still have to convert them to hits!
-print "Setting cross energy: " , float(options.CROSSENERGY), "GeV"
-#tray.AddSegment(clsim_hybrid.I3CLSimMakePhotons, 'goCLSIM',
-print "Using CPUs ", CPU
-print "Using GPUs ", options.GPU
-
-gcd_file = dataio.I3File(options.GCDFILE)
+#tray.AddModule('I3Reader', 'reader',
+#            FilenameList = [args.gcdfile,infile]
+#            )
 
 tray.AddSegment(clsim.I3CLSimMakePhotons, 'goCLSIM',
-                UseCPUs=True,#CPU,
-                UseGPUs=False,#options.GPU,
+                #UseCPUs=True,
+                UseGPUs=True,
+                #UseOnlyDeviceNumber=[1],
+                #OpenCLDeviceList=[0],
                 MCTreeName="I3MCTree",
-                OutputMCTreeName="I3MCTree_clsim",
-                FlasherInfoVectName=None,
-                #MMCTrackListName=None,
+                #OutputMCTreeName="I3MCTree_clsim",
+                #FlasherInfoVectName="I3FlasherInfo",
+                #FlasherPulseSeriesName="PhotonBomb",
+                #MMCTrackListName="MMCTrackList",
                 PhotonSeriesName=photon_series,
+                MCPESeriesName='',
                 #ParallelEvents=1000,
                 RandomService=randomService,
-                #IceModelLocation=icemodel_path,
-                UseGeant4=False,
+                IceModelLocation=Medium.MakePoneMediumProperties(),
+                #IceModelLocation="/home/users/tmcelroy/pone_offline/WaterOpticalModel/STRAW_Andy_20200328_MattewEta",
+                #IceModelLocation=mediumProperties,
+                UnWeightedPhotons=True, #turn off optimizations
+                UnWeightedPhotonsScalingFactor = GetMaxTotalAcceptance(),
+		DOMRadius = (17.0*2.54*0.01/2.0)*icetray.I3Units.m,
+                #UseGeant4=True,
                 CrossoverEnergyEM=0.1,
-		            CrossoverEnergyHadron=float(options.CROSSENERGY),
+                PhotonHistoryEntries=0,
+                #CrossoverEnergyHadron=float(options.CROSSENERGY),
                 StopDetectedPhotons=True,
+                #UseHoleIceParameterization=False, # Apply it when making hits!
+                #HoleIceParameterization=expandvars("$I3_SRC/ice-models/resources/models/angsens/as.flasher_p1_0.30_p2_-1"),
                 DoNotParallelize=False,
-                DOMOversizeFactor=1.,
-                UnshadowedFraction=options.EFFICIENCY,
-                GCDFile=options.GCDFILE,#gcd_file,
-                #ExtraArgumentsToI3CLSimModule={
-                #    "DoublePrecision":False, #will impact performance if true
-                #    "StatisticsName":"clsim_stats",
-                #    "IgnoreDOMIDs":[],
-                #    }
+		#WavelengthAcceptance = 1.0,
+                DOMOversizeFactor=1.0, #(17./13.),
+                UnshadowedFraction=1., #normal in IC79 and older CLSim versions was 0.9, now it is 1.0
+                GCDFile= args.gcdfile #gcd_file
                 )
 
+#icetray.logging.I3Logger.global_logger.set_level_for_unit('clsim', icetray.logging.I3LogLevel.LOG_ERROR)
+#icetray.logging.I3Logger.global_logger.set_level_for_unit('I3CLSimStepToPhotonConverterOpenCL', icetray.logging.I3LogLevel.LOG_WARN)
 
-# Tested that all frames go through CLSIM. Removing the ones without any hits to save space.
-tray.AddModule(BasicHitFilter, 'FilterNullPhotons', Streams = [icetray.I3Frame.DAQ, icetray.I3Frame.Physics])
-
-SkipKeys = ["I3MCTree_bak"]
+#tray.AddModule(PrintMessage,"print",message = "CLSiM Check")
 
 tray.AddModule("I3Writer","writer",
-               SkipKeys=SkipKeys,
-               Filename = options.OUTFILE,
+#               SkipKeys=SkipKeys,
+               Filename =  outfile,
                Streams = [icetray.I3Frame.DAQ, icetray.I3Frame.Physics, icetray.I3Frame.TrayInfo],
               )
 

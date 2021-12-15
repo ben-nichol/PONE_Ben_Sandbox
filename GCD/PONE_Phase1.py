@@ -38,7 +38,7 @@ def generateGeometry(nCircles, DPS, strings):
 
     for m in range(0, DPS):
         for n in range(0, len(xPos)):
-            omkey = OMKey(n, m, 0)
+            omkey = OMKey(n+1, m+1, 0)
             omGeometry = dataclasses.I3OMGeo()
             omGeometry.omtype = dataclasses.I3OMGeo.OMType.mDOM
             omGeometry.orientation = orientation

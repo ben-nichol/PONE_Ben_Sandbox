@@ -99,7 +99,7 @@ if [[ "${_GENIE_FOUND}" == "TRUE" ]]; then
 	_LD_LIBRARY_PATH=${_LD_LIBRARY_PATH}:${GENIE_LIBRARY_DIR}
 	_DYLD_LIBRARY_PATH=${_DYLD_LIBRARY_PATH}:${GENIE_LIBRARY_DIR}
     fi
-env-shell_ubuntu.shfi
+fi
 _GEANT4_FOUND=TRUE
 if [[ "${_GEANT4_FOUND}" == "TRUE" ]]; then
     GEANT4_LIBRARY_DIR=/cvmfs/icecube.opensciencegrid.org/py3-v4.1.1/RHEL_7_x86_64/spack/opt/spack/linux-centos7-x86_64/gcc-9.2.0spack/geant4-10.04-jtcfrttq4krvbvabfjtkq7itsf3dieqg/lib64
