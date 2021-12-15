@@ -70,26 +70,14 @@ then
     exit 2
 fi
 
-# Check for valid ROOTSYS
-if [ -d "/USE_ROOT/IS/OFF" ]; then
+geant4_envbindir=/app/geant/bin
 
-_ROOTSYS=/USE_ROOT/IS/OFF
-_LD_LIBRARY_PATH=/app/icetray_offline/build/lib:/app/icetray_offline/build/lib/tools:${_ROOTSYS}/lib::$LD_LIBRARY_PATH
+_ROOTSYS=/app/root
+_LD_LIBRARY_PATH=/app/icetray_offline/build/lib:/app/icetray_offline/build/lib/tools:$geant4_envbindir/../lib:${_ROOTSYS}/lib::$LD_LIBRARY_PATH
 _DYLD_LIBRARY_PATH=/app/icetray_offline/build/lib:/app/icetray_offline/build/lib/tools:${_ROOTSYS}/lib:$DYLD_LIBRARY_PATH
 
 _PYTHONPATH=/app/icetray_offline/build/lib:$_PONE_SRC:${_ROOTSYS}/lib:$PYTHONPATH
-_PATH=/app/icetray_offline/build/bin:${_ROOTSYS}/bin:$PATH
-
-else
-
-_ROOTSYS=''
-_LD_LIBRARY_PATH=/app/icetray_offline/build/lib:/app/icetray_offline/build/lib/tools::$LD_LIBRARY_PATH
-_DYLD_LIBRARY_PATH=/app/icetray_offline/build/lib:/app/icetray_offline/build/lib/tools:$DYLD_LIBRARY_PATH
-
-_PYTHONPATH=/app/icetray_offline/build/lib:$_PONE_SRC:$PYTHONPATH
-_PATH=/app/icetray_offline/build/bin:$PATH
-
-fi
+_PATH=/app/icetray_offline/build/bin:${_ROOTSYS}/bin:$geant4_envbindir:$PATH
 
 _HIPPO_FOUND=
 if [ "${_HIPPO_FOUND}" = 1 ]; then
@@ -154,11 +142,23 @@ if [ -z "$I3_SHELL" ] # a clean, first invocation
 	ROOTSYS=$_ROOTSYS \
 	PONESRCDIR=$_PONE_SRC \
 	I3_SHELL=$_I3_SHELL \
+	G4NEUTRONHPDATA="/app/geant4/install/share/Geant4-10.7.3/data/G4NDL4.6" \
+	G4LEDATA="/app/geant4/install/share/Geant4-10.7.3/data/G4EMLOW7.13" \
+	G4LEVELGAMMADATA="/app/geant4/install/share/Geant4-10.7.3/data/PhotonEvaporation5.7" \
+	G4RADIOACTIVEDATA="/app/geant4/install/share/Geant4-10.7.3/data/RadioactiveDecay5.6" \
+	G4PARTICLEXSDATA="/app/geant4/install/share/Geant4-10.7.3/data/G4PARTICLEXS3.1.1" \
+	G4PIIDATA="/app/geant4/install/share/Geant4-10.7.3/data/G4PII1.3" \
+	G4REALSURFACEDATA="/app/geant4/install/share/Geant4-10.7.3/data/RealSurface2.2" \
+	G4SAIDXSDATA="/app/geant4/install/share/Geant4-10.7.3/data/G4SAIDDATA2.0" \
+	G4ABLADATA="/app/geant4/install/share/Geant4-10.7.3/data/G4ABLA3.1" \
+	G4INCLDATA="/app/geant4/install/share/Geant4-10.7.3/data/G4INCL1.0" \
+	G4ENSDFSTATEDATA="/app/geant4/install/share/Geant4-10.7.3/data/G4ENSDFSTATE2.3" \
 	 \
-	$NEW_SHELL "$@"
-
+	$NEW_SHELL "$@"\
+	 
 else  # not clean, use previous environment
-    $NEW_SHELL "$@"
+    $NEW_SHELL "$@" 
+    
 fi
 
 STATUS=$?
