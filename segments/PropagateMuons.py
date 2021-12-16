@@ -14,7 +14,7 @@ import icecube.PROPOSAL
 import json
 
 default_media_definition = os.path.expandvars(
-    "$I3_BUILD/PROPOSAL/resources/config_icesim.json")
+    "$PONESRCDIR/configs/PROPOSAL_config.json")
 
 
 @icecube.icetray.traysegment

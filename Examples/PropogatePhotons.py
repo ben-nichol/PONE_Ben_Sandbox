@@ -37,9 +37,9 @@ randomService = phys_services.I3SPRNGRandomService(
 
 tray.context['I3RandomService'] = randomService
 
-outfile = args.outfile +str(args.runnumber)+".i3.gz"
+outfile = args.outfile +str(args.runnumber)+".i3.zst"
 
-infile = args.infile + str(args.runnumber)+".i3.gz"
+infile = args.infile + str(args.runnumber)+".i3.zst"
 
 icemodel_path =  args.icemodel
 
@@ -59,7 +59,8 @@ tray.AddSegment(clsim.I3CLSimMakePhotons, 'goCLSIM',
                 UseGPUs=True,
                 #UseOnlyDeviceNumber=[1],
                 #OpenCLDeviceList=[0],
-                MCTreeName="I3MCTree",
+                MCTreeName="I3MCTree_postprop",
+                UseI3PropagatorService=False,
                 #OutputMCTreeName="I3MCTree_clsim",
                 #FlasherInfoVectName="I3FlasherInfo",
                 #FlasherPulseSeriesName="PhotonBomb",
@@ -85,7 +86,7 @@ tray.AddSegment(clsim.I3CLSimMakePhotons, 'goCLSIM',
 		#WavelengthAcceptance = 1.0,
                 DOMOversizeFactor=1.0, #(17./13.),
                 UnshadowedFraction=1., #normal in IC79 and older CLSim versions was 0.9, now it is 1.0
-                GCDFile= args.gcdfile #gcd_file
+                GCDFile= args.gcdfile, #gcd_file,
                 )
 
 #icetray.logging.I3Logger.global_logger.set_level_for_unit('clsim', icetray.logging.I3LogLevel.LOG_ERROR)
