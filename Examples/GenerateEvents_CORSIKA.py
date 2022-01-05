@@ -22,7 +22,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-o", "--outfile",type = str,default="./test_output.root",help="")
 parser.add_argument("-r", "--run",type=int,default=0,help="")                                                       
 parser.add_argument("-g", "--gcdfile",default=os.getenv('PONESRCDIR')+"/GCD/PONE_Phase1.i3.gz", help="Readin GCD file")
-parser.add_argument("-n", "--nevents",type=int,default=10,help="Number of events to run.")
+parser.add_argument("-n", "--nevents",type=int,default=1000,help="Number of events to run.")
 
 args = parser.parse_args()
 

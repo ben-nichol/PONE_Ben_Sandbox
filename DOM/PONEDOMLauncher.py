@@ -63,7 +63,7 @@ def AddDarkHits(domsUsed,mcpulsemap,random_service,DNprob,max_pt,min_pt,splitDOM
                 mcpulsemap[key].append(mcphoton)
 
 #Apply the responce of the PMT, this includes pulse combining for pulses too close together. 
-def ApplyPMTResponce(mcpulsemap,random_service,PMT_tts,PMT_ts,LPprob,APprob,APComponetRatio,APmeantime_1,APmeantime_2,APtimesigma_1,APtimesigma_2,chargemean,chargesigma,PEsaturation,PEthreshold) :
+def ApplyPMTResponce(mcpulsemap,random_service,PMT_tts,PMT_ts,LPprob,APprob,APComponetRatio,APmeantime_1,APmeantime_2,APtimesigma_1,APtimesigma_2,chargemean,chargesigma,PEsaturation,PEthreshold,splitDOMs) :
     outputpulsemap = dataclasses.I3RecoPulseSeriesMap()
     outputmcpulsemap = simclasses.I3MCPulseSeriesMap()
 
@@ -136,7 +136,9 @@ def ApplyPMTResponce(mcpulsemap,random_service,PMT_tts,PMT_ts,LPprob,APprob,APCo
             else :
                 rpulse.charge = pulsechargelist[-1-i]
             pulseseries.append(rpulse)
-        newomkey = OMKey(omkey.string, omkey.om, omkey.pmt)
+        newomkey = OMKey(omkey.string, omkey.om,0)
+        if splitDOMs :
+            newomkey.pmt = omkey.pmt
 
         outputpulsemap[newomkey]=pulseseries
         outputmcpulsemap[newomkey] = mcpulseseries
@@ -225,9 +227,12 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
 
         domsUsed = frame['I3Geometry'].omgeo
 
-        if self.splitDOMs :
-            mcpulsemap = SplitPMTs(mcpulsemap,random_service)
-            mcpulseOMKeys = mcpulsemap.keys()
+        #if self.splitDOMs :
+        #    mcpulsemap = SplitPMTs(mcpulsemap,random_service)
+        #    mcpulseOMKeys = mcpulsemap.keys()
+
+        mcpulsemap = SplitPMTs(mcpulsemap,random_service)
+        mcpulseOMKeys = mcpulsemap.keys()
 
         max_pt, min_pt = GetMaxMinTimes(mcpulsemap)
 
@@ -248,6 +253,7 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
                                                             self.chargemean,
                                                             self.chargesigma,
                                                             self.PEsaturation,
-                                                            self.PEthreshold)
+                                                            self.PEthreshold,
+                                                            self.splitDOMs)
 
         self.PushFrame(frame)

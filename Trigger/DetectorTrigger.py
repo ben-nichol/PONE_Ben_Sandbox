@@ -26,6 +26,9 @@ class DetectorTrigger(icetray.I3ConditionalModule):
         self.AddParameter("ForceAdjacency","Require adjacency ",True)
         self.AddParameter("DOMPMTCoinc","Number of PMTs needed for DOM Trigger",2)
         self.AddParameter("EventLength","Length of Event",10000)
+        self.AddParameter("TriggerTime","Time of trigger in event.",2000)
+        self.AddParameter("PulseSeriesIn","Pulse series in","")
+        self.AddParameter("PulseSeriesOut","Pulse series out","")
         self.AddOutBox("OutBox")
 
     def Configure(self):
@@ -43,6 +46,9 @@ class DetectorTrigger(icetray.I3ConditionalModule):
         self.StringCoincidenceWindow = self.GetParameter("StringCoincidenceWindow")
         self.DOMPMTCoinc = self.GetParameter("DOMPMTCoinc")
         self.EventLength = self.GetParameter("EventLength")
+        self.TriggerTime = self.GetParameter("TriggerTime")
+        self.PulseSeriesIn = self.GetParameter("PulseSeriesIn")
+        self.PulseSeriesOut = self.GetParameter("PulseSeriesOut")
         self.DoStringTrigger = (self.StringCoincidenceN < self.FullDetectorCoincidenceN) and (self.StringCoincidenceWindow < self.FullDetectorCoincidenceWindow)
 
         self.nstrings = int(0)
@@ -64,17 +70,13 @@ class DetectorTrigger(icetray.I3ConditionalModule):
                 if domkey.pmt > self.npmts  :
                     self.npmts  = int(domkey.pmt)
 
-            self.nstrings += 1
-            self.nDOMs += 1
-            self.npmts += 1
-      
-            DOM_space = domsUsed[OMKey(0,0,0)].position.z - domsUsed[OMKey(0,1,0)].position.z
+            DOM_space = domsUsed[OMKey(1,1,0)].position.z - domsUsed[OMKey(1,2,0)].position.z
 
             String_space = 99999.
             string_pos = list()
 
-            for i in range(self.nstrings) :
-                string_pos.append(domsUsed[OMKey(i,0,0)].position)
+            for i in range(1,self.nstrings+1) :
+                string_pos.append(domsUsed[OMKey(i,1,0)].position)
 
             average_min_stringdist = 0.0
             for i in range(len(string_pos)-1):
@@ -118,13 +120,13 @@ class DetectorTrigger(icetray.I3ConditionalModule):
                     for l in range(len(string_pos)) :
                         if sqrt((string_pos[j].x-string_pos[l].x)**2.0+(string_pos[j].y-string_pos[l].y)**2.0) < average_min_stringdist*1.5 :
                             for k in range(i-nstart,i+nstart+1) :
-                                self.StringTriggerGroups[-1].append(OMKey(l,k,0))
+                                self.StringTriggerGroups[-1].append(OMKey(l+1,k+1,0))
 
         else :
             nstart = int((self.StringNRows-1)/2)
             for i in range(nstart,self.nDOMs-nstart) :
                 self.StringTriggerGroups.append([])
-                for j in range(self.nstrings) :
+                for j in range(1,self.nstrings+1) :
                     for k in range(i-nstart,i+nstart+1) :
                         self.StringTriggerGroups[-1].append(OMKey(j,k,0))  
 
@@ -235,7 +237,14 @@ class DetectorTrigger(icetray.I3ConditionalModule):
                             stringTriggerTime.append(max(StringTrigOpp[j][i][2]))
 
         if self.CutOnTrigger and len(stringTriggerTime) < 1 and len(detectorTriggerTime) < 1 :
-            return
+            if self.CutOnTrigger :
+                return
+            else :
+                frame["DetectorTriggers"+self.output] = detectorTriggerTime
+                frame["StringTriggers"+self.output] = stringTriggerTime
+                outputpulsemap = dataclasses.I3RecoPulseSeriesMap()
+                frame[self.PulseSeriesOut] = outputpulsemap
+                self.PushFrame(frame)
 
         #print("detectorTriggerTime")
         #print(detectorTriggerTime)
@@ -245,4 +254,22 @@ class DetectorTrigger(icetray.I3ConditionalModule):
         frame["DetectorTriggers"+self.output] = detectorTriggerTime
         frame["StringTriggers"+self.output] = stringTriggerTime
 
+        pulseseriesmap = frame[self.PulseSeriesIn]
+        outputpulsemap = dataclasses.I3RecoPulseSeriesMap()
+
+        mintrigtime = min(detectorTriggerTime,stringTriggerTime)
+
+        for dom in pulseseriesmap :
+            pulseseries = dataclasses.I3RecoPulseSeries()
+            for pulse in pulseseriesmap[dom] :
+                if pulse.time > mintrigtime-self.TriggerTime and pulse.time < mintrigtime+self.EventLength-self.TriggerTime :
+                    resetpulse = dataclasses.I3RecoPulse()
+                    resetpulse.charge = pulse.charge
+                    resetpulse.time = pulse.time-mintrigtime+self.TriggerTime
+                    pulseseries.append(resetpulse)
+            if len(pulseseries) > 0 :
+                outputseriesmap[dom] = pulseseries
+
+        frame[self.PulseSeriesOut] = outputpulsemap
+                
         self.PushFrame(frame)

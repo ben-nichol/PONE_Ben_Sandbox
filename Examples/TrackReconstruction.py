@@ -1,11 +1,8 @@
-#!/bin/sh /cvmfs/icecube.opensciencegrid.org/py2-v3.1.1/icetray-start
+#!/bin/sh bash
 #METAPROJECT combo/V00-00-04
 
 from os.path import expandvars
 import os, sys, random
-from DOM.PONEDOMLauncher import SimpleDOMSimulation
-from DOM.WaveformBuilder import WaveformBuilder
-from PulseCleaning.TimeShifted import timeShift
 from I3Tray import *                                                            
 import random                                                                   
 from icecube import icetray, dataclasses, dataio, simclasses                    
@@ -16,8 +13,6 @@ from Reconstruction.Track.TrackReco import TrackReco
 from PulseCleaning.SignificantHitPulseCleaning import SignificantHitPulseCleaning
 from PulseCleaning.CausalHits import CausalPulseCleaning
 from Reconstruction.Cascade.CascadeReco import CascadeReco
-from Trigger.DOMTrigger import DOMTrigger
-from Trigger.DetectorTrigger import DetectorTrigger
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-o", "--outfile",type = str, default="./test_output.i3", help="Write output to OUTFILE (.i3{.gz} format)")
@@ -47,35 +42,6 @@ tray.AddModule('I3Reader', 'reader',
 print(args.gcdfile)
 gcd_file = dataio.I3File(args.gcdfile)
 
-tray.AddModule(timeShift,"MCtimeShift",
-              MergedMCPETreeName = photon_series,
-              TimeShiftedMCPE = "TimeShiftedMCPEMap",
-              MinTime = 7200
-              )
-
-tray.AddModule(SimpleDOMSimulation, 'DOMLauncher',
-               GCDFile=gcd_file,
-               inputmap = "TimeShiftedMCPEMap",
-               outputmap = "I3Photons_PMTResponse",
-               RandomService = randomService,
-               minTsep = args.pulsesep,
-               SplitDoms = True,
-               AcceptBaseValue = -1.0
-              )
-
-tray.AddModule(DOMTrigger,"DOMTrigger",
-                GCDFile=gcd_file,
-                inputmap = "I3Photons_PMTResponse",
-              )
-
-tray.AddModule(DetectorTrigger,"PONE_Trigger",
-               GCDFile=gcd_file,
-               output="_3PMT_2DOM",
-               DOMPMTCoinc =3,
-               FullDetectorCoincidenceN = 2,
-               CutOnTrigger = True
-              )
-
 #This pulse cleaning kinda sucks. 
 tray.AddModule(SignificantHitPulseCleaning,"SignificantHit",
               GCDFile=gcd_file,
@@ -101,6 +67,9 @@ tray.AddModule(TrackReco,"likelihoodreco",
                pulseseries = "CausalHits",
                seedtrack = "linefit",
                output = "llhfit",
+              )
+
+tray.AddModule(
               )
 
 tray.AddModule(CascadeReco,"NuTauReconstruction",

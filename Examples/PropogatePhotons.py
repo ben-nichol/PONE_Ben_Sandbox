@@ -37,9 +37,9 @@ randomService = phys_services.I3SPRNGRandomService(
 
 tray.context['I3RandomService'] = randomService
 
-outfile = args.outfile +str(args.runnumber)+".i3.zst"
+outfile = args.outfile +str(args.runnumber)+".i3.gz"
 
-infile = args.infile + str(args.runnumber)+".i3.zst"
+infile = args.infile + str(args.runnumber)+".i3.gz"
 
 icemodel_path =  args.icemodel
 
@@ -59,7 +59,7 @@ tray.AddSegment(clsim.I3CLSimMakePhotons, 'goCLSIM',
                 UseGPUs=True,
                 #UseOnlyDeviceNumber=[1],
                 #OpenCLDeviceList=[0],
-                MCTreeName="I3MCTree_postprop",
+                MCTreeName="I3MCTree",
                 UseI3PropagatorService=False,
                 #OutputMCTreeName="I3MCTree_clsim",
                 #FlasherInfoVectName="I3FlasherInfo",
