@@ -5,12 +5,14 @@ import numpy as np
 from Utilities.DOMUtility import NoPMTKey, AddPMTKey, GetPMTAcceptance, GetPMTQETable, GetPMTQE, GetPMT, GetNPMTs, GetMaxTotalAcceptance, GetMaxAngularAcceptance
 
 #split MCPhoton hits into PMTs on the DOMs.
-def SplitPMTs(mcpulsemap,random_service) :
+def SplitPMTs(mcpulsemap,random_service,dropstrings) :
     newmcpulsemap = {}
     #make new map with individual PMTs
     total=0
     passed = 0
     for omkey in mcpulsemap.keys():
+        if omkey.string in dropstrings :
+            continue
         for pulse in mcpulsemap[omkey]:
             pmtid = GetPMT([pulse.dir.x,pulse.dir.y,pulse.dir.z],pulse.wavelength,random_service.uniform(0.0,1.0))
             if pmtid < 0 :
@@ -178,6 +180,7 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
         self.AddParameter("PMTQEFile","","")
         self.AddParameter("QEBaseValue","",0.4)
         self.AddParameter("AcceptBaseValue","",1.0)
+        self.AddParameter("DropStrings","",[])
         self.AddOutBox("OutBox")
 
     def Configure(self):
@@ -205,6 +208,8 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
         self.randomService = self.GetParameter("RandomService") 
         self.genWaveforms = self.GetParameter("GenWaveforms")
         self.splitDOMs = self.GetParameter("SplitDoms")
+        self.dropstrings = self.GetParameter("DropStrings")
+
         QEBase = self.GetParameter("QEBaseValue")
         if self.GetParameter("DOMAcceptanceFile") != "" :
             GetPMTAcceptance(self.GetParameter("DOMAcceptanceFile"))
@@ -231,7 +236,7 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
         #    mcpulsemap = SplitPMTs(mcpulsemap,random_service)
         #    mcpulseOMKeys = mcpulsemap.keys()
 
-        mcpulsemap = SplitPMTs(mcpulsemap,random_service)
+        mcpulsemap = SplitPMTs(mcpulsemap,random_service,self.dropstrings)
         mcpulseOMKeys = mcpulsemap.keys()
 
         max_pt, min_pt = GetMaxMinTimes(mcpulsemap)

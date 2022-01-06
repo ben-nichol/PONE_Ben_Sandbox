@@ -116,10 +116,10 @@ class StartStopFit(icetray.I3ConditionalModule):
         stop_cylr = np.sqrt(stop_pos_x**2.0+stop_pos_y**2.0)
 
         if abs(stop_pos_z) > self.MaxZ or stop_cylr > self.MaxDOMRad:
-            l = stopL.
+            l = stopL
             if abs(stop_pos_z)>0.0 and abs(linefit.dir.z)>0.0:
                 l = ((stop_pos_z/abs(stop_pos_z))*self.MaxZ-linefit.pos.z)/linefit.dir.z
-            lrad = stopL.
+            lrad = stopL
             dir_rad = np.sqrt(linefit.dir.x**2.0+linefit.dir.y**2.0)
             
             if dir_rad > 0.0 and stop_cylr > self.MaxDOMRad :
