@@ -20,8 +20,11 @@ def generateGeometry(nCircles, DPS, strings):
 
     radius = np.arange(200, 0, -(200/nCircles))
     #stringsPerCircle = radius*ratio
-    stringSpacing = 800/DPS
-    depth = np.arange((I3Constants.SurfaceElev - I3Constants.OriginElev - 1600), (I3Constants.SurfaceElev - I3Constants.OriginElev - 2400), -(800/DPS)) * I3Units.meter
+    #stringSpacing = 800/DPS
+    #depth = np.arange(-500,500, -(1000/DPS)) * I3Units.meter
+    sp = 800.0/19.0
+    depthlist = [(-400.0+sp*i)*I3Units.meter for i in range(20)]
+    depth = np.array(depthlist)
     xPos = ([])
     yPos = ([])
     for i in range(0, len(radius)):
