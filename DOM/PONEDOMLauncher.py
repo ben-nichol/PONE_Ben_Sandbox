@@ -217,8 +217,6 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
                 AccBase = GetMaxAngularAcceptance()
             else :
                 AccBase = self.GetParameter("AcceptBaseValue")
-        else :
-            self.splitDOMs = False
         if self.GetParameter("PMTQEFile") != "" :
             GetPMTQETable(self.GetParameter("PMTQEFile"))
 
@@ -260,5 +258,6 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
                                                             self.PEsaturation,
                                                             self.PEthreshold,
                                                             self.splitDOMs)
+
 
         self.PushFrame(frame)

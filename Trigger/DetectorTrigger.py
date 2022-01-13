@@ -257,9 +257,16 @@ class DetectorTrigger(icetray.I3ConditionalModule):
         pulseseriesmap = frame[self.PulseSeriesIn]
         outputpulsemap = dataclasses.I3RecoPulseSeriesMap()
 
-        mintrigtime = min(detectorTriggerTime,stringTriggerTime)
+        mintrigtime = 99999999.
+        for _time in detectorTriggerTime:
+            if _time < mintrigtime :
+                mintrigtime = _time
 
-        for dom in pulseseriesmap :
+        for _time in stringTriggerTime:
+            if _time < mintrigtime :
+                mintrigtime = _time
+
+        for dom in pulseseriesmap.keys() :
             pulseseries = dataclasses.I3RecoPulseSeries()
             for pulse in pulseseriesmap[dom] :
                 if pulse.time > mintrigtime-self.TriggerTime and pulse.time < mintrigtime+self.EventLength-self.TriggerTime :
@@ -268,7 +275,7 @@ class DetectorTrigger(icetray.I3ConditionalModule):
                     resetpulse.time = pulse.time-mintrigtime+self.TriggerTime
                     pulseseries.append(resetpulse)
             if len(pulseseries) > 0 :
-                outputseriesmap[dom] = pulseseries
+                outputpulsemap[dom] = pulseseries
 
         frame[self.PulseSeriesOut] = outputpulsemap
                 
