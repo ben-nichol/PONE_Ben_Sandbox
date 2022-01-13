@@ -9,13 +9,13 @@ import gcdHelpers
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-s", "--spacing",type = float, default = 100.0, help="Spacing for strings.")
-parser.add_argument("-n", "--nstring",type= int, default = 10, help="Number of strings.")
+parser.add_argument("-n", "--nstring",type= int, default = 70, help="Number of strings.")
 parser.add_argument("-d", "--ndoms",type= int, default = 20, help="Doms per string.")
 parser.add_argument("-r", "--domradius",type= int, default = (17.0*2.54*0.01*0.5), help="Radius of dom. Defaults to 17\"")
 args = parser.parse_args()
 
 
-outfileName = "PONE_"+str(args.nstrings)+"String.i3.gz"
+outfileName = "PONE_"+str(args.nstring)+"String.i3.gz"
 outfile = dataio.I3File(outfileName, 'w')
 nstrings = args.nstring
 spacing = args.spacing
@@ -49,7 +49,7 @@ def generateGeometry():
                         if i==j :
                                 continue
                         dist = np.sqrt((stringposx[j]-stringposx[i])**2.0+(stringposy[j]-stringposy[i])**2.0)
-                        if dist<stringspace*1.2 :
+                        if dist<spacing*1.2 :
                                 nneighbours += 1
                 if nneighbours < len(neighbourangles) and rad <= minradius :
                         if rad < minradius :
@@ -64,23 +64,23 @@ def generateGeometry():
         maxneighours = 0
         maxneighbourstring = 0
         for j in range(len(neighbourangles)) :
-                newposx = stringposx[minradstring]+stringspace*np.sin(neighbourangles[j])
-                newposy = stringposy[minradstring]+stringspace*np.cos(neighbourangles[j])
+                newposx = stringposx[minradstring]+spacing*np.sin(neighbourangles[j])
+                newposy = stringposy[minradstring]+spacing*np.cos(neighbourangles[j])
 
                 nneighbours = 0
                 overlap = False
                 for k in range(len(stringposx)) :
                         dist = np.sqrt((newposx-stringposx[k])**2.0+(newposy-stringposy[k])**2.0)
-                        if dist < stringspace*0.8 :
+                        if dist < spacing*0.8 :
                                 nneighbours = 0
                                 overlap = True
-                        if dist<stringspace*1.2 :
+                        if dist<spacing*1.2 :
                                 nneighbours += 1
                 if nneighbours > maxneighours and not overlap:
                         maxneighours = nneighbours
                         maxneighbourstring = j
-        stringposx.append(stringposx[minradstring]+stringspace*np.sin(neighbourangles[maxneighbourstring]))
-        stringposy.append(stringposy[minradstring]+stringspace*np.cos(neighbourangles[maxneighbourstring]))
+        stringposx.append(stringposx[minradstring]+spacing*np.sin(neighbourangles[maxneighbourstring]))
+        stringposy.append(stringposy[minradstring]+spacing*np.cos(neighbourangles[maxneighbourstring]))
 
     sp = 800.0/19.0
     depthlist = [(-400.0+sp*i)*I3Units.meter for i in range(20)]
