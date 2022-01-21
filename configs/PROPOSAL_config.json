@@ -152,7 +152,7 @@
 	{
 		"shape": "cylinder",
 		"origin" : [0, 0, 0],
-		"outer_radius": 300,
+		"outer_radius": 1000,
 		"inner_radius": 0,
 		"height": 1000
 	}
