@@ -28,6 +28,6 @@ def get_geo_from_gcd(gcd):
     height = np.max(zPos)-np.min(zPos)
     rPos = np.sqrt(xPos*xPos+yPos*yPos)
     radius = np.max(rPos)
-
+    gcd_file.close()
     return radius, height
 

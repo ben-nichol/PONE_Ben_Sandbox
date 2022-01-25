@@ -150,7 +150,7 @@ class TrackReco(icetray.I3ConditionalModule):
         self.output = self.GetParameter("output")
         self.vertexRad = self.GetParameter("vertexRad")
         self.useMC = self.GetParameter("UseMC")
-
+        self.domsUsed = {}
         # Some quantities that are environment dependent
         self.theta_c = np.arccos(1./n)                       # Cherenkov angle in water in radians
         self.lambda_s = 120.                                 # scattering length of light for violet light
@@ -159,16 +159,26 @@ class TrackReco(icetray.I3ConditionalModule):
 
     # Main function of this file. Structured this way so that it can be easily imported aswell in any other implementation. 
 
+    def Geometry(self,frame):
+
+        self.domsUsed = frame['I3Geometry'].omgeo
+
+        maxradius = 0.0
+        for dom in self.domsUsed :
+            pos = self.domsUsed[dom].position
+            radius = np.sqrt(pos.x**2.0+pos.y**2.0+pos.z**2.0)
+            maxradius = max(maxradius,radius)
+
+        self.vertexRad = maxradius + 100.0
+
     def DAQ(self,frame): 
         data = frame[self.pulseseries]
 
         linefit = frame[self.seedtrack]
 
-        domsUsed = frame['I3Geometry'].omgeo
-
         direction = dataclasses.I3Direction(linefit.dir.x,linefit.dir.y,linefit.dir.z) 
 
-        qFunctor = LikelihoodFunctor(data,domsUsed,self.vertexRad)
+        qFunctor = LikelihoodFunctor(data,self.domsUsed,self.vertexRad)
 
         p_2 = linefit.pos.x**2.0+linefit.pos.y**2.0+linefit.pos.z**2.0
         pd = (linefit.pos.x*direction.x+linefit.pos.y*direction.y+linefit.pos.z*direction.z)
@@ -184,7 +194,7 @@ class TrackReco(icetray.I3ConditionalModule):
         VTheta = vertex.theta
         VPhi = vertex.phi
 
-        T0 = GetVertexTime(vertex,direction,data,domsUsed)
+        T0 = GetVertexTime(vertex,direction,data,self.domsUsed)
 
         # Minimize using scipy
         def func(x):

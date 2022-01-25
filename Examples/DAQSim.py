@@ -28,6 +28,7 @@ parser.add_argument("-g", "--gcdfile",default=os.getenv('PONESRCDIR')+"/GCD/PONE
 parser.add_argument("-t", "--pulsesep",default=0.2,help="Time needed to separate two pulses. Assume that this is 3.5*sample time.")
 parser.add_argument("-e", "--ext",default=".zst",help="compression extension")
 parser.add_argument("-s", "--dropstrings",nargs="+",default=[],help="Strings to exclude from geometry")
+parser.add_argument("-n", "--nDOMs",type=int,default=2, help="Number of DOMs for detector trigger")
 
 args = parser.parse_args()
 photon_series = "I3Photons"
@@ -82,8 +83,8 @@ tray.AddModule(DetectorTrigger,"PONE_Trigger",
                GCDFile=gcd_file,
                output="_3PMT_2DOM",
                DOMPMTCoinc =3,
-               FullDetectorCoincidenceN = 2,
-               CutOnTrigger = True,
+               FullDetectorCoincidenceN = args.nDOMs,
+               CutOnTrigger = False,#True,
                EventLength = 10000,
                TriggerTime = 2000,
                PulseSeriesIn = "I3Photons_PMTResponse",
@@ -91,7 +92,7 @@ tray.AddModule(DetectorTrigger,"PONE_Trigger",
               )
 
 tray.AddModule("I3Writer","writer",
-               SkipKeys = ["I3Photons","I3Photons_PMTResponse","TimeShiftedMCPEMap"],
+               #SkipKeys = ["I3Photons","I3Photons_PMTResponse","TimeShiftedMCPEMap"],
                Filename = outfile,
                Streams = [icetray.I3Frame.DAQ, icetray.I3Frame.Physics, icetray.I3Frame.TrayInfo],
               )

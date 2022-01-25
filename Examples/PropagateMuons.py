@@ -24,11 +24,11 @@ parser.add_argument("-o", "--outfile",type = str,default="./test_output.root",he
 parser.add_argument("-r", "--run",type=int,default=0,help="")                                                       
 parser.add_argument("-g", "--gcdfile",default=os.getenv('PONESRCDIR')+"/GCD/PONE_Phase1.i3.gz", help="Readin GCD file")
 parser.add_argument("-n", "--nevents",type=int,default=1000,help="Number of events to run.")
+parser.add_argument("-i", "--infile",type = str,default="./test_output.root",help="")
 
 args = parser.parse_args()
 
 tray = I3Tray()
-tray.AddModule('I3InfiniteSource',Prefix=args.gcdfile)
 
 radius, height = get_geo_from_gcd(args.gcdfile)
 
@@ -38,71 +38,12 @@ randomService = phys_services.I3SPRNGRandomService(
                               streamnum = args.run)
 
 tray.context['I3RandomService'] = randomService
-#tray.Add(printfunc,"print0",message = 'print0')
-#tray.AddModule('I3Reader', 'reader',  filenamelist = [args.gcdfile])
-#tray.Add(printfunc,"print1",message = 'print1')
-tray.Add("I3MCEventHeaderGenerator",
-               EventID=1,
-               IncrementEventID=True)
-#tray.Add(printfunc,"print2",message = 'print2')
-#tray.AddSegment(GenerateSingleMuons,"makeMuons",
-#                GCDFile=args.gcdfile
-#               )
-
-#tray.AddSegment(Corsika5ComponentGenerator,"makeCRs",
-#                nshowers=100000,
-#                procnum=args.run,
-#                nproc=1000,
-#                seed=args.run*args.run,
-#                gcdfile=args.gcdfile,
-#                outputfile="pone_corsika_"+str(args.run)+".i3.zst",
-#                RunCorsika=True,
-#                sumaryfile="summary1.json",
-#                pnorm=[5,2.25,1.1,1.2,1],
-#                pgam=[2.65,2.6,2.6,2.6,2.6],
-#                CORSIKAseed=args.run,
-#                eprimarymax=100000,
-#                eprimarymin=600,
-#                OverSampling=1,
-#                corsikaVersion="76900g",
-#                CutoffType="EnergyPerParticle",
-                #RepoURL="http://prod-exe.icecube.wisc.edu/",
-#                UsePipe=True,
-#                compress=True,
-#                HistogramFilename="hist.pkl",
-#                EnableHistogram=True
-#               )    
-
-#tray.AddSegment(GenerateNaturalRateMuons,"CosmicRayMuons",
-#                        mctree_name="I3MCTree_preMuonProp",
-#                        flux_model="GaisserH4a_atmod12_SIBYLL",
-#                        Surface=None,
-#                        GCDFile=args.gcdfile,
-#                        GeometryMargin=40.*I3Units.m,
-#                        NumEvents=args.nevents)
-
-tray.AddSegment(GenerateCosmicRayMuons,"CosmicRayMuons",
-		mctree_name='I3MCTree_preMuonProp',
-		num_events=args.nevents,
-		flux_model='Hoerandel5_atmod12_SIBYLL',
-		gamma_index=2.0,
-		energy_offset=700.0,
-		energy_min=1000.0,
-		energy_max=1000000.0,
-		cylinder_length=height+80.0,
-		cylinder_radius=radius+40.0,
-		cylinder_x=0.0,
-		cylinder_y=0.0,
-		cylinder_z=0.0,
-#		inner_cylinder_length=500.0,
-#		inner_cylinder_radius=150.0,
-#		inner_cylindedr_x=46.3,
-#		inner_cylinder_y=-34.9,
-#		inner_cylinder_z=-300.0,
-		use_inner_cylinder=False
-                )
 
 _kwargs = {"PROPOSAL_config_file":os.getenv('PONESRCDIR')+"/configs/PROPOSAL_config.json"}
+
+tray.AddModule('I3Reader', 'reader',
+            FilenameList = [args.gcdfile,args.infile]
+            )
 
 tray.Add(PropagateMuons, 'ParticlePropagators',
                                   RandomService=randomService,
@@ -116,7 +57,7 @@ tray.AddModule('I3Writer',
                 Streams=[icetray.I3Frame.Stream('S'),
                 icetray.I3Frame.TrayInfo,
                 icetray.I3Frame.DAQ],
-                filename=args.outfile+"Corsika_lowE"+str(args.run)+".i3.gz")
+                filename=args.outfile)
 #tray.Add(printfunc,"print5",message = 'print5')
 #tray.AddModule('TrashCan','YesWeCan')
 

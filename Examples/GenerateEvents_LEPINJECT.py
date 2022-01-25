@@ -124,7 +124,7 @@ tray.AddModule(get_header, streams = [icetray.I3Frame.DAQ])
 tray.Add("I3NullSplitter",
        SubEventStreamName = "fullevent")
 
-tray.Add("I3Writer", filename = args.outfile+"_"+str(args.runNum)+".i3.zst",
+tray.Add("I3Writer", filename = args.outfile+"_"+str(args.runNum)+".i3.gz",
         streams = [icetray.I3Frame.DAQ],)
 
 tray.Execute()

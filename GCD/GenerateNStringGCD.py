@@ -82,6 +82,9 @@ def generateGeometry():
         stringposx.append(stringposx[minradstring]+spacing*np.sin(neighbourangles[maxneighbourstring]))
         stringposy.append(stringposy[minradstring]+spacing*np.cos(neighbourangles[maxneighbourstring]))
 
+    mean_x = sum(stringposx)/len(stringposx)
+    mean_y = sum(stringposy)/len(stringposy)
+
     sp = 800.0/19.0
     depthlist = [(-400.0+sp*i)*I3Units.meter for i in range(20)]
     depth = np.array(depthlist)
@@ -93,7 +96,7 @@ def generateGeometry():
             omGeometry.omtype = dataclasses.I3OMGeo.OMType.mDOM
             omGeometry.orientation = orientation
             omGeometry.area = area
-            omGeometry.position = dataclasses.I3Position(stringposx[i], stringposy[i], depth[m])
+            omGeometry.position = dataclasses.I3Position(stringposx[i]-mean_x, stringposy[i]-mean_y, depth[m])
             geomap[omkey] = omGeometry
 
     return geomap

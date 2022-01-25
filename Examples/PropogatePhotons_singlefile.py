@@ -7,20 +7,14 @@ import random
 from icecube import icetray, dataclasses, dataio, simclasses
 from icecube import phys_services, sim_services
 from icecube import clsim
-#import WaterOpticalModel.MakePoneMediumPropertiesConservative as Medium
-import WaterOpticalModel.MakePoneMediumPropertiesSpeculativeExtendedRange as Medium
+import WaterOpticalModel.MakePoneMediumPropertiesConservative as Medium
+#import WaterOpticalModel.MakePoneMediumPropertiesSpeculativeExtendedRange as Medium
 from Utilities.DOMUtility import GetMaxTotalAcceptance
 
 parser = argparse.ArgumentParser(description = "Takes I3Photons from step2 of the simulations and generates DOM hits")
 parser.add_argument("-i", "--infile",default="./test_input.i3", help="Write output to OUTFILE (.i3{.gz} format)")
 parser.add_argument("-o", "--outfile",default="./test_output.i3", help="Write output to OUTFILE (.i3{.gz} format)")
-parser.add_argument("-r", "--runnumber", type=int, default=1, help="The run/dataset number for this simulation, is used as seed for random generator")
-parser.add_argument("-l", "--filenr",type=int, default=1, help="File number, stream of I3SPRNGRandomService")
 parser.add_argument("-g", "--gcdfile",default=os.getenv('PONESRCDIR')+"/GCD/PONE_Phase1.i3.gz", help="Read in GCD file")
-parser.add_argument("-e", "--efficiency", type=float,default=1.0,help="DOM Efficiency ... the same as UnshadowedFraction")
-parser.add_argument("-m", "--mctree", default="I3MCTree",help="I3MCTree to go into clsim")
-parser.add_argument("-c", "--crossenergy", type=float,default=200.0,help="The cross energy where the hybrid clsim approach will be used")
-parser.add_argument("-f", "--frames", type=int,default=100,help="N Frames")
 args = parser.parse_args()
 count = 0
 CPU=False
@@ -32,33 +26,29 @@ tray = I3Tray()
 # Now fire up the random number generator with that seed
 #from globals import max_num_files_per_dataset
 randomService = phys_services.I3SPRNGRandomService(
-                seed = int(args.runnumber),
-               nstreams = int(4e7),
-                streamnum = int(args.runnumber))
+                seed = 0,
+                nstreams = int(4e7),
+                streamnum = 0)
 
 tray.context['I3RandomService'] = randomService
 
-outfile = args.outfile +str(args.runnumber)+".i3.gz"
+outfile = args.outfile
 
-infile = args.infile + str(args.runnumber)+".i3.gz"
+infile = args.infile
 
 #gcd_file = dataio.I3File(args.gcdfile)
 print(args.gcdfile)
 
 tray.AddModule('I3Reader', 'reader',
-            FilenameList = [infile]
+            FilenameList = [infile,args.gcdfile]
             )
-
-#tray.AddModule('I3Reader', 'reader',
-#            FilenameList = [args.gcdfile,infile]
-#            )
 
 tray.AddSegment(clsim.I3CLSimMakePhotons, 'goCLSIM',
                 #UseCPUs=True,
                 UseGPUs=True,
                 #UseOnlyDeviceNumber=[1],
                 #OpenCLDeviceList=[0],
-                MCTreeName=args.mctree,
+                MCTreeName="I3MCTree",
                 UseI3PropagatorService=False,
                 #OutputMCTreeName="I3MCTree_clsim",
                 #FlasherInfoVectName="I3FlasherInfo",
@@ -72,7 +62,7 @@ tray.AddSegment(clsim.I3CLSimMakePhotons, 'goCLSIM',
                 #IceModelLocation="/home/users/tmcelroy/pone_offline/WaterOpticalModel/STRAW_Andy_20200328_MattewEta",
                 #IceModelLocation=mediumProperties,
                 UnWeightedPhotons=True, #turn off optimizations
-                UnWeightedPhotonsScalingFactor = GetMaxTotalAcceptance(),
+                UnWeightedPhotonsScalingFactor = 1.0 ,#GetMaxTotalAcceptance(),
 		DOMRadius = (17.0*2.54*0.01/2.0)*icetray.I3Units.m,
                 #UseGeant4=True,
                 CrossoverEnergyEM=0.1,

@@ -4,9 +4,14 @@ DOM Utilities is a collection of functions and variables for the DOMs.
 import numpy as np
 import os
 from icecube.icetray import I3Units, OMKey
+import matplotlib as mpl
+mpl.use('Agg')
+import matplotlib.pyplot as plt
 
 #List for PMT acceptance table
 PMTacceptance = list()
+#Overall acceptance
+Totalacceptance = list()
 #List for PMT directions
 PMTDirection = list()
 #Maximum value for the PMT acceptance
@@ -43,6 +48,7 @@ def GetPMTAcceptance(infile = os.getenv('PONESRCDIR')+"/data/PMTAcceptance_13PMT
     PMTacceptance = list()
     PMTDirection = list()
     maxAngularAcceptance = 0.0
+    Totalacceptance = list()
 
     zenithcount = 0
     for line in lines :
@@ -53,9 +59,17 @@ def GetPMTAcceptance(infile = os.getenv('PONESRCDIR')+"/data/PMTAcceptance_13PMT
         PMTacceptance[-1].append([])
         for value in splitline :
             PMTacceptance[-1][-1].append(float(value))
-            if PMTacceptance[-1][-1][-1] > maxAngularAcceptance :
-                maxAngularAcceptance = PMTacceptance[-1][-1][-1]
+            
         zenithcount += 1
+
+    for i in range(len(PMTacceptance[0])) :
+        Totalacceptance.append([])
+        for j in range(len(PMTacceptance[0][0])) :
+            Totalacceptance[-1].append(0.0)
+            for n in range(len(PMTacceptance)) :
+                    Totalacceptance[-1][-1] += PMTacceptance[n][i][j]
+            if Totalacceptance[-1][-1] > maxAngularAcceptance :
+                maxAngularAcceptance = Totalacceptance[-1][-1]
 
         #Compute PMT view direction from the centroid of the acceptance.
     for i in range(len(PMTacceptance)):
@@ -144,6 +158,40 @@ def GetPMTQETable(infile = os.getenv('PONESRCDIR')+"/data/PMTQE.txt") :
 
     QELoaded = True
 
+
+def MakePMTAcceptancePlots(directory):
+
+    global PMTacceptance
+    global maxAngularAcceptance
+    global AcceptanceLoaded
+    if not AcceptanceLoaded:
+        GetPMTAcceptance()
+
+    print(maxAngularAcceptance)
+
+    for n in range(len(PMTacceptance)) :
+        pmtprobs = []
+        x = []
+        y = []
+
+        for i in range(179) :
+            for j in range(359) :
+                x.append((1./180.)*np.pi*j)
+                y.append((1./180.)*np.pi*i)
+                pmtprobs.append(PMTacceptance[n][i][j]/maxAngularAcceptance)
+
+        plt.hist2d(x, y, bins=(358, 178), cmap=plt.cm.jet,weights=pmtprobs)
+        plt.savefig(directory+"/PMTAcceptance_"+str(n)+".png")
+
+def MakeQEPlot(directory) :
+    global PMTQE
+    global maxQE
+    global QELoaded
+    if not QELoaded :
+        GetPMTQETable()
+    plt.plot(PMTQE)
+    plt.savefig(directory+"/QuantumEfficiency.png")
+    
 """!
 GetPMTQE(wl)
 Inputs:
