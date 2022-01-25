@@ -4,6 +4,7 @@ DOM Utilities is a collection of functions and variables for the DOMs.
 import numpy as np
 import os
 from icecube.icetray import I3Units, OMKey
+from icecube import icetray, dataclasses, dataio, simclasses
 import matplotlib as mpl
 mpl.use('Agg')
 import matplotlib.pyplot as plt
@@ -24,6 +25,16 @@ PMTQE = list()
 AcceptanceLoaded = False
 #Boolian for if PMT QE parameters are loaded
 QELoaded = False
+#random service
+random = None
+
+def SetRandomService(_RandomService):
+    global random
+    random = _RandomService
+
+def AddCLSimPhotonWeighttoFrame(frame,photonweight=1) :
+    frame["CLSimPhotonWeight"] = dataclasses.I3Double(photonweight)
+    return True
 
 """!
 GetPMTAcceptance(infile)
@@ -285,7 +296,7 @@ Operation:
     scaled down the photon production so that the maxacceptance after CLSim is scaled to 1.0.
 
 """
-def GetPMT(photonDir,wl,random):
+def GetPMT(photonDir,wl,photonweight):
     global PMTacceptance
     global maxQE
     global maxAngularAcceptance 
@@ -294,17 +305,23 @@ def GetPMT(photonDir,wl,random):
     if not AcceptanceLoaded:
         GetPMTAcceptance()
 
+    QEweight = maxQE/photonweight
+    Angweight = 1.0
+    if QEweight > 1 :
+        Angweight = 1.0/QEweight
+        QEweight = 1.0
+
+
     QEProb = 0.0
     if wl < 0.1 :
-        QEProb = GetPMTQE(wl)/maxQE
+        QEProb = GetPMTQE(wl)/QEweight
     else :
-        QEProb = GetPMTQEnm(wl)/maxQE
+        QEProb = GetPMTQEnm(wl)/QEweight
 
-    if random > QEProb :
+
+    if random.uniform(0.0,1.0) > QEProb :
         return -1
   
-    random = random/QEProb
-
     theta = 0.0
     phi = 0.0
     if len(photonDir) < 3 :
@@ -318,15 +335,16 @@ def GetPMT(photonDir,wl,random):
     phiBin = max(0,min(358,int(180.0*phi/np.pi)))
     pmtprobs = []
     for i in range(len(PMTacceptance)) :
-        pmtprobs.append(PMTacceptance[i][thetaBin][phiBin]/maxAngularAcceptance)
+        pmtprobs.append(PMTacceptance[i][thetaBin][phiBin]/Angweight)
 
     totalprob = sum(pmtprobs)
-    if random > totalprob :
+    rand = random.uniform(0.0,1.0)
+    if rand > totalprob :
         return -1
     i=0;
 
     sumprob = pmtprobs[i]
-    while random > sumprob/totalprob and i<len(pmtprobs)-1 :
+    while rand > sumprob/totalprob and i<len(pmtprobs)-1 :
        i+=1
        sumprob += pmtprobs[i]
 

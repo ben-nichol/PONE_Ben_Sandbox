@@ -70,7 +70,6 @@ tray.AddModule(SimpleDOMSimulation, 'DOMLauncher',
                RandomService = randomService,
                minTsep = args.pulsesep,
                SplitDoms = True,
-               #AcceptBaseValue = GetMaxTotalAcceptance(),
                dropstrings = dropstrings
               )
 

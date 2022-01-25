@@ -2,10 +2,10 @@ from icecube import icetray, dataclasses, dataio, simclasses
 from icecube.icetray import I3Units, OMKey, I3Frame
 from icecube.dataclasses import ModuleKey
 import numpy as np
-from Utilities.DOMUtility import NoPMTKey, AddPMTKey, GetPMTAcceptance, GetPMTQETable, GetPMTQE, GetPMT, GetNPMTs, GetMaxTotalAcceptance, GetMaxAngularAcceptance
+from Utilities.DOMUtility import SetRandomService, NoPMTKey, AddPMTKey, GetPMTAcceptance, GetPMTQETable, GetPMTQE, GetPMT, GetNPMTs, GetMaxTotalAcceptance, GetMaxAngularAcceptance
 
 #split MCPhoton hits into PMTs on the DOMs.
-def SplitPMTs(mcpulsemap,random_service,dropstrings) :
+def SplitPMTs(mcpulsemap,dropstrings,photonweight) :
     newmcpulsemap = {}
     #make new map with individual PMTs
     total=0
@@ -13,8 +13,13 @@ def SplitPMTs(mcpulsemap,random_service,dropstrings) :
     for omkey in mcpulsemap.keys():
         if omkey.string in dropstrings :
             continue
+        newpulseseries = {}
+        for i in range(GetNPMTs()) :
+            newomkey = AddPMTKey(omkey,i)
+            newpulseseries[newomkey] = simclasses.I3PhotonSeries()
+
         for pulse in mcpulsemap[omkey]:
-            pmtid = GetPMT([pulse.dir.x,pulse.dir.y,pulse.dir.z],pulse.wavelength,random_service.uniform(0.0,1.0))
+            pmtid = GetPMT([pulse.dir.x,pulse.dir.y,pulse.dir.z],pulse.wavelength,photonweight)
             if pmtid < 0 :
                 continue
             mcpulse = simclasses.I3Photon()
@@ -23,11 +28,11 @@ def SplitPMTs(mcpulsemap,random_service,dropstrings) :
             mcpulse.pos = pulse.pos
 
             newomkey = AddPMTKey(omkey, pmtid)
-            if newomkey in newmcpulsemap.keys() :
-                newmcpulsemap[newomkey].append(mcpulse)
-            else :
-                newmcpulsemap[newomkey] = simclasses.I3PhotonSeries()
-                newmcpulsemap[newomkey].append(mcpulse)
+            newpulseseries[newomkey].append(mcpulse)
+
+        for dom in newpulseseries.keys() :
+            if len(newpulseseries[dom]) > 0 :
+                newmcpulsemap[dom] = newpulseseries[dom]
     return  newmcpulsemap
 
 #Get the min and max pulse times to set time window for dark hits.
@@ -89,6 +94,8 @@ def ApplyPMTResponce(mcpulsemap,random_service,PMT_tts,PMT_ts,LPprob,APprob,APCo
                     time +=  random_service.gaus(APmeantime_2*I3Units.ns,APtimesigma_2*I3Units.ns)
                 pulsetimelist.append(time)
 
+        if len(pulsetimelist) < 1:
+            continue
         pulsetimelist.sort()
         pulsechargelist = []
 
@@ -180,12 +187,11 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
         self.AddParameter("PMTQEFile","","")
         self.AddParameter("QEBaseValue","",0.4)
         self.AddParameter("AcceptBaseValue","",1.0)
+        self.AddParameter("PhotonWeights","",-1.0)
         self.AddParameter("DropStrings","",[])
         self.AddOutBox("OutBox")
 
     def Configure(self):
-        global QEBase
-        global AccBase
 
         self.gcdFile = self.GetParameter("GCDFile")
         self.inputmap = self.GetParameter("inputmap")
@@ -209,24 +215,28 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
         self.genWaveforms = self.GetParameter("GenWaveforms")
         self.splitDOMs = self.GetParameter("SplitDoms")
         self.dropstrings = self.GetParameter("DropStrings")
+        
+        if self.GetParameter("PMTQEFile") != "" :
+            GetPMTQETable(self.photonweights,self.GetParameter("PMTQEFile"))
 
-        QEBase = self.GetParameter("QEBaseValue")
         if self.GetParameter("DOMAcceptanceFile") != "" :
             GetPMTAcceptance(self.GetParameter("DOMAcceptanceFile"))
-            if self.GetParameter("AcceptBaseValue") < 0.0 :
-                AccBase = GetMaxAngularAcceptance()
-            else :
-                AccBase = self.GetParameter("AcceptBaseValue")
-        if self.GetParameter("PMTQEFile") != "" :
-            GetPMTQETable(self.GetParameter("PMTQEFile"))
 
+        self.photonweights = self.GetParameter("PhotonWeights")
+        if self.photonweights < 0.0 :
+            self.photonweights = GetMaxTotalAcceptance()
+
+        SetRandomService(self.randomService)        
     def DAQ(self,frame) :
 
-        random_service = self.randomService
         outputpulsemap = dataclasses.I3RecoPulseSeriesMap()
         outputmcpulsemap = simclasses.I3MCPulseSeriesMap()
         mcpulsemap = frame[self.inputmap]
         mcpulseOMKeys = mcpulsemap.keys()
+
+        if frame.Has("CLSimPhotonWeight") :
+            self.photonweights = frame["CLSimPhotonWeight"].value
+
 
         domsUsed = frame['I3Geometry'].omgeo
 
@@ -234,16 +244,16 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
         #    mcpulsemap = SplitPMTs(mcpulsemap,random_service)
         #    mcpulseOMKeys = mcpulsemap.keys()
 
-        mcpulsemap = SplitPMTs(mcpulsemap,random_service,self.dropstrings)
+        mcpulsemap = SplitPMTs(mcpulsemap,self.dropstrings,self.photonweights)
         mcpulseOMKeys = mcpulsemap.keys()
 
         max_pt, min_pt = GetMaxMinTimes(mcpulsemap)
 
         #add dark noise
-        AddDarkHits(domsUsed,mcpulsemap,random_service,self.DNprob,max_pt,min_pt,self.splitDOMs)
+        AddDarkHits(domsUsed,mcpulsemap,self.randomService,self.DNprob,max_pt,min_pt,self.splitDOMs)
 
         frame[self.outputmap], frame[self.outputmap+"_MCpulses"] = ApplyPMTResponce(mcpulsemap,
-                                                            random_service,
+                                                            self.randomService,
                                                             self.PMT_tts,
                                                             self.PMT_ts,
                                                             self.LPprob,

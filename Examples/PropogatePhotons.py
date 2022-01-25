@@ -9,7 +9,7 @@ from icecube import phys_services, sim_services
 from icecube import clsim
 #import WaterOpticalModel.MakePoneMediumPropertiesConservative as Medium
 import WaterOpticalModel.MakePoneMediumPropertiesSpeculativeExtendedRange as Medium
-from Utilities.DOMUtility import GetMaxTotalAcceptance
+from Utilities.DOMUtility import GetMaxTotalAcceptance, AddCLSimPhotonWeighttoFrame
 
 parser = argparse.ArgumentParser(description = "Takes I3Photons from step2 of the simulations and generates DOM hits")
 parser.add_argument("-i", "--infile",default="./test_input.i3", help="Write output to OUTFILE (.i3{.gz} format)")
@@ -42,6 +42,8 @@ outfile = args.outfile +str(args.runnumber)+".i3.gz"
 
 infile = args.infile + str(args.runnumber)+".i3.gz"
 
+photonweightscaling = GetMaxTotalAcceptance()
+
 #gcd_file = dataio.I3File(args.gcdfile)
 print(args.gcdfile)
 
@@ -72,7 +74,7 @@ tray.AddSegment(clsim.I3CLSimMakePhotons, 'goCLSIM',
                 #IceModelLocation="/home/users/tmcelroy/pone_offline/WaterOpticalModel/STRAW_Andy_20200328_MattewEta",
                 #IceModelLocation=mediumProperties,
                 UnWeightedPhotons=True, #turn off optimizations
-                UnWeightedPhotonsScalingFactor = GetMaxTotalAcceptance(),
+                UnWeightedPhotonsScalingFactor = photonweightscaling,
 		DOMRadius = (17.0*2.54*0.01/2.0)*icetray.I3Units.m,
                 #UseGeant4=True,
                 CrossoverEnergyEM=0.1,
@@ -87,6 +89,8 @@ tray.AddSegment(clsim.I3CLSimMakePhotons, 'goCLSIM',
                 UnshadowedFraction=1., #normal in IC79 and older CLSim versions was 0.9, now it is 1.0
                 GCDFile= args.gcdfile, #gcd_file,
                 )
+
+tray.AddModule(AddCLSimPhotonWeighttoFrame,"writephotonweight",photonweight=photonweightscaling)
 
 #icetray.logging.I3Logger.global_logger.set_level_for_unit('clsim', icetray.logging.I3LogLevel.LOG_ERROR)
 #icetray.logging.I3Logger.global_logger.set_level_for_unit('I3CLSimStepToPhotonConverterOpenCL', icetray.logging.I3LogLevel.LOG_WARN)
