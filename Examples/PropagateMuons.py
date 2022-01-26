@@ -20,11 +20,11 @@ def printfunc(frame, message = 'test'):
 	return True
 
 parser = argparse.ArgumentParser()                                              
-parser.add_argument("-o", "--outfile",type = str,default="./test_output.root",help="")
+parser.add_argument("-o", "--outfile",type = str,default="./test_output_muonprop.i3",help="")
 parser.add_argument("-r", "--run",type=int,default=0,help="")                                                       
 parser.add_argument("-g", "--gcdfile",default=os.getenv('PONESRCDIR')+"/GCD/PONE_Phase1.i3.gz", help="Readin GCD file")
 parser.add_argument("-n", "--nevents",type=int,default=1000,help="Number of events to run.")
-parser.add_argument("-i", "--infile",type = str,default="./test_output.root",help="")
+parser.add_argument("-i", "--infile",type = str,default="./test_output.i3",help="")
 
 args = parser.parse_args()
 

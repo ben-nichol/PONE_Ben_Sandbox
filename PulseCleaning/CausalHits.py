@@ -10,7 +10,7 @@ import numpy as np
 from numpy import linalg as la
 from icecube.phys_services import I3Calculator
 import operator
-from Utilities.DOMUtility import NoPMTKey, AddPMTKey, GetNPMTs
+from Utilities.DOMUtility import NoPMTKey, AddPMTKey
 from Utilities.OpticalParameters import c, n, ngroup, theta_c
 
 class CausalPulseCleaning(icetray.I3ConditionalModule):
@@ -61,10 +61,8 @@ class CausalPulseCleaning(icetray.I3ConditionalModule):
             if DOMCharge[DOM] > DOMCharge[MaxchargeDOM] :
                 MaxchargeDOM = DOM
 
-        npmts = GetNPMTs()
-        for ipmt in range(npmts):
-            PMTkey = AddPMTKey(MaxchargeDOM,ipmt)
-            if PMTkey in mcpeMap.keys():
+        for PMTKey in mcpeMap.keys():
+            if (PMTKey.string == MaxchargeDOM.string) and (PMTKey.om == MaxchargeDOM.string):
                 for pulse in mcpeMap[PMTkey] :
                     pulses.append(pulse.time)
 

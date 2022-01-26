@@ -16,7 +16,7 @@ import sys
 import argparse
 import math as m
 from Utilities.RecoUtility import GetGeoTime
-from Utilities.DOMUtility import GetNPMTs, NoPMTKey, AddPMTKey
+from Utilities.DOMUtility import NoPMTKey, AddPMTKey
 from Utilities.OpticalParameters import c, n, ngroup
 
 # Functional that is fed data from InitialGuess for PMT locations and the PDF we wish to use. Uses those locations to build a Pandel Function for a given track
@@ -98,13 +98,10 @@ def GetVertexTime(vertex,direction,pulse_series,geo_doms):
 
     DOMPos = geo_doms[MaxChargeDOM].position
 
-    npmts = GetNPMTs()
-
     maxCharge=0.0
     maxCharge_time = 0.0
-    for ipmt in range(npmts) :
-        domkey = AddPMTKey(MaxChargeDOM,ipmt)
-        if domkey in pulse_series.keys() :
+    for domkey in pulse_series.keys():
+        if (domkey.string == MaxChargeDOM.string) and (domkey.om == MaxChargeDOM.om):
             for pulse in pulse_series[domkey] :
                 if pulse.charge > maxCharge :
                     maxCharge = pulse.charge

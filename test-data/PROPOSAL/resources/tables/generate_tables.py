@@ -21,7 +21,7 @@ from icecube.PROPOSAL import I3PropagatorServicePROPOSAL
 # This should have generated all data files.
 # Generate a marker file to tell the build system this task
 # has been successfully completed.
-file_lock_path = os.getenv('PONESRCDIR')+"/tables/.tables.auto_generated"
+file_lock_path = os.getenv('PONESRCDIR')+"/test-data/PROPOSAL/resources/tables/.tables.auto_generated"
 if not os.path.exists(file_lock_path):
     with open(file_lock_path, 'w') as f:
         try:
