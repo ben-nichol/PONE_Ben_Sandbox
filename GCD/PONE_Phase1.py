@@ -12,6 +12,7 @@ outfile = dataio.I3File(outfileName, 'w')
 numberOfCircles = 2
 domsPerString  = 20
 stringsPerCircle = ([7, 3])
+NPMTs = 13
 
 def generateGeometry(nCircles, DPS, strings):
     orientation = dataclasses.I3Orientation(0, 0, -1, 1, 0, 0)
@@ -41,13 +42,15 @@ def generateGeometry(nCircles, DPS, strings):
 
     for m in range(0, DPS):
         for n in range(0, len(xPos)):
-            omkey = OMKey(n+1, m+1, 0)
+            #omkey = OMKey(n+1, m+1, 0)
             omGeometry = dataclasses.I3OMGeo()
             omGeometry.omtype = dataclasses.I3OMGeo.OMType.mDOM
             omGeometry.orientation = orientation
             omGeometry.area = area
             omGeometry.position = dataclasses.I3Position(xPos[n], yPos[n], zPos[m][n])
-            geomap[omkey] = omGeometry
+            for i in range(NPMTs) :
+                omkey = OMKey(n+1, m+1, i+1)
+                geomap[omkey] = omGeometry
 
     return geomap
 

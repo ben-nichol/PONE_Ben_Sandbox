@@ -12,6 +12,7 @@ parser.add_argument("-s", "--spacing",type = float, default = 100.0, help="Spaci
 parser.add_argument("-n", "--nstring",type= int, default = 70, help="Number of strings.")
 parser.add_argument("-d", "--ndoms",type= int, default = 20, help="Doms per string.")
 parser.add_argument("-r", "--domradius",type= int, default = (17.0*2.54*0.01*0.5), help="Radius of dom. Defaults to 17\"")
+parser.add_argument("-p", "--npmts",type= int, default = 13, help="PMTs per DOM.")
 args = parser.parse_args()
 
 
@@ -91,13 +92,14 @@ def generateGeometry():
 
     for i in range(len(stringposx)) :
         for m in range(domsPerString):
-            omkey = OMKey(i+1, m+1, 0)
             omGeometry = dataclasses.I3OMGeo()
             omGeometry.omtype = dataclasses.I3OMGeo.OMType.mDOM
             omGeometry.orientation = orientation
             omGeometry.area = area
             omGeometry.position = dataclasses.I3Position(stringposx[i]-mean_x, stringposy[i]-mean_y, depth[m])
-            geomap[omkey] = omGeometry
+            for i in range(args.npmts) :
+                omkey = OMKey(i+1, m+1, i+1)
+                geomap[omkey] = omGeometry
 
     return geomap
 
