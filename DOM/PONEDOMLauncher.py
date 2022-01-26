@@ -93,7 +93,7 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
                     continue
 
                 newomkey = AddPMTKey(omkey, pmtid)
-                if newomkey not in newphotonmap:
+                if newomkey not in newphotonmap.keys():
                     newphotonmap[newomkey] = simclasses.I3CompressedPhotonSeries()
                 newphotonmap[newomkey].append(pulse)
         return newphotonmap
