@@ -57,37 +57,36 @@ tray.AddModule('I3Reader', 'reader',
 print(args.gcdfile)
 gcd_file = dataio.I3File(args.gcdfile)
 
-tray.AddModule(timeShift,"MCtimeShift",
-              MergedMCPETreeName = photon_series,
-              TimeShiftedMCPE = "TimeShiftedMCPEMap",
-              MinTime = 7200
-              )
+# this will do BAD things because it does not shift the rest of
+# the frame objects (e.g. the MCTree). Temporarily disabled -ck
+# tray.AddModule(timeShift,"MCtimeShift",
+#               MergedMCPETreeName = photon_series,
+#               TimeShiftedMCPE = "TimeShiftedPhotons",
+#               MinTime = 7200
+#               )
 
 tray.AddModule(SimpleDOMSimulation, 'DOMLauncher',
-               GCDFile=gcd_file,
-               inputmap = "TimeShiftedMCPEMap",
-               outputmap = "I3Photons_PMTResponse",
+               inputmap = photon_series,
+               outputmap = "PMTResponse",
                RandomService = randomService,
                minTsep = args.pulsesep,
                SplitDoms = True,
-               #AcceptBaseValue = GetMaxTotalAcceptance(),
-               dropstrings = dropstrings
+               dropstrings = dropstrings,
+               add_noise = False
               )
 
 tray.AddModule(DOMTrigger,"DOMTrigger",
-                GCDFile=gcd_file,
-                inputmap = "I3Photons_PMTResponse",
+                inputmap = "PMTResponse",
               )
 
 tray.AddModule(DetectorTrigger,"PONE_Trigger",
-               GCDFile=gcd_file,
                output="_3PMT_2DOM",
                DOMPMTCoinc =3,
                FullDetectorCoincidenceN = args.nDOMs,
                CutOnTrigger = False,#True,
                EventLength = 10000,
                TriggerTime = 2000,
-               PulseSeriesIn = "I3Photons_PMTResponse",
+               PulseSeriesIn = "PMTResponse",
                PulseSeriesOut = "EventPulseSeries"
               )
 
