@@ -49,7 +49,7 @@ class DetectorTrigger(icetray.I3ConditionalModule):
         self.TriggerTime = self.GetParameter("TriggerTime")
         self.PulseSeriesIn = self.GetParameter("PulseSeriesIn")
         self.PulseSeriesOut = self.GetParameter("PulseSeriesOut")
-        self.DoStringTrigger = (self.StringCoincidenceN < self.FullDetectorCoincidenceN) and (self.StringCoincidenceWindow < self.FullDetectorCoincidenceWindow)
+        self.DoStringTrigger = True
 
         self.nstrings = int(0)
         self.nDOMs = int(0)
@@ -107,6 +107,21 @@ class DetectorTrigger(icetray.I3ConditionalModule):
             self.FullDetectorCoincidenceWindow *= maxDOMDistance/0.3 + DOM_space*1.3/0.3
             self.StringCoincidenceWindow *=  average_min_stringdist/0.3 + DOM_space*1.3/0.3
 
+        #print(self.FullDetectorCoincidenceWindow)
+        #print(self.StringCoincidenceWindow)
+
+        #print(self.StringCoincidenceN)
+        #print(self.FullDetectorCoincidenceN)
+
+        # In this case the detector trigger condition contains all string trigger conditions.
+        if self.StringCoincidenceN >= self.FullDetectorCoincidenceN:
+            if (self.StringCoincidenceWindow <= self.FullDetectorCoincidenceWindow):
+                self.DoStringTrigger = False
+
+        #if self.DoStringTrigger :
+        #    print("doing string trigger")
+        #else :
+        #    print("not doing string trigger")
 
         self.StringTriggerGroups = list()
 
@@ -169,8 +184,12 @@ class DetectorTrigger(icetray.I3ConditionalModule):
 
         DOMTriggers = self.GetDOMTriggers(DOMCoincidence_time,DOMCoincidence_ncoin,DOMCoincidence_pmts,self.DOMPMTCoinc)
 
+        SingleDOMTriggers = self.GetDOMTriggers(DOMCoincidence_time,DOMCoincidence_ncoin,DOMCoincidence_pmts,4)
         #print("DOMTriggers")
         #print(DOMTriggers)
+
+        #print("SingleDOMTriggers")
+        #print(SingleDOMTriggers)
 
         FullDetectDOMTriggers = list()
         StringTriggers = {}
@@ -184,27 +203,38 @@ class DetectorTrigger(icetray.I3ConditionalModule):
                         StringTriggers[i].append((key,time))
             FullDetectDOMTriggers.append((key,time))
 
+        #print("new event")
+        #print(StringTriggers)
     
+        #print(StringTriggers.keys())
+
         StringTrigOpp = {}
         if self.DoStringTrigger :
+            print(StringTriggers.keys())
             for i in StringTriggers.keys() :
                 StringTrigOpp[i] = list()
                 for j in range(len(StringTriggers[i])) :
                     StringTrigOpp[i].append([StringTriggers[i][j][1],[StringTriggers[i][j][0]],[StringTriggers[i][j][1]]])
-                for j in range(len(StringTriggers[i])) :
-                    for k in range(len(StringTrigOpp[i])) :
-                        if StringTriggers[i][j][1] - StringTrigOpp[i][k][0] < self.StringCoincidenceWindow and StringTriggers[i][j][1] - StringTrigOpp[i][k][0] >= 0.0 and StringTriggers[i][j][0] not in StringTrigOpp[i][k][1]:
+                for k in range(len(StringTrigOpp[i])) :
+                    for j in range(len(StringTriggers[i])) :
+                        #if StringTriggers[i][j][1] - StringTrigOpp[i][k][0] < self.StringCoincidenceWindow and StringTriggers[i][j][1] - StringTrigOpp[i][k][0] >= 0.0 and StringTriggers[i][j][0] not in StringTrigOpp[i][k][1]:
+                        if abs(StringTriggers[i][j][1] - StringTrigOpp[i][k][0]) < self.StringCoincidenceWindow and StringTriggers[i][j][0] not in StringTrigOpp[i][k][1]:
                             StringTrigOpp[i][k][1].append(StringTriggers[i][j][0])
                             StringTrigOpp[i][k][2].append(StringTriggers[i][j][1])
+
+
+        #print("StringTrigOpp")
+        #print(StringTrigOpp)
 
         #print("FullDetectDOMTriggers")
         #print(FullDetectDOMTriggers)
         DetectTrigOpp = list()
         for j in range(len(FullDetectDOMTriggers)) :
             DetectTrigOpp.append([FullDetectDOMTriggers[j][1],[FullDetectDOMTriggers[j][0]],[FullDetectDOMTriggers[j][1]]])
-        for j in range(len(FullDetectDOMTriggers)) :
-            for k in range(len(DetectTrigOpp)) :
+        for k in range(len(DetectTrigOpp)) :
+            for j in range(len(FullDetectDOMTriggers)) :
                 if ((FullDetectDOMTriggers[j][1] - DetectTrigOpp[k][0]) < self.FullDetectorCoincidenceWindow) and ((FullDetectDOMTriggers[j][1] - DetectTrigOpp[k][0]) >= 0.0) and (FullDetectDOMTriggers[j][0] not in DetectTrigOpp[k][1]):
+                #if (abs(FullDetectDOMTriggers[j][1] - DetectTrigOpp[k][0]) < self.FullDetectorCoincidenceWindow) and (FullDetectDOMTriggers[j][0] not in DetectTrigOpp[k][1]):
                         DetectTrigOpp[k][1].append(FullDetectDOMTriggers[j][0])
                         DetectTrigOpp[k][2].append(FullDetectDOMTriggers[j][1])
 
@@ -213,7 +243,8 @@ class DetectorTrigger(icetray.I3ConditionalModule):
 
         stringTriggerTime = dataclasses.I3VectorDouble()
         detectorTriggerTime = dataclasses.I3VectorDouble()
-    
+        singleDOMTriggerTime = dataclasses.I3VectorDouble()
+
         for i in range(len(DetectTrigOpp)):
             if len(DetectTrigOpp[i][1]) >= self.FullDetectorCoincidenceN :
                 triggered = False
@@ -236,14 +267,22 @@ class DetectorTrigger(icetray.I3ConditionalModule):
                         if not triggered :
                             stringTriggerTime.append(max(StringTrigOpp[j][i][2]))
 
-        if self.CutOnTrigger and len(stringTriggerTime) < 1 and len(detectorTriggerTime) < 1 :
+        for dom in SingleDOMTriggers.keys() :
+            for time in SingleDOMTriggers[dom] :
+                singleDOMTriggerTime.append(time)
+
+        #print("spring trigger times")
+        #print(stringTriggerTime)
+
+        if self.CutOnTrigger and len(stringTriggerTime) < 1 and len(detectorTriggerTime) < 1 and len(singleDOMTriggerTime) < 1 :
             if self.CutOnTrigger :
                 return
             else :
                 frame["DetectorTriggers"+self.output] = detectorTriggerTime
                 frame["StringTriggers"+self.output] = stringTriggerTime
+                frame["singleDOMTrigger"+self.output] = singleDOMTriggerTime
                 outputpulsemap = dataclasses.I3RecoPulseSeriesMap()
-                frame[self.PulseSeriesOut] = outputpulsemap
+                frame[self.dPulseSeriesOut] = outputpulsemap
                 self.PushFrame(frame)
 
         #print("detectorTriggerTime")
@@ -253,6 +292,7 @@ class DetectorTrigger(icetray.I3ConditionalModule):
 
         frame["DetectorTriggers"+self.output] = detectorTriggerTime
         frame["StringTriggers"+self.output] = stringTriggerTime
+        frame["singleDOMTrigger"+self.output] = singleDOMTriggerTime
 
         pulseseriesmap = frame[self.PulseSeriesIn]
         outputpulsemap = dataclasses.I3RecoPulseSeriesMap()
@@ -263,6 +303,10 @@ class DetectorTrigger(icetray.I3ConditionalModule):
                 mintrigtime = _time
 
         for _time in stringTriggerTime:
+            if _time < mintrigtime :
+                mintrigtime = _time
+
+        for _time in singleDOMTriggerTime:
             if _time < mintrigtime :
                 mintrigtime = _time
 
@@ -278,5 +322,6 @@ class DetectorTrigger(icetray.I3ConditionalModule):
                 outputpulsemap[dom] = pulseseries
 
         frame[self.PulseSeriesOut] = outputpulsemap
+        frame["TriggerTime"+self.output] = dataclasses.I3Double(mintrigtime)
                 
         self.PushFrame(frame)

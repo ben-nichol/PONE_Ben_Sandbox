@@ -65,8 +65,6 @@ for frame in infilei3:
                    0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]
 
         if key in pulse_series.keys() :
-            for pulse in pulse_series[key] :
-                i = int((pulse.wavelength*1.0e9 - 200.)/10.)
                 if i >= 0 and i < len(npulses) :
                     npulses[i] += max(clos_app_dist,1.0)
                 
