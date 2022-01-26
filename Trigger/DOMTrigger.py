@@ -12,7 +12,6 @@ class DOMTrigger(icetray.I3ConditionalModule):
 
     def __init__(self, context):
         icetray.I3ConditionalModule.__init__(self, context)
-        self.AddParameter("GCDFile","GCD to be simulated",'')
         self.AddParameter("output","Append the outputs",'')
         self.AddParameter("inputmap","Name of the Physics I3MCTree name","I3RecoPulseSeriesMap")
         self.AddParameter("PEthreshold"," Pulse charge threshold",0.25)
@@ -25,7 +24,6 @@ class DOMTrigger(icetray.I3ConditionalModule):
 
     def Configure(self):
 
-        self.gcdFile = self.GetParameter("GCDFile")
         self.output = self.GetParameter("output")
         self.inputmap = self.GetParameter("inputmap")
         self.PEthreshold = self.GetParameter("PEthreshold")

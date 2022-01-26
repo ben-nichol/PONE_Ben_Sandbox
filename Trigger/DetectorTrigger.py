@@ -12,7 +12,6 @@ class DetectorTrigger(icetray.I3ConditionalModule):
 
     def __init__(self, context):
         icetray.I3ConditionalModule.__init__(self, context)
-        self.AddParameter("GCDFile","GCD to be simulated",'')
         self.AddParameter("output","Append the outputs",'')
         self.AddParameter("input","Name of the Physics I3MCTree name","")
         self.AddParameter("CutOnTrigger","Cut events that do not trigger.",False)
@@ -33,7 +32,6 @@ class DetectorTrigger(icetray.I3ConditionalModule):
 
     def Configure(self):
 
-        self.gcdFile = self.GetParameter("GCDFile")
         self.output = self.GetParameter("output")
         self.input = self.GetParameter("input")
         self.CutOnTrigger = self.GetParameter("CutOnTrigger")
@@ -42,26 +40,51 @@ class DetectorTrigger(icetray.I3ConditionalModule):
         self.ForceAdjacency = self.GetParameter("ForceAdjacency")
         self.StringNRows = self.GetParameter("StringNRows")
         self.StringDist = self.GetParameter("StringDist")
-        self.FullDetectorCoincidenceWindow = self.GetParameter("FullDetectorCoincidenceWindow")
-        self.StringCoincidenceWindow = self.GetParameter("StringCoincidenceWindow")
+        self.FullDetectorCoincidenceWindow_unscaled = self.GetParameter("FullDetectorCoincidenceWindow")
+        self.StringCoincidenceWindow_unscaled = self.GetParameter("StringCoincidenceWindow")
         self.DOMPMTCoinc = self.GetParameter("DOMPMTCoinc")
         self.EventLength = self.GetParameter("EventLength")
         self.TriggerTime = self.GetParameter("TriggerTime")
         self.PulseSeriesIn = self.GetParameter("PulseSeriesIn")
         self.PulseSeriesOut = self.GetParameter("PulseSeriesOut")
         self.DoStringTrigger = (self.StringCoincidenceN < self.FullDetectorCoincidenceN) and (self.StringCoincidenceWindow < self.FullDetectorCoincidenceWindow)
+        self.ScaleBySpacing = self.GetParameter("ScaleBySpacing")
 
         self.nstrings = int(0)
         self.nDOMs = int(0)
         self.npmts = int(0)
 
-        if self.GetParameter("ScaleBySpacing") :
-            #Figure out largest distance between two DOMs, average distance between closest String, Average min distance between DOMs.
+        self.has_seen_geometry = False
 
-            #there is a better way for this.
-            for frame in self.gcdFile:
-                domsUsed = frame['I3Geometry'].omgeo
-            self.gcdFile.rewind()
+        self.StringTriggerGroups = list()
+
+        #Figure out trigger groups.
+        if self.ForceAdjacency :
+            nstart = int((self.StringNRows-1)/2)
+            for j in range(self.nstrings) :
+                for i in range(nstart,self.nDOMs-nstart) :
+                    self.StringTriggerGroups.append([])
+                    for l in range(len(string_pos)) :
+                        if sqrt((string_pos[j].x-string_pos[l].x)**2.0+(string_pos[j].y-string_pos[l].y)**2.0) < average_min_stringdist*1.5 :
+                            for k in range(i-nstart,i+nstart+1) :
+                                self.StringTriggerGroups[-1].append(OMKey(l+1,k+1,0))
+        else :
+            nstart = int((self.StringNRows-1)/2)
+            for i in range(nstart,self.nDOMs-nstart) :
+                self.StringTriggerGroups.append([])
+                for j in range(1,self.nstrings+1) :
+                    for k in range(i-nstart,i+nstart+1) :
+                        self.StringTriggerGroups[-1].append(OMKey(j,k,0))  
+
+        self.eventcount = 0
+
+    def Geometry(self,frame) :
+        self.has_seen_geometry = True
+
+        if self.ScaleBySpacing:
+            #Figure out largest distance between two DOMs, average distance between closest String, Average min distance between DOMs.
+            domsUsed = frame['I3Geometry'].omgeo
+
             for domkey in domsUsed.keys() :
                 if domkey.string > self.nstrings :
                     self.nstrings = int(domkey.string)
@@ -104,34 +127,17 @@ class DetectorTrigger(icetray.I3ConditionalModule):
                     if dist > maxDOMDistance :
                         maxDOMDistance = dist
 
-            self.FullDetectorCoincidenceWindow *= maxDOMDistance/0.3 + DOM_space*1.3/0.3
-            self.StringCoincidenceWindow *=  average_min_stringdist/0.3 + DOM_space*1.3/0.3
+            self.FullDetectorCoincidenceWindow = self.FullDetectorCoincidenceWindow_unscaled * maxDOMDistance/0.3 + DOM_space*1.3/0.3
+            self.StringCoincidenceWindow = self.StringCoincidenceWindow_unscaled * average_min_stringdist/0.3 + DOM_space*1.3/0.3
+        else:
+            self.FullDetectorCoincidenceWindow = self.FullDetectorCoincidenceWindow_unscaled
+            self.StringCoincidenceWindow = self.StringCoincidenceWindow_unscaled
 
+        self.PushFrame(frame)
 
-        self.StringTriggerGroups = list()
-
-        #Figure out trigger groups.
-        if self.ForceAdjacency :
-
-            nstart = int((self.StringNRows-1)/2)
-            for j in range(self.nstrings) :
-                for i in range(nstart,self.nDOMs-nstart) :
-                    self.StringTriggerGroups.append([])
-                    for l in range(len(string_pos)) :
-                        if sqrt((string_pos[j].x-string_pos[l].x)**2.0+(string_pos[j].y-string_pos[l].y)**2.0) < average_min_stringdist*1.5 :
-                            for k in range(i-nstart,i+nstart+1) :
-                                self.StringTriggerGroups[-1].append(OMKey(l+1,k+1,0))
-
-        else :
-            nstart = int((self.StringNRows-1)/2)
-            for i in range(nstart,self.nDOMs-nstart) :
-                self.StringTriggerGroups.append([])
-                for j in range(1,self.nstrings+1) :
-                    for k in range(i-nstart,i+nstart+1) :
-                        self.StringTriggerGroups[-1].append(OMKey(j,k,0))  
-
-        self.eventcount = 0
     def DetectorStatus(self,frame) :
+        if not self.has_seen_geometry:
+            raise RuntimeError("This module needs a Geometry frame in your input stream")
 
         frame["FullDetectorCoincidenceWindow"+self.output] = dataclasses.I3Double(self.FullDetectorCoincidenceWindow)
         frame["StringCoincidenceWindow"+self.output] = dataclasses.I3Double(self.StringCoincidenceWindow)
@@ -182,7 +188,7 @@ class DetectorTrigger(icetray.I3ConditionalModule):
                         StringTriggers[i] = list()
                     for time in DOMTriggers[key] :
                         StringTriggers[i].append((key,time))
-            FullDetectDOMTriggers.append((key,time))
+                        FullDetectDOMTriggers.append((key,time))
 
     
         StringTrigOpp = {}
