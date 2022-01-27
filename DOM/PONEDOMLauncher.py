@@ -137,7 +137,7 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
             i+=1
             sumprob += pmtprobs[i]
 
-        return i
+        return i+1
 
     #Get the min and max pulse times to set time window for dark hits.
     def GetMaxMinTimes(self, mcpemap) :

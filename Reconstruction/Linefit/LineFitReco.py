@@ -52,6 +52,8 @@ class LineFitReco(icetray.I3ConditionalModule):
     def passFrame(self,frame):
         if frame.Stop != I3Frame.DAQ:
             return False
+        if not frame.Has(self.input) :
+            return False
         mcpeMap = frame[self.input]
     
         domCount = 0
@@ -95,7 +97,7 @@ class LineFitReco(icetray.I3ConditionalModule):
               continue
             time = min(timeList)
             charge = sum(npeList)
-            key = NoPMTKey(omkey)
+            key = omkey #NoPMTKey(omkey)fixed with GCD
             position = geoMap[key].position
             for i in range(len(timeList)):
                 data.append( (position.x, position.y, position.z, time, charge) )
@@ -175,7 +177,15 @@ class LineFitReco(icetray.I3ConditionalModule):
       #print(linefit.dir)
       #print(linefit.pos)
 
-      frame[self.output] = linefit
+      #print(frame[self.output])
+
+      #if not frame.Has(self.output) :
+      #  print("new")
+      #  print(linefit)
+      #  frame[self.output] = linefit
+      #else :
+      #    print("error, frame has key")
+      #    print(frame[self.output])
       self.PushFrame(frame)  
 
 

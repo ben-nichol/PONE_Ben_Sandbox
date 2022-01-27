@@ -50,7 +50,7 @@ gcd_file = dataio.I3File(args.gcdfile)
 #This pulse cleaning is promissing but still experimental. 
 tray.AddModule(CausalPulseCleaning,"CausalHit",
               GCDFile=gcd_file,
-              inputseries = "I3Photons_PMTResponse",
+              inputseries = "PMTResponse",
               output = "CausalHits"
               )
 

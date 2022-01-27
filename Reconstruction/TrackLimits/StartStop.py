@@ -7,7 +7,8 @@
 # Import some useful ICECUBE modules                                                                                  
 from icecube import icetray, dataclasses, dataio, simclasses
 from icecube.icetray import I3Units, I3Frame, OMKey 
-from icecube.dataclasses import I3Particle 
+from icecube.dataclasses import I3Particle
+from icecube.phys_services import I3Calculator as calc
 import numpy as np
 import time
 from Utilities.PandelPDFs import cpandel as pdf               # This module is used to store the pdf
@@ -16,7 +17,7 @@ import sys
 import argparse
 import math as m
 from Utilities.RecoUtility import GetGeoTime
-from Utilities.DOMUtility import GetNPMTs, NoPMTKey, AddPMTKey
+from Utilities.DOMUtility import NoPMTKey, AddPMTKey
 from Utilities.OpticalParameters import c, n, ngroup
 
 # Functional that is fed data from InitialGuess for PMT locations and the PDF we wish to use. Uses those locations to build a Pandel Function for a given track
@@ -24,7 +25,7 @@ def LikelihoodFunctor(data,domsUsed,track):
     # turn PMT locations and time hits into numpy arrays for easier numpy algebra
     pulse_series = data
     geo_doms = domsUsed
-
+    tau = 30.0
     dir = track.dir 
     vertex = track.pos
 
@@ -32,13 +33,18 @@ def LikelihoodFunctor(data,domsUsed,track):
     def likelihoodFunction(darkAmp, StartL, StopL):
 
         sum_nloglike = 0.0
+        t0 = track.time
         for dom in pulse_series.keys() :
-            domkey =  NoPMTKey(dom) 
-            em_pos = CherenkovPosition(track,dom_geo[dom].position,ngroup,n)
-            vertex_to_em = I3Position(em_pos.x-vertex.x,em_pos.y-vertex.y,em_pos.z-vertex.z)
+            domkey =  dom #NoPMTKey(dom) fixed with GCD
+            em_pos = calc.cherenkov_position(track,geo_doms[dom].position,ngroup,n)
+            vertex_to_em = dataclasses.I3Position(em_pos.x-vertex.x,em_pos.y-vertex.y,em_pos.z-vertex.z)
             sign = (vertex_to_em.x*dir.x+vertex_to_em.y*dir.y+vertex_to_em.z*dir.z)/np.sqrt(vertex_to_em.x**2.0+vertex_to_em.y**2.0+vertex_to_em.z**2.0)
             Length_Along_Track = sign*np.sqrt(vertex_to_em.x**2.0+vertex_to_em.y**2.0+vertex_to_em.z**2.0)
-            p_charge = np.exp(-d/tau)/max(dc,0.25)
+            pos = geo_doms[dom].position
+            _dir = track.dir
+            vert = vertex
+            d,dc,t = GetGeoTime([pos.x,pos.y,pos.z],[vert.x,vert.y,vert.z],[_dir.x,_dir.y,_dir.z])
+            p_charge = np.exp(-d/tau)/max(dc,0.5)
             for pulse in pulse_series[dom] :
                 time_r = pulse.time - t0 - t
                 cpandel_out = pdf(time_r ,d)
@@ -48,7 +54,7 @@ def LikelihoodFunctor(data,domsUsed,track):
                 else :               
                     sum_nloglike -= charge*np.log((1.-darkAmp)*cpandel_out*p_charge+darkAmp)
 
-        return sum_nlogliked
+        return sum_nloglike
 
     return likelihoodFunction
 
@@ -80,15 +86,21 @@ class StartStopFit(icetray.I3ConditionalModule):
     # Main function of this file. Structured this way so that it can be easily imported aswell in any other implementation. 
 
     def DAQ(self,frame): 
+        if not frame.Has(self.pulseseries) :
+            self.PushFrame(frame)
+            return
         data = frame[self.pulseseries]
 
+        if not frame.Has(self.seedtrack) :
+            self.PushFrame(frame)
+            return
         linefit = frame[self.seedtrack]
 
         domsUsed = frame['I3Geometry'].omgeo
 
         if self.FirstEvent :
-            for dom in domsUsed :
-                dompos = domsUsed[dom].I3Position
+            for dom in domsUsed.keys() :
+                dompos = domsUsed[dom].position
                 radius = np.sqrt(dompos.x**2.0+dompos.y**2.0) 
                 if radius > self.MaxDOMRad :
                     self.MaxDOMRad = radius

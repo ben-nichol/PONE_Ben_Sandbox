@@ -46,7 +46,7 @@ def LikelihoodFunctor(data,domsUsed):
         vertex = dataclasses.I3Position(vx,vy,vz)
         sum_nloglike = 0.0
         for dom in pulse_series.keys() :
-            domkey =  NoPMTKey(dom) 
+            domkey =  dom #NoPMTKey(dom) fixed with GCD
             dc,t = GetPhotonTravelTime([geo_doms[domkey].position.x,geo_doms[domkey].position.y,geo_doms[domkey].position.z],[vertex.x,vertex.y,vertex.z])
             p_charge = np.exp(-dc/tau)/max(dc,0.25)
             for pulse in pulse_series[dom] :
@@ -74,7 +74,7 @@ def GetVertexTime(pulse_series,geo_doms):
 	vz = 0.0
 
 	for domkey in pulse_series.keys() :
-		domkey_nopmt =  NoPMTKey(domkey)
+		domkey_nopmt =  domkey #NoPMTKey(domkey) fixed with GCD
 		for pulse in pulse_series[domkey] :
 			totalcharge += pulse.charge
 			vx += geo_doms[domkey_nopmt].position.x*pulse.charge
@@ -88,7 +88,7 @@ def GetVertexTime(pulse_series,geo_doms):
 	T0 = 0.0
 
 	for domkey in pulse_series.keys() :
-		domkey_nopmt =  NoPMTKey(domkey)
+		domkey_nopmt =  domkey#NoPMTKey(domkey)fixed with GCD
 		for pulse in pulse_series[domkey] :
 			dx = vertex.x - geo_doms[domkey_nopmt].position.x
 			dy = vertex.y - geo_doms[domkey_nopmt].position.y
@@ -123,7 +123,12 @@ class CascadeReco(icetray.I3ConditionalModule):
 
     # Main function of this file. Structured this way so that it can be easily imported aswell in any other implementation. 
 
-    def DAQ(self,frame): 
+    def DAQ(self,frame):
+
+        if not frame.Has(self.pulseseries) :
+            self.PushFrame(frame)
+            return
+
         data = frame[self.pulseseries]
 
         domsUsed = frame['I3Geometry'].omgeo

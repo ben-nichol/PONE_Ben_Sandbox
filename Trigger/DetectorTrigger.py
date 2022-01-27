@@ -93,13 +93,13 @@ class DetectorTrigger(icetray.I3ConditionalModule):
                 if domkey.pmt > self.npmts  :
                     self.npmts  = int(domkey.pmt)
 
-            DOM_space = domsUsed[OMKey(1,1,0)].position.z - domsUsed[OMKey(1,2,0)].position.z
+            DOM_space = domsUsed[OMKey(1,1,1)].position.z - domsUsed[OMKey(1,2,1)].position.z
 
             String_space = 99999.
             string_pos = list()
 
             for i in range(1,self.nstrings+1) :
-                string_pos.append(domsUsed[OMKey(i,1,0)].position)
+                string_pos.append(domsUsed[OMKey(i,1,1)].position)
 
             average_min_stringdist = 0.0
             for i in range(len(string_pos)-1):
@@ -189,7 +189,8 @@ class DetectorTrigger(icetray.I3ConditionalModule):
                         StringTriggers[i] = list()
                     for time in DOMTriggers[key] :
                         StringTriggers[i].append((key,time))
-                        FullDetectDOMTriggers.append((key,time))
+            for time in DOMTriggers[key] :
+                FullDetectDOMTriggers.append((key,time))
 
 
         StringTrigOpp = {}
@@ -205,7 +206,8 @@ class DetectorTrigger(icetray.I3ConditionalModule):
                             StringTrigOpp[i][k][1].append(StringTriggers[i][j][0])
                             StringTrigOpp[i][k][2].append(StringTriggers[i][j][1])
 
-
+        #print("FullDetectDOMTriggers")
+        #print(FullDetectDOMTriggers)
         DetectTrigOpp = list()
         for j in range(len(FullDetectDOMTriggers)) :
             DetectTrigOpp.append([FullDetectDOMTriggers[j][1],[FullDetectDOMTriggers[j][0]],[FullDetectDOMTriggers[j][1]]])
@@ -214,6 +216,9 @@ class DetectorTrigger(icetray.I3ConditionalModule):
                 if ((FullDetectDOMTriggers[j][1] - DetectTrigOpp[k][0]) < self.FullDetectorCoincidenceWindow) and ((FullDetectDOMTriggers[j][1] - DetectTrigOpp[k][0]) >= 0.0) and (FullDetectDOMTriggers[j][0] not in DetectTrigOpp[k][1]):
                         DetectTrigOpp[k][1].append(FullDetectDOMTriggers[j][0])
                         DetectTrigOpp[k][2].append(FullDetectDOMTriggers[j][1])
+
+        #print("DetectTrigOpp")
+        #print(DetectTrigOpp)
 
         stringTriggerTime = dataclasses.I3VectorDouble()
         detectorTriggerTime = dataclasses.I3VectorDouble()

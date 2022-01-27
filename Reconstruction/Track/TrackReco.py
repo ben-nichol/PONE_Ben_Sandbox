@@ -47,7 +47,7 @@ def LikelihoodFunctor(data,domsUsed,vertexrad):
 
         sum_nloglike = 0.0
         for dom in pulse_series.keys() :
-            domkey =  NoPMTKey(dom) 
+            domkey =  dom #NoPMTKey(dom) fixed with pmt information in GCD
             d,dc,t = GetGeoTime([geo_doms[domkey].position.x,geo_doms[domkey].position.y,geo_doms[domkey].position.z],
                                 [vertex.x,vertex.y,vertex.z],
                                 [direction.x,direction.y,direction.z])
@@ -96,7 +96,7 @@ def GetVertexTime(vertex,direction,pulse_series,geo_doms):
     if type(MaxChargeDOM) != type(OMKey(0,0,0)) :
         return 7200
 
-    DOMPos = geo_doms[MaxChargeDOM].position
+    DOMPos = geo_doms[AddPMTKey(MaxChargeDOM,1)].position
 
     maxCharge=0.0
     maxCharge_time = 0.0
@@ -161,15 +161,23 @@ class TrackReco(icetray.I3ConditionalModule):
         self.domsUsed = frame['I3Geometry'].omgeo
 
         maxradius = 0.0
-        for dom in self.domsUsed :
+        for dom in self.domsUsed.keys() :
             pos = self.domsUsed[dom].position
             radius = np.sqrt(pos.x**2.0+pos.y**2.0+pos.z**2.0)
             maxradius = max(maxradius,radius)
 
         self.vertexRad = maxradius + 100.0
 
-    def DAQ(self,frame): 
+    def DAQ(self,frame):
+        if not frame.Has(self.pulseseries) :
+            self.PushFrame(frame)
+            return
+
         data = frame[self.pulseseries]
+
+        if not frame.Has(self.seedtrack) :
+            self.PushFrame(frame)
+            return
 
         linefit = frame[self.seedtrack]
 

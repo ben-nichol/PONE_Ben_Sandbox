@@ -63,7 +63,7 @@ class CausalPulseCleaning(icetray.I3ConditionalModule):
 
         for PMTKey in mcpeMap.keys():
             if (PMTKey.string == MaxchargeDOM.string) and (PMTKey.om == MaxchargeDOM.string):
-                for pulse in mcpeMap[PMTkey] :
+                for pulse in mcpeMap[PMTKey] :
                     pulses.append(pulse.time)
 
         pulsecoinc = list()
@@ -73,6 +73,9 @@ class CausalPulseCleaning(icetray.I3ConditionalModule):
                     if abs(pulses[ipulse1]-pulses[ipulse2]) < 10. :
                         pulsecoinc[-1] += 1
 
+        if len(pulsecoinc) < 1 :
+            return AddPMTKey(MaxchargeDOM,1), -1.0
+
         maxcoince = max(pulsecoinc)
         coincetime = max(pulses)
 
@@ -81,7 +84,7 @@ class CausalPulseCleaning(icetray.I3ConditionalModule):
                 if pulses[i] < coincetime :
                     coincetime = pulses[i]
 
-        return MaxchargeDOM, coincetime
+        return AddPMTKey(MaxchargeDOM,1), coincetime
 
     def getCausalMCPEs(self,pos1,pos2,mcpeList,coincetime):
         causalMCPEList = dataclasses.I3RecoPulseSeries()
@@ -114,11 +117,19 @@ class CausalPulseCleaning(icetray.I3ConditionalModule):
         causalMCPEMap = dataclasses.I3RecoPulseSeriesMap()
         domsUsed = frame['I3Geometry'].omgeo
 
+        if len(mcpeMap.keys()) < 1 :
+            self.PushFrame(frame)
+            return
+
         #make assumption that DOM with highest charge is the baseline, 
         #the 10 ns window in theis DOM with the highest charge is 
         # the baseline for other photons being causal.
 
         MaxchargeDOM, coincetime = self.getBaseTimeandPosition(mcpeMap)
+
+        if coincetime < 0.0 :
+            self.PushFrame(frame)
+            return
 
         pos1 = domsUsed[MaxchargeDOM].position
         for omkey in mcpeMap.keys():
@@ -126,7 +137,7 @@ class CausalPulseCleaning(icetray.I3ConditionalModule):
             #  continue
             if len(mcpeMap[omkey]) < 1 :
               continue
-            pos2 = domsUsed[NoPMTKey(omkey)].position
+            pos2 = domsUsed[omkey].position
             causalHits = self.getCausalMCPEs(pos1,pos2,mcpeMap[omkey],coincetime)
             if len(causalHits) > 0 :
                 causalMCPEMap[omkey] = causalHits
