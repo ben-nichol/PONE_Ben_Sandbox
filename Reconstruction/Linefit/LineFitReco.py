@@ -148,7 +148,9 @@ class LineFitReco(icetray.I3ConditionalModule):
       #print("in line")
 
       if not self.passFrame(frame) :
+        self.PushFrame(frame)
         return
+
       datapoints = self.getLinefitDataPoints(frame)
       x = [data[0] for data in datapoints]
       y = [data[1] for data in datapoints]
@@ -173,19 +175,7 @@ class LineFitReco(icetray.I3ConditionalModule):
       linefit.pos = vertex        
       linefit.time = weighted_time
 
-      #print(self.output)
-      #print(linefit.dir)
-      #print(linefit.pos)
-
-      #print(frame[self.output])
-
-      #if not frame.Has(self.output) :
-      #  print("new")
-      #  print(linefit)
-      #  frame[self.output] = linefit
-      #else :
-      #    print("error, frame has key")
-      #    print(frame[self.output])
+      frame[self.output] = linefit
       self.PushFrame(frame)  
 
 
