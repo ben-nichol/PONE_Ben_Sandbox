@@ -1,15 +1,13 @@
 from icecube import dataio, dataclasses, icetray
 from icecube.icetray import OMKey, I3Units
-from icecube.dataclasses import I3Constants
 import numpy as np
 import argparse
-import sys
 
 import gcdHelpers
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-s", "--spacing",type = float, default = 50.0, help="Spacing for strings in cluser.")
-parser.add_argument("-l", "--clusterspacing",type = float, default = 250.0, help="Spacing for strings in cluser.")
+parser.add_argument("-l", "--clusterspacing",type = float, default = 200.0, help="Spacing for strings in cluser.")
 parser.add_argument("-n", "--nstring",type= int, default = 10, help="Number of strings per cluster.")
 parser.add_argument("-c", "--nclusters",type= int, default = 7, help="Number of clusters.")
 parser.add_argument("-d", "--ndoms",type= int, default = 20, help="Doms per string.")
