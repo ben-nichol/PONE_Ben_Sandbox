@@ -97,8 +97,8 @@ def generateGeometry():
             omGeometry.orientation = orientation
             omGeometry.area = area
             omGeometry.position = dataclasses.I3Position(stringposx[i]-mean_x, stringposy[i]-mean_y, depth[m])
-            for i in range(args.npmts) :
-                omkey = OMKey(i+1, m+1, i+1)
+            for j in range(args.npmts) :
+                omkey = OMKey(i+1, m+1, j+1)
                 geomap[omkey] = omGeometry
 
     return geomap
