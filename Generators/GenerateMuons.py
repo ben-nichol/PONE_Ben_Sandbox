@@ -5,7 +5,7 @@ class MuonGenerator () :
 
     def ReadFluxTable(self) :
 
-        infile = open(os.getenv('PONESRCDIR')+"/data/fluxtable.csv","r")
+        infile = open(os.getenv('PONESRCDIR')+"/data/fluxtable_1460.csv","r")
         lines = infile.readlines()
         #first 4 lines are header
 
@@ -211,7 +211,7 @@ class MuonGenerator () :
     def __init__(self,_cylR,_minenergy,_maxenergy,seed=0):
 
         self.cylR = _cylR
-        self.cylH = 1050.0
+        self.cylH = 1200.0
         self.d_cdf = int(1e4)
         self.p = list()
         for i in range(self.d_cdf) :

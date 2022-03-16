@@ -42,8 +42,8 @@ class LeptonWeighter(icetray.I3ConditionalModule):
         self.weight_event = LW.Weighter( self.flux, self.xs, self.simulation_generators ) 
 
     def Simulation(self,frame) :
-        if frame.Has("LeptonInjectorProperties"):
-            self.injectionRadius = frame["LeptonInjectorProperties"].injectionRadius
+        #if frame.Has("LeptonInjectorProperties"):
+        #    self.injectionRadius = frame["LeptonInjectorProperties"].injectionRadius
         self.PushFrame(frame)
 
     def DAQ(self,frame) :
