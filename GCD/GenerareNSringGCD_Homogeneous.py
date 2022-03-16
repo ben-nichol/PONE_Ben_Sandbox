@@ -86,8 +86,8 @@ def generateGeometry():
     mean_x = sum(stringposx)/len(stringposx)
     mean_y = sum(stringposy)/len(stringposy)
 
-    sp = 800.0/19.0
-    depthlist = [(-400.0+sp*i)*I3Units.meter for i in range(20)]
+    sp = 950.0/19.0
+    depthlist = [(-450.0+sp*i)*I3Units.meter for i in range(20)]
 
     for i in range(len(stringposx)) :
         for m in range(domsPerString):
