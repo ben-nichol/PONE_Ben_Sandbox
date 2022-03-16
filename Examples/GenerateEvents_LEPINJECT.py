@@ -19,8 +19,9 @@ parser.add_argument('-o',    '--outfile',   default = "output.i3",              
 parser.add_argument('-r',    '--runNum',    default = 0,                                              help="run Number")
 parser.add_argument("-a",    "--ratios",    default="1.0:1.0:1.0:1.0:1.0:1.0",                                help="ratio of input neutrino")
 parser.add_argument("-t",    "--types",     default="NuE:NuEBar:NuTau:NuTauBar:NuMu:NuMuBar",                      help="type of input neutrino")
-parser.add_argument("-g",    "--gcd",       default=os.getenv('PONESRCDIR')+"/GCD/PONE_Phase1.i3.gz", help="gdc file")
+parser.add_argument("-g",    "--gcd",       default=os.getenv('PONESRCDIR')+"/GCD/PONE_10String.i3.gz", help="gdc file")
 parser.add_argument("-c",    "--crossdir",  default=os.getenv('PONESRCDIR')+"/CrossSectionModels/csms_differential_v1.0",    help='path to cross section models')
+parser.add_argument("-x",    "--config",    default="",help="")
 
 args = parser.parse_args()
 
@@ -55,7 +56,7 @@ tray.context["I3RandomService"] = randomService
 tray.AddService("I3EarthModelServiceFactory", "Earth")
 tray.AddModule("I3InfiniteSource", "TheSource", Stream=icetray.I3Frame.DAQ)
 
-tray.Add("I3EarthModelServiceFactory", "EarthModelService",
+tray.Add("I3EarthModelServiceFactory", "Earth",
                 EarthModels = ["PREM_mmc"],
                 MaterialModels = ["Standard"],
                 IceCapType = "IceSheet",
@@ -83,6 +84,15 @@ injector_list.append(
         TotalCrossSectionFile               = args.crossdir + "/sigma_nu_CC_iso.fits",
         Ranged = False)
     )
+injector_list.append(
+    LeptonInjector.injector(
+        NEvents         = args.numEvents,
+        FinalType1      = dataclasses.I3Particle.ParticleType.TauMinus,
+        FinalType2      = dataclasses.I3Particle.ParticleType.Hadrons,
+        DoublyDifferentialCrossSectionFile  = args.crossdir + "/dsdxdy_nu_CC_iso.fits",
+        TotalCrossSectionFile               = args.crossdir + "/sigma_nu_CC_iso.fits",
+        Ranged = False)
+    )
 
 # Create the multileptoninjector object with your list of injectors 
 tray.AddModule("MultiLeptonInjector",
@@ -94,12 +104,14 @@ tray.AddModule("MultiLeptonInjector",
     MaximumZenith   = 180 * I3Units.deg, 
     PowerLawIndex   = 2.,
     InjectionRadius = 500 * I3Units.meter,
-    EndcapLength    = 1200 * I3Units.meter,
-    CylinderRadius  = 400 * I3Units.meter,
+    EndcapLength    = 1100 * I3Units.meter,
+    CylinderRadius  = 100 * I3Units.meter,
     CylinderHeight  = 1000 * I3Units.meter,
     MinimumAzimuth  = 0. * I3Units.deg,
     MaximumAzimuth  = 360. * I3Units.deg,
     RandomService   = "I3RandomService")
+
+tray.AddModule("InjectionConfigSerializer", OutputPath=args.config)
 
 tray.Add(PropagateMuons, 'ParticlePropagators',
          RandomService=randomService,

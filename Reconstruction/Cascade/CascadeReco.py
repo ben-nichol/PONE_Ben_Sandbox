@@ -21,10 +21,10 @@ import math as m
 import random as rand
 from Utilities.RecoUtility import GetPhotonTravelTime
 from Utilities.DOMUtility import NoPMTKey, AddPMTKey
-from Utilities.OpticalParameters import c, n, ngroup
+from Utilities.OpticalParameters import c, n, ngroup, tau
 
 # Functional that is fed data from InitialGuess for PMT locations and the PDF we wish to use. Uses those locations to build a Pandel Function for a given track
-def LikelihoodFunctor(data,domsUsed):
+def LikelihoodFunctor(data,domsUsed,_tau):
     # turn PMT locations and time hits into numpy arrays for easier numpy algebra
     pulse_series = data
     geo_doms = domsUsed
@@ -34,10 +34,7 @@ def LikelihoodFunctor(data,domsUsed):
     vz = 0.0 
     v =np.array([0.0,0.0,0.0])
 
-    c_n = c/ngroup                                     # light in water
-    lambda_s = 120.                                 # scattering length of light for violet light
-    lambda_a = 15.                                  # absorption length of light for violet light
-    tau = 18.949132224466762                                        # time parameter that has to be fit using simulations or data      
+    thistau = _tau                                        # absorbtion length     
 
     # uses the prior defined functions to build a likelihood function that when given a track (linefit) will produce a negative loglikelihood value
     def likelihoodFunction(vx,vy,vz,t0):
@@ -48,7 +45,7 @@ def LikelihoodFunctor(data,domsUsed):
         for dom in pulse_series.keys() :
             domkey =  dom #NoPMTKey(dom) fixed with GCD
             dc,t = GetPhotonTravelTime([geo_doms[domkey].position.x,geo_doms[domkey].position.y,geo_doms[domkey].position.z],[vertex.x,vertex.y,vertex.z])
-            p_charge = np.exp(-dc/tau)/max(dc,0.25)
+            p_charge = np.exp(-dc/thistau)/max(dc,0.25)
             for pulse in pulse_series[dom] :
                 charge = 1.0
                 cpandel_out = pdf(pulse.time - t0 - t ,dc)
@@ -109,6 +106,7 @@ class CascadeReco(icetray.I3ConditionalModule):
 
         self.AddParameter("pulseseries","Name of the Merged MCPE tree name","MergedSeriesMap")
         self.AddParameter("output","Track to store fit.","llnfit")
+        self.AddParameter("tau","optical attenuation length.",tau)
         self.AddOutBox("OutBox")
 
     def Configure(self):
@@ -116,12 +114,14 @@ class CascadeReco(icetray.I3ConditionalModule):
         self.pulseseries = self.GetParameter("pulseseries")
         self.output = self.GetParameter("output")
 
-        # Some quantities that are environment dependent
-        self.lambda_s = 120.                                 # scattering length of light for violet light
-        self.lambda_a = 18.949132224466762                                  # absorption length of light for violet light
-        self.tau = 557                                       # time parameter that has to be fit using simulations or data
+        self.tau = self.GetParameter("tau")
 
     # Main function of this file. Structured this way so that it can be easily imported aswell in any other implementation. 
+
+    def Geometry(self,frame):
+
+        self.domsUsed = frame['I3Geometry'].omgeo
+        self.PushFrame(frame)
 
     def DAQ(self,frame):
 
@@ -131,10 +131,8 @@ class CascadeReco(icetray.I3ConditionalModule):
 
         data = frame[self.pulseseries]
 
-        domsUsed = frame['I3Geometry'].omgeo
-
-        qFunctor = LikelihoodFunctor(data,domsUsed)
-        T0, vertex, totalcharge = GetVertexTime(data,domsUsed)
+        qFunctor = LikelihoodFunctor(data,self.domsUsed,self.tau)
+        T0, vertex, totalcharge = GetVertexTime(data,self.domsUsed)
 
         if totalcharge < 5.0 :
             return 

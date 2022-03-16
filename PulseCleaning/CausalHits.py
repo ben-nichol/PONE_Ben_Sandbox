@@ -46,23 +46,18 @@ class CausalPulseCleaning(icetray.I3ConditionalModule):
 
         for omkey in mcpeMap.keys():
             DOMkey = NoPMTKey(omkey)
-            if DOMkey not in DOMCharge.keys():
-                DOMCharge[DOMkey] = 0.0
+            DOMCharge[DOMkey] = 0.0
+        for omkey in mcpeMap.keys():
+            DOMkey = NoPMTKey(omkey)
             for pulse in mcpeMap[omkey] :
                 DOMCharge[DOMkey] += pulse.charge
             
         pulses = list()
-        first = True
-        MaxchargeDOM = None 
-        for DOM in DOMCharge.keys():
-            if first :
-                MaxchargeDOM = DOM
-                first = False
-            if DOMCharge[DOM] > DOMCharge[MaxchargeDOM] :
-                MaxchargeDOM = DOM
+        MaxchargeDOM = max(DOMCharge, key=DOMCharge.get)
+
 
         for PMTKey in mcpeMap.keys():
-            if (PMTKey.string == MaxchargeDOM.string) and (PMTKey.om == MaxchargeDOM.string):
+            if (PMTKey.string == MaxchargeDOM.string) and (PMTKey.om == MaxchargeDOM.om):
                 for pulse in mcpeMap[PMTKey] :
                     pulses.append(pulse.time)
 
@@ -74,7 +69,7 @@ class CausalPulseCleaning(icetray.I3ConditionalModule):
                         pulsecoinc[-1] += 1
 
         if len(pulsecoinc) < 1 :
-            return AddPMTKey(MaxchargeDOM,1), -1.0
+            return AddPMTKey(MaxchargeDOM,1), -100000.0
 
         maxcoince = max(pulsecoinc)
         coincetime = max(pulses)
@@ -110,12 +105,16 @@ class CausalPulseCleaning(icetray.I3ConditionalModule):
                 causalMCPEList.append(pulse)
 
         return causalMCPEList
+
+    def Geometry(self,frame) :
+
+        self.domsUsed = frame['I3Geometry'].omgeo
+        self.PushFrame(frame)
    
     def DAQ(self,frame):
     
         mcpeMap = frame[self.input]
         causalMCPEMap = dataclasses.I3RecoPulseSeriesMap()
-        domsUsed = frame['I3Geometry'].omgeo
 
         if len(mcpeMap.keys()) < 1 :
             self.PushFrame(frame)
@@ -127,17 +126,17 @@ class CausalPulseCleaning(icetray.I3ConditionalModule):
 
         MaxchargeDOM, coincetime = self.getBaseTimeandPosition(mcpeMap)
 
-        if coincetime < 0.0 :
+        if coincetime < -10000. :
             self.PushFrame(frame)
             return
 
-        pos1 = domsUsed[MaxchargeDOM].position
+        pos1 = self.domsUsed[MaxchargeDOM].position
         for omkey in mcpeMap.keys():
             #if omkey not in mcpeMap:
             #  continue
             if len(mcpeMap[omkey]) < 1 :
               continue
-            pos2 = domsUsed[omkey].position
+            pos2 = self.domsUsed[omkey].position
             causalHits = self.getCausalMCPEs(pos1,pos2,mcpeMap[omkey],coincetime)
             if len(causalHits) > 0 :
                 causalMCPEMap[omkey] = causalHits

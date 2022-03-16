@@ -18,7 +18,7 @@ def AddPMTKey(domkey,ipmt):
 
 class DOMProperties():
     def __init__(self, 
-        PMTAcceptanceFile = os.getenv('PONESRCDIR')+"/data/PMTAcceptance_13PMTConfig.txt",
+        PMTAcceptanceFile = os.getenv('PONESRCDIR')+"/data/ang_acceptance_16_all.npy",
         PMTQEFile = os.getenv('PONESRCDIR')+"/data/PMTQE.txt"
         ):
 
@@ -53,7 +53,7 @@ class DOMProperties():
         note that the PMT direction if defined by the photon travel direction and is opposite
         the PMT mounting direction.
     """
-    def _LoadPMTAcceptance(self, infile) :
+    def _LoadPMTAcceptance_txt(self, infile) :
         domaccFile = open(infile,"r")
         lines = domaccFile.readlines()
         maxTotaleff = 0.0;
@@ -109,6 +109,60 @@ class DOMProperties():
             if phi < 0.0 :
                 phi += 2.0*np.pi
             self.PMTDirection.append([theta,phi])
+
+    def _LoadPMTAcceptance_npy(self, infile) :
+        self.PMTacceptance = np.load(infile)
+
+        maxTotaleff = 0.0;
+
+        self.PMTDirection = list()
+        self.maxAngularAcceptance = 0.0
+        self.Totalacceptance = list()
+
+        for i in range(len(self.PMTacceptance[0])) :
+            self.Totalacceptance.append([])
+            for j in range(len(self.PMTacceptance[0][0])) :
+                self.Totalacceptance[-1].append(0.0)
+                for n in range(len(self.PMTacceptance)) :
+                    self.Totalacceptance[-1][-1] += self.PMTacceptance[n][i][j]
+                if self.Totalacceptance[-1][-1] > self.maxAngularAcceptance :
+                    self.maxAngularAcceptance = self.Totalacceptance[-1][-1]
+
+        #Compute PMT view direction from the centroid of the acceptance.
+        for i in range(len(self.PMTacceptance)):
+            acceptancesum = 0.0
+            x,y,z = 0.0,0.0,0.0
+            for theta in range(len(self.PMTacceptance[i])):
+                for phi in range(len(self.PMTacceptance[i][theta])):
+                    x += np.sin(float(theta)*np.pi/180.)*np.cos(float(phi)*np.pi/180.)*self.PMTacceptance[i][theta][phi]
+                    y += np.sin(float(theta)*np.pi/180.)*np.sin(float(phi)*np.pi/180.)*self.PMTacceptance[i][theta][phi]
+                    z += np.cos(float(theta)*np.pi/180.)*self.PMTacceptance[i][theta][phi]
+                    acceptancesum += self.PMTacceptance[i][theta][phi]
+            x /= acceptancesum
+            y /= acceptancesum
+            z /= acceptancesum
+            r = np.sqrt(x*x+y*y+z*z)
+            x /= r
+            y /= r
+            z /= r
+            theta = np.arccos(z)
+            phi = 0.0
+            if theta != 0.0 or theta != np.pi :
+                phi = np.arctan2(y,x)
+
+            if phi < 0.0 :
+                phi += 2.0*np.pi
+            self.PMTDirection.append([theta,phi])
+    
+
+    def _LoadPMTAcceptance(self,infile) :
+        extension = infile.split(".",100)[-1]
+        if extension == "npy" :
+            self._LoadPMTAcceptance_npy(infile)
+        else :
+            self._LoadPMTAcceptance_txt(infile)
+
+
 
     """!
     GetPMTDirection(pmtid)

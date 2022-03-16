@@ -73,10 +73,10 @@ fi
 geant4_envbindir=/app/geant4/install/bin
 
 _ROOTSYS=/app/root
-_LD_LIBRARY_PATH=/app/icetray_offline/build/lib:/app/icetray_offline/build/lib/tools:$geant4_envbindir/../lib:${_ROOTSYS}/lib::$LD_LIBRARY_PATH
-_DYLD_LIBRARY_PATH=/app/icetray_offline/build/lib:/app/icetray_offline/build/lib/tools:${_ROOTSYS}/lib:$geant4_envbindir/../lib:$DYLD_LIBRARY_PATH
+_LD_LIBRARY_PATH=/app/icetray_offline/build/lib:/app/icetray_offline/build/lib/tools:$geant4_envbindir/../lib:${_ROOTSYS}/lib:/app/SQuIDS/lib:/app/nuSQuIDS/lib:$LD_LIBRARY_PATH
+_DYLD_LIBRARY_PATH=/app/icetray_offline/build/lib:/app/icetray_offline/build/lib/tools:${_ROOTSYS}/lib:$geant4_envbindir/../lib:/app/SQuIDS/lib:/app/nuSQuIDS/lib:$DYLD_LIBRARY_PATH
 
-_PYTHONPATH=/app/icetray_offline/build/lib:$_PONE_SRC:${_ROOTSYS}/lib:$geant4_envbindir../lib:$PYTHONPATH
+_PYTHONPATH=/app/icetray_offline/build/lib:$_PONE_SRC:${_ROOTSYS}/lib:$geant4_envbindir../lib:/app/nuSQuIDS/resources/python/bindings/:$PYTHONPATH
 _PATH=/app/icetray_offline/build/bin:${_ROOTSYS}/bin:$geant4_envbindir:$PATH
 
 _HIPPO_FOUND=

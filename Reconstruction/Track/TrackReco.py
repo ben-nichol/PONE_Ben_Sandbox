@@ -17,10 +17,10 @@ import argparse
 import math as m
 from Utilities.RecoUtility import GetGeoTime
 from Utilities.DOMUtility import NoPMTKey, AddPMTKey
-from Utilities.OpticalParameters import c, n, ngroup
+from Utilities.OpticalParameters import c, n, ngroup, tau
 
 # Functional that is fed data from InitialGuess for PMT locations and the PDF we wish to use. Uses those locations to build a Pandel Function for a given track
-def LikelihoodFunctor(data,domsUsed,vertexrad):
+def LikelihoodFunctor(data,domsUsed,vertexrad,_tau):
     # turn PMT locations and time hits into numpy arrays for easier numpy algebra
     pulse_series = data
     geo_doms = domsUsed
@@ -34,7 +34,7 @@ def LikelihoodFunctor(data,domsUsed,vertexrad):
     theta_c = np.arccos(1./n)                       # Cherenkov angle in water in radians
     lambda_s = 120.                                 # scattering length of light for violet light
     lambda_a = 15.                                  # absorption length of light for violet light
-    tau = 18.949132224466762                                        # time parameter that has to be fit using simulations or data      
+    thistau = _tau                                        # time parameter that has to be fit using simulations or data      
     vertexRad = vertexrad
     # min time index for the first hit PMT
 
@@ -51,7 +51,7 @@ def LikelihoodFunctor(data,domsUsed,vertexrad):
             d,dc,t = GetGeoTime([geo_doms[domkey].position.x,geo_doms[domkey].position.y,geo_doms[domkey].position.z],
                                 [vertex.x,vertex.y,vertex.z],
                                 [direction.x,direction.y,direction.z])
-            p_charge = np.exp(-d/tau)/max(dc,0.25)
+            p_charge = np.exp(-d/thistau)/max(dc,0.25)
             for pulse in pulse_series[dom] :
                 charge = 1.0
                 time_r = pulse.time - t0 - t
@@ -114,7 +114,8 @@ def GetVertexTime(vertex,direction,pulse_series,geo_doms):
     dotprod = x*direction.x + y*direction.y + z*direction.z
     # Compute the final vector components
     # Compute t_i,c and d_i,c
-    dc = np.sqrt(x*x + y*y + z*z - dotprod*dotprod)
+    sqrt_inside = max(0.0,x*x + y*y + z*z - dotprod*dotprod)
+    dc = np.sqrt(sqrt_inside)
     #time to travel to closest approach
     tc = dotprod/c
 
@@ -136,8 +137,9 @@ class TrackReco(icetray.I3ConditionalModule):
         self.AddParameter("pulseseries","Name of the Merged MCPE tree name","MergedSeriesMap")
         self.AddParameter("seedtrack","Track to seed fit","linefit")
         self.AddParameter("output","Track to store fit.","llnfit")
-        self.AddParameter("vertexRad","Radius to put vertex at",550.)
+        self.AddParameter("vertexRad","Radius to put vertex at",100.)
         self.AddParameter("UseMC","Use MC Truth Track to seed",False)
+        self.AddParameter("tau","Optical attenuation length",tau)
         self.AddOutBox("OutBox")
 
     def Configure(self):
@@ -150,9 +152,7 @@ class TrackReco(icetray.I3ConditionalModule):
         self.domsUsed = {}
         # Some quantities that are environment dependent
         self.theta_c = np.arccos(1./n)                       # Cherenkov angle in water in radians
-        self.lambda_s = 120.                                 # scattering length of light for violet light
-        self.lambda_a = 18.949132224466762                                  # absorption length of light for violet light
-        self.tau = 557                                       # time parameter that has to be fit using simulations or data
+        self.tau  = self.GetParameter("tau")
 
     # Main function of this file. Structured this way so that it can be easily imported aswell in any other implementation. 
 
@@ -167,6 +167,8 @@ class TrackReco(icetray.I3ConditionalModule):
             maxradius = max(maxradius,radius)
 
         self.vertexRad = maxradius + 100.0
+
+        self.PushFrame(frame)
 
     def DAQ(self,frame):
         if not frame.Has(self.pulseseries) :
@@ -183,7 +185,7 @@ class TrackReco(icetray.I3ConditionalModule):
 
         direction = dataclasses.I3Direction(linefit.dir.x,linefit.dir.y,linefit.dir.z) 
 
-        qFunctor = LikelihoodFunctor(data,self.domsUsed,self.vertexRad)
+        qFunctor = LikelihoodFunctor(data,self.domsUsed,self.vertexRad,self.tau)
 
         p_2 = linefit.pos.x**2.0+linefit.pos.y**2.0+linefit.pos.z**2.0
         pd = (linefit.pos.x*direction.x+linefit.pos.y*direction.y+linefit.pos.z*direction.z)

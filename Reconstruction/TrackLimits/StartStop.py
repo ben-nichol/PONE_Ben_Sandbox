@@ -18,14 +18,13 @@ import argparse
 import math as m
 from Utilities.RecoUtility import GetGeoTime
 from Utilities.DOMUtility import NoPMTKey, AddPMTKey
-from Utilities.OpticalParameters import c, n, ngroup
+from Utilities.OpticalParameters import c, n, ngroup, tau
 
 # Functional that is fed data from InitialGuess for PMT locations and the PDF we wish to use. Uses those locations to build a Pandel Function for a given track
 def LikelihoodFunctor(data,domsUsed,track):
     # turn PMT locations and time hits into numpy arrays for easier numpy algebra
     pulse_series = data
     geo_doms = domsUsed
-    tau = 30.0
     dir = track.dir 
     vertex = track.pos
 
@@ -68,8 +67,6 @@ class StartStopFit(icetray.I3ConditionalModule):
         self.AddParameter("pulseseries","Name of the Merged MCPE tree name","MergedSeriesMap")
         self.AddParameter("seedtrack","Track to seed fit","linefit")
         self.AddParameter("output","Track to store fit.","llnfit")
-        self.AddParameter("vertexRad","Radius to put vertex at",550.)
-        self.AddParameter("UseMC","Use MC Truth Track to seed",False)
         self.AddOutBox("OutBox")
 
     def Configure(self):
@@ -77,12 +74,24 @@ class StartStopFit(icetray.I3ConditionalModule):
         self.pulseseries = self.GetParameter("pulseseries")
         self.seedtrack = self.GetParameter("seedtrack")
         self.output = self.GetParameter("output")
-        self.vertexRad = self.GetParameter("vertexRad")
-        self.useMC = self.GetParameter("UseMC")
-        self.FirstEvent = True
         self.MaxDOMRad = 0.0
         self.MaxZ = 0.0
 
+        self.domsUsed = {}
+
+    def Geometry(self,frame) :
+
+        self.domsUsed = frame['I3Geometry'].omgeo
+
+        for dom in self.domsUsed.keys() :
+            dompos = self.domsUsed[dom].position
+            radius = np.sqrt(dompos.x**2.0+dompos.y**2.0)
+            if radius > self.MaxDOMRad :
+                self.MaxDOMRad = radius
+            if abs(dompos.z) > self.MaxZ :
+                self.MaxZ = dompos.z
+
+        self.PushFrame(frame)
     # Main function of this file. Structured this way so that it can be easily imported aswell in any other implementation. 
 
     def DAQ(self,frame): 
@@ -96,19 +105,7 @@ class StartStopFit(icetray.I3ConditionalModule):
             return
         linefit = frame[self.seedtrack]
 
-        domsUsed = frame['I3Geometry'].omgeo
-
-        if self.FirstEvent :
-            for dom in domsUsed.keys() :
-                dompos = domsUsed[dom].position
-                radius = np.sqrt(dompos.x**2.0+dompos.y**2.0) 
-                if radius > self.MaxDOMRad :
-                    self.MaxDOMRad = radius
-                if abs(dompos.z) > self.MaxZ :
-                    self.MaxZ = dompos.z
-            self.FirstEvent = False
-
-        qFunctor = LikelihoodFunctor(data,domsUsed,linefit)
+        qFunctor = LikelihoodFunctor(data,self.domsUsed,linefit)
 
         # Minimize using scipy
         def func(x):
@@ -137,7 +134,8 @@ class StartStopFit(icetray.I3ConditionalModule):
             if dir_rad > 0.0 and stop_cylr > self.MaxDOMRad :
                 lrad = -(linefit.pos.x*linefit.dir.x)
                 lrad -= (linefit.pos.y*linefit.dir.y)
-                lrad += np.sqrt(lrad**2.0-4.0*(linefit.pos.x**2.0+linefit.pos.x**2.0-self.MaxDOMRad**2.0)*(dir_rad**2.0))
+                sqrt_inside = max(0.0,lrad**2.0-4.0*(linefit.pos.x**2.0+linefit.pos.x**2.0-self.MaxDOMRad**2.0)*(dir_rad**2.0))
+                lrad += np.sqrt(sqrt_inside)
                 lrad /= dir_rad**2.0
             stopL = min(l,lrad)
 

@@ -62,7 +62,8 @@ def GetGeoTime(position,vert,direction) :
         dotprod = x*np.sin(direction[0])*np.cos(direction[1]) + y*np.sin(direction[0])*np.sin(direction[1]) + z*np.cos(direction[0])
     else :
         dotprod = x*direction[0] + y*direction[1] + z*direction[2]
-    dc = np.sqrt(x*x + y*y + z*z-dotprod*dotprod)
+    dc = max(0.0,x*x + y*y + z*z-dotprod*dotprod)
+    dc = np.sqrt(dc)
     d = dc/np.sin(theta_c)
     t = d/c_n + dotprod/c - dc/(np.tan(theta_c)*c)
     return d,dc,t

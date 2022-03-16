@@ -28,6 +28,7 @@ class DetectorTrigger(icetray.I3ConditionalModule):
         self.AddParameter("TriggerTime","Time of trigger in event.",2000)
         self.AddParameter("PulseSeriesIn","Pulse series in","")
         self.AddParameter("PulseSeriesOut","Pulse series out","")
+        self.AddParameter("SingleDOMTriggerCoince"," ",3)
         self.AddOutBox("OutBox")
 
     def Configure(self):
@@ -49,32 +50,16 @@ class DetectorTrigger(icetray.I3ConditionalModule):
         self.PulseSeriesOut = self.GetParameter("PulseSeriesOut")
         self.ScaleBySpacing = self.GetParameter("ScaleBySpacing")
         self.DoStringTrigger = True
+        self.DoCoincTriggers = True
+        self.SingleDOMPMTTriggerCoince = self.GetParameter("SingleDOMTriggerCoince")
+        if self.SingleDOMPMTTriggerCoince <= self.DOMPMTCoinc :
+            self.DoCoincTriggers = False
 
         self.nstrings = int(0)
         self.nDOMs = int(0)
         self.npmts = int(0)
 
         self.has_seen_geometry = False
-
-        self.StringTriggerGroups = list()
-
-        #Figure out trigger groups.
-        if self.ForceAdjacency :
-            nstart = int((self.StringNRows-1)/2)
-            for j in range(self.nstrings) :
-                for i in range(nstart,self.nDOMs-nstart) :
-                    self.StringTriggerGroups.append([])
-                    for l in range(len(string_pos)) :
-                        if sqrt((string_pos[j].x-string_pos[l].x)**2.0+(string_pos[j].y-string_pos[l].y)**2.0) < average_min_stringdist*1.5 :
-                            for k in range(i-nstart,i+nstart+1) :
-                                self.StringTriggerGroups[-1].append(OMKey(l+1,k+1,0))
-        else :
-            nstart = int((self.StringNRows-1)/2)
-            for i in range(nstart,self.nDOMs-nstart) :
-                self.StringTriggerGroups.append([])
-                for j in range(1,self.nstrings+1) :
-                    for k in range(i-nstart,i+nstart+1) :
-                        self.StringTriggerGroups[-1].append(OMKey(j,k,0))  
 
         self.eventcount = 0
 
@@ -137,6 +122,33 @@ class DetectorTrigger(icetray.I3ConditionalModule):
             if (self.StringCoincidenceWindow <= self.FullDetectorCoincidenceWindow):
                 self.DoStringTrigger = False
 
+        self.StringTriggerGroups = list()
+
+        #Figure out trigger groups.
+        if self.ForceAdjacency :
+            nstart = int((self.StringNRows-1)/2)
+            for j in range(self.nstrings) :
+                for i in range(nstart,self.nDOMs-nstart) :
+                    self.StringTriggerGroups.append([])
+                    for l in range(len(string_pos)) :
+                        if sqrt((string_pos[j].x-string_pos[l].x)**2.0+(string_pos[j].y-string_pos[l].y)**2.0) < average_min_stringdist*1.5 :
+                            for k in range(i-nstart,i+nstart+1) :
+                                self.StringTriggerGroups[-1].append(OMKey(l+1,k+1,0))
+        else :
+            nstart = int((self.StringNRows-1)/2)
+            for i in range(nstart,self.nDOMs-nstart) :
+                self.StringTriggerGroups.append([])
+                for j in range(1,self.nstrings+1) :
+                    for k in range(i-nstart,i+nstart+1) :
+                        self.StringTriggerGroups[-1].append(OMKey(j,k,0))
+
+        self.DOMTriggerGroups = {}
+        for i in range(len(self.StringTriggerGroups)) :
+            for dom in self.StringTriggerGroups[i] :
+                if dom not in self.DOMTriggerGroups.keys() :
+                    self.DOMTriggerGroups[dom] = list()
+                self.DOMTriggerGroups[dom].append(i)
+
         self.PushFrame(frame)
 
     def DetectorStatus(self,frame) :
@@ -175,76 +187,86 @@ class DetectorTrigger(icetray.I3ConditionalModule):
         DOMCoincidence_ncoin = frame["DOMTrigger_ncoin"+self.input]
         DOMCoincidence_pmts = frame["DOMTrigger_pmts"+self.input]
 
-        DOMTriggers = self.GetDOMTriggers(DOMCoincidence_time,DOMCoincidence_ncoin,DOMCoincidence_pmts,self.DOMPMTCoinc)
-
-        SingleDOMTriggers = self.GetDOMTriggers(DOMCoincidence_time,DOMCoincidence_ncoin,DOMCoincidence_pmts,4)
-
-        FullDetectDOMTriggers = list()
-        StringTriggers = {}
-    
-        for key in DOMTriggers.keys() :
-            for i in range(len(self.StringTriggerGroups)) :
-                if key in self.StringTriggerGroups[i]:
-                    if i not in StringTriggers.keys() :
-                        StringTriggers[i] = list()
-                    for time in DOMTriggers[key] :
-                        StringTriggers[i].append((key,time))
-            for time in DOMTriggers[key] :
-                FullDetectDOMTriggers.append((key,time))
-
-
-        StringTrigOpp = {}
-        if self.DoStringTrigger :
-            print(StringTriggers.keys())
-            for i in StringTriggers.keys() :
-                StringTrigOpp[i] = list()
-                for j in range(len(StringTriggers[i])) :
-                    StringTrigOpp[i].append([StringTriggers[i][j][1],[StringTriggers[i][j][0]],[StringTriggers[i][j][1]]])
-                for k in range(len(StringTrigOpp[i])) :
-                    for j in range(len(StringTriggers[i])) :
-                        if abs(StringTriggers[i][j][1] - StringTrigOpp[i][k][0]) < self.StringCoincidenceWindow and StringTriggers[i][j][0] not in StringTrigOpp[i][k][1]:
-                            StringTrigOpp[i][k][1].append(StringTriggers[i][j][0])
-                            StringTrigOpp[i][k][2].append(StringTriggers[i][j][1])
-
-        #print("FullDetectDOMTriggers")
-        #print(FullDetectDOMTriggers)
-        DetectTrigOpp = list()
-        for j in range(len(FullDetectDOMTriggers)) :
-            DetectTrigOpp.append([FullDetectDOMTriggers[j][1],[FullDetectDOMTriggers[j][0]],[FullDetectDOMTriggers[j][1]]])
-        for k in range(len(DetectTrigOpp)) :
-            for j in range(len(FullDetectDOMTriggers)) :
-                if ((FullDetectDOMTriggers[j][1] - DetectTrigOpp[k][0]) < self.FullDetectorCoincidenceWindow) and ((FullDetectDOMTriggers[j][1] - DetectTrigOpp[k][0]) >= 0.0) and (FullDetectDOMTriggers[j][0] not in DetectTrigOpp[k][1]):
-                        DetectTrigOpp[k][1].append(FullDetectDOMTriggers[j][0])
-                        DetectTrigOpp[k][2].append(FullDetectDOMTriggers[j][1])
-
-        #print("DetectTrigOpp")
-        #print(DetectTrigOpp)
-
         stringTriggerTime = dataclasses.I3VectorDouble()
         detectorTriggerTime = dataclasses.I3VectorDouble()
         singleDOMTriggerTime = dataclasses.I3VectorDouble()
 
-        for i in range(len(DetectTrigOpp)):
-            if len(DetectTrigOpp[i][1]) >= self.FullDetectorCoincidenceN :
-                triggered = False
-                for k in range(len(detectorTriggerTime)):
-                    if abs(detectorTriggerTime[k] - max(DetectTrigOpp[i][2]))<self.EventLength :
-                        detectorTriggerTime[k] = min(detectorTriggerTime[k],max(DetectTrigOpp[i][2]))
-                        triggered = True
-                if not triggered :
-                    detectorTriggerTime.append(max(DetectTrigOpp[i][2]))
+        SingleDOMTriggers = self.GetDOMTriggers(DOMCoincidence_time,DOMCoincidence_ncoin,DOMCoincidence_pmts,3)
 
-        if self.DoStringTrigger :
-            for j in StringTrigOpp.keys() :
-                for i in range(len(StringTrigOpp[j])):
-                    if len(StringTrigOpp[j][i][1]) >= self.StringCoincidenceN :
-                        triggered = False
-                        for k in range(len(stringTriggerTime)):
-                            if abs(stringTriggerTime[k] - max(StringTrigOpp[j][i][2]))<self.EventLength :
-                                stringTriggerTime[k] = min(stringTriggerTime[k],max(StringTrigOpp[j][i][2]))
-                                triggered = True
-                        if not triggered :
-                            stringTriggerTime.append(max(StringTrigOpp[j][i][2]))
+        if self.DoCoincTriggers :
+
+            DOMTriggers = self.GetDOMTriggers(DOMCoincidence_time,DOMCoincidence_ncoin,DOMCoincidence_pmts,self.DOMPMTCoinc)
+
+            FullDetectDOMTriggers = list()
+            StringTriggers = {}
+    
+            #for key in DOMTriggers.keys() :
+            #    for i in range(len(self.StringTriggerGroups)) :
+            #        if key in self.StringTriggerGroups[i]:
+            #            if i not in StringTriggers.keys() :
+            #                StringTriggers[i] = list()
+            #            for time in DOMTriggers[key] :
+            #                StringTriggers[i].append((key,time))
+            #    for time in DOMTriggers[key] :
+            #        FullDetectDOMTriggers.append((key,time))
+
+            for key in DOMTriggers.keys() :
+                for i in self.DOMTriggerGroups[key] :
+                    if i not in StringTriggers.keys() :
+                        StringTriggers[i] = list()
+                    for time in DOMTriggers[key] :
+                        StringTriggers[i].append((key,time))
+                for time in DOMTriggers[key] :
+                    FullDetectDOMTriggers.append((key,time))
+
+            StringTrigOpp = {}
+            if self.DoStringTrigger :
+                # print(StringTriggers.keys())
+                for i in StringTriggers.keys() :
+                    StringTrigOpp[i] = list()
+                    for j in range(len(StringTriggers[i])) :
+                        StringTrigOpp[i].append([StringTriggers[i][j][1],[StringTriggers[i][j][0]],[StringTriggers[i][j][1]]])
+                    for k in range(len(StringTrigOpp[i])) :
+                        for j in range(len(StringTriggers[i])) :
+                            if abs(StringTriggers[i][j][1] - StringTrigOpp[i][k][0]) < self.StringCoincidenceWindow and StringTriggers[i][j][0] not in StringTrigOpp[i][k][1]:
+                                StringTrigOpp[i][k][1].append(StringTriggers[i][j][0])
+                                StringTrigOpp[i][k][2].append(StringTriggers[i][j][1])
+
+            #print("FullDetectDOMTriggers")
+            #print(FullDetectDOMTriggers)
+            DetectTrigOpp = list()
+            for j in range(len(FullDetectDOMTriggers)) :
+                DetectTrigOpp.append([FullDetectDOMTriggers[j][1],[FullDetectDOMTriggers[j][0]],[FullDetectDOMTriggers[j][1]]])
+            for k in range(len(DetectTrigOpp)) :
+                for j in range(len(FullDetectDOMTriggers)) :
+                    if ((FullDetectDOMTriggers[j][1] - DetectTrigOpp[k][0]) < self.FullDetectorCoincidenceWindow) and ((FullDetectDOMTriggers[j][1] - DetectTrigOpp[k][0]) >= 0.0) and (FullDetectDOMTriggers[j][0] not in DetectTrigOpp[k][1]):
+                            DetectTrigOpp[k][1].append(FullDetectDOMTriggers[j][0])
+                            DetectTrigOpp[k][2].append(FullDetectDOMTriggers[j][1])
+
+            #print("DetectTrigOpp")
+            #print(DetectTrigOpp)
+
+            for i in range(len(DetectTrigOpp)):
+                if len(DetectTrigOpp[i][1]) >= self.FullDetectorCoincidenceN :
+                    triggered = False
+                    for k in range(len(detectorTriggerTime)):
+                        if abs(detectorTriggerTime[k] - max(DetectTrigOpp[i][2]))<self.EventLength :
+                            detectorTriggerTime[k] = min(detectorTriggerTime[k],max(DetectTrigOpp[i][2]))
+                            triggered = True
+                    if not triggered :
+                        detectorTriggerTime.append(max(DetectTrigOpp[i][2]))
+
+            if self.DoStringTrigger :
+                for j in StringTrigOpp.keys() :
+                    for i in range(len(StringTrigOpp[j])):
+                        if len(StringTrigOpp[j][i][1]) >= self.StringCoincidenceN :
+                            triggered = False
+                            for k in range(len(stringTriggerTime)):
+                                if abs(stringTriggerTime[k] - max(StringTrigOpp[j][i][2]))<self.EventLength :
+                                    stringTriggerTime[k] = min(stringTriggerTime[k],max(StringTrigOpp[j][i][2]))
+                                    triggered = True
+                            if not triggered :
+                                stringTriggerTime.append(max(StringTrigOpp[j][i][2]))
 
         for dom in SingleDOMTriggers.keys() :
             for time in SingleDOMTriggers[dom] :

@@ -8,4 +8,4 @@ c_ngroup = c/ngroup # group velocity
 theta_c = np.arccos(1.0 / n)  # Cherenkov angle in water in radians
 lambda_s = 120.0  # scattering length of light for violet light
 lambda_a = 35  # absorption length of light for violet light
-tau = 557  # time parameter for Pandel that has to be fit using simulations or data
+tau = 50.0  # optical attenuation length
