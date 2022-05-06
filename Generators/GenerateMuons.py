@@ -8,8 +8,11 @@ class MuonGenerator () :
         infile = open(os.getenv('PONESRCDIR')+"/data/fluxtable_1460.csv","r")
         lines = infile.readlines()
         #first 4 lines are header
+        skipline = 0
+        while lines[skipline][0] == "#" :
+            skipline += 1
 
-        zenithbinlines = lines[5].split(" ",1000)
+        zenithbinlines = lines[skipline].split(" ",1000)
         self.zenithbins = list()
         self.flux = list()
         for i in range(1,len(zenithbinlines)) :
@@ -33,7 +36,7 @@ class MuonGenerator () :
         #for i in range(len(self.zenithbins)) :
         #    print(str(self.zenithbins[i]*np.pi/180.)+" "+str(float(i)*self.dz))
 
-        for l in range(5,len(lines)) :
+        for l in range(skiplines+1,len(lines)) :
             splitline = lines[l].split(" ",1000)
             for i in range(1,len(splitline)) :
                 try :
