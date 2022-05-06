@@ -81,36 +81,28 @@ tray.AddModule(PhotonBomb, "customFlasher",
                RandomService = randomService,
                NumPulses = int(1e3)
                )
-
 tray.AddSegment(clsim.I3CLSimMakePhotons, 'goCLSIM',
-                #UseCPUs=True,
                 UseGPUs=True,
-                #UseOnlyDeviceNumber=[1],
-                #OpenCLDeviceList=[0],
-                MCTreeName="PhotonBomb", #"I3MCTree",
-                #OutputMCTreeName="I3MCTree_clsim",
-                #FlasherInfoVectName="I3FlasherInfo",
+                MCTreeName="PhotonBomb",
+                UseI3PropagatorService=False,
                 FlasherPulseSeriesName="PhotonBomb",
                 #MMCTrackListName="MMCTrackList",
                 PhotonSeriesName=photon_series,
-                #ParallelEvents=1000,
+                MCPESeriesName='',
                 RandomService=randomService,
-                IceModelLocation="/home/users/tmcelroy/pone_offline/WaterOpticalModel/STRAW_Andy_20200328_MattewEta",
-                #IceModelLocation=mediumProperties,
-                #UnWeightedPhotons=True, #turn off optimizations
-                #UseGeant4=True,
-                CrossoverEnergyEM=0.1,
+                IceModelLocation=Medium.MakePoneMediumProperties(),
+                UnWeightedPhotons=False,
+                DOMRadius = (17.0*2.54*0.01/2.0)*icetray.I3Units.m,
+                UseGeant4=False,
+                CrossoverEnergyEM=None,
                 PhotonHistoryEntries=0,
-                #CrossoverEnergyHadron=float(options.CROSSENERGY),
                 StopDetectedPhotons=True,
-                #UseHoleIceParameterization=False, # Apply it when making hits!
-                #HoleIceParameterization=expandvars("$I3_SRC/ice-models/resources/models/angsens/as.flasher_p1_0.30_p2_-1"),
                 DoNotParallelize=False,
-                DOMOversizeFactor=1.,
+                WavelengthAcceptance = dom_properties.GetCLSimQETable( factor=dom_properties.GetMaxAngularAcceptance()*1.05 ),
+                DOMOversizeFactor=1.0, #(17./13.),
                 UnshadowedFraction=1., #normal in IC79 and older CLSim versions was 0.9, now it is 1.0
-                GCDFile=args.gcdfile #gcd_file
+                GCDFile= args.gcdfile, #gcd_file,
                 )
-
 
 # Tested that all frames go through CLSIM. Removing the ones without any hits to save space.
 #tray.AddModule(BasicHitFilter, 'FilterNullPhotons', Streams = [icetray.I3Frame.DAQ, icetray.I3Frame.Physics])

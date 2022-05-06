@@ -57,7 +57,7 @@ tray.AddService("I3EarthModelServiceFactory", "Earth")
 tray.AddModule("I3InfiniteSource", "TheSource", Stream=icetray.I3Frame.DAQ)
 
 tray.Add("I3EarthModelServiceFactory", "Earth",
-                EarthModels = ["PREM_mmc"],
+                EarthModels = ["PREM_pone"],
                 MaterialModels = ["Standard"],
                 IceCapType = "IceSheet",
                 DetectorDepth = 2600*I3Units.m,

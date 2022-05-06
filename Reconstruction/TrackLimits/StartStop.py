@@ -34,7 +34,6 @@ def LikelihoodFunctor(data,domsUsed,track):
         sum_nloglike = 0.0
         t0 = track.time
         for dom in pulse_series.keys() :
-            domkey =  dom #NoPMTKey(dom) fixed with GCD
             em_pos = calc.cherenkov_position(track,geo_doms[dom].position,ngroup,n)
             vertex_to_em = dataclasses.I3Position(em_pos.x-vertex.x,em_pos.y-vertex.y,em_pos.z-vertex.z)
             sign = (vertex_to_em.x*dir.x+vertex_to_em.y*dir.y+vertex_to_em.z*dir.z)/np.sqrt(vertex_to_em.x**2.0+vertex_to_em.y**2.0+vertex_to_em.z**2.0)
@@ -94,7 +93,7 @@ class StartStopFit(icetray.I3ConditionalModule):
         self.PushFrame(frame)
     # Main function of this file. Structured this way so that it can be easily imported aswell in any other implementation. 
 
-    def DAQ(self,frame): 
+    def Physics(self,frame): 
         if not frame.Has(self.pulseseries) :
             self.PushFrame(frame)
             return

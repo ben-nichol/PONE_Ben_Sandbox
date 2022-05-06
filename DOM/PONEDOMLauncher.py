@@ -180,11 +180,11 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
     #Apply the responce of the PMT, this includes pulse combining for pulses too close together. 
     def ApplyPMTResponse(self, mcpemap) :
         outputpulsemap = dataclasses.I3RecoPulseSeriesMap()
-
+        DOMpulsemap = dataclasses.I3RecoPulseSeriesMap()
+        DOMpulsetimelist = {}
         for omkey in mcpemap.keys():
             pulsetimelist = []
             pulseseries = dataclasses.I3RecoPulseSeries()
-
             i=0
             for pe in mcpemap[omkey]:
                 for _ in range(pe.npe):
@@ -249,12 +249,26 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
                 pulseseries.append(rpulse)
             
             newomkey = OMKey(omkey.string, omkey.om,0)
-            if self.splitDOMs :
-                newomkey.pmt = omkey.pmt
+            if newomkey not in DOMpulsetimelist.keys() :
+                DOMpulsetimelist[newomkey] = list()
+            for pulse in pulseseries:
+                pulse.width = omkey.pmt
+                DOMpulsetimelist[newomkey].append(pulse)
+            
+            if len(pulseseries) > 0 :
+                outputpulsemap[omkey] = pulseseries
+        
+        for _omkey in DOMpulsetimelist.keys() :
+            if len(DOMpulsetimelist[_omkey]) > 12. :
+                DOMpulsetimelist[_omkey].sort(key=lambda x: x.time)
+            pulseseries = dataclasses.I3RecoPulseSeries()
 
-            outputpulsemap[newomkey] = pulseseries
+            for pulse in DOMpulsetimelist[_omkey] :
+                pulseseries.append(pulse)
+            if len(pulseseries) > 2 :
+                DOMpulsemap[_omkey] = pulseseries
 
-        return outputpulsemap
+        return outputpulsemap, DOMpulsemap
 
     def ApplyPMTAcceptance(self, photonmap):
         mcpemap = simclasses.I3MCPESeriesMap()
@@ -303,7 +317,7 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
 
         # Convert I3Photons on each PMT to I3MCPEs
         mcpemap = self.ApplyPMTAcceptance(photonmap_on_pmts)
-
+        frame["I3PhotonSplitPMT"] = mcpemap
         # find the minimum and maximum time (with padding)
         max_pt, min_pt = self.GetMaxMinTimes(mcpemap)
 
@@ -315,6 +329,6 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
         # Save the MCPEs to the frame
         frame[self.outputmap_mcpe] = mcpemap
 
-        frame[self.outputmap] = self.ApplyPMTResponse(mcpemap)
+        frame[self.outputmap], frame['triggerpulsemap'] = self.ApplyPMTResponse(mcpemap)
 
         self.PushFrame(frame)

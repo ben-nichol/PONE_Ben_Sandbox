@@ -38,7 +38,7 @@ class MuonGenerator () :
             for i in range(1,len(splitline)) :
                 try :
                     _flux = float(splitline[i])
-                    self.flux[-i].append(max(_flux,0.0))
+                    self.flux[-i].append(max(_flux*np.cos(self.zenithbins[i-1]*np.pi/180.),0.0))
                 except :
                     k=0
 
@@ -211,7 +211,7 @@ class MuonGenerator () :
     def __init__(self,_cylR,_minenergy,_maxenergy,seed=0):
 
         self.cylR = _cylR
-        self.cylH = 1200.0
+        self.cylH = 1400.0
         self.d_cdf = int(1e4)
         self.p = list()
         for i in range(self.d_cdf) :

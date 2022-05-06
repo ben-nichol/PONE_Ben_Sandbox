@@ -50,10 +50,6 @@ class LineFitReco(icetray.I3ConditionalModule):
     # @Return: 
     # A boolean variable indicating whether the frame passed or not
     def passFrame(self,frame):
-        if frame.Stop != I3Frame.DAQ:
-            return False
-        if not frame.Has(self.input) :
-            return False
         mcpeMap = frame[self.input]
     
         domCount = 0
@@ -143,7 +139,7 @@ class LineFitReco(icetray.I3ConditionalModule):
     # A tuple containing the reconstructed particle's information. This is in the
     # of an I3Direction object for the particle's direction, a double for the particle's
     # speed, and an I3Position object for the particle vertex (position at t=0)  
-    def DAQ(self,frame):
+    def Physics(self,frame):
 
       #print("in line")
 

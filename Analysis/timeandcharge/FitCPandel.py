@@ -4,7 +4,9 @@ from scipy import interpolate as inter
 from scipy.signal import savgol_filter
 from scipy import stats
 from scipy import integrate
-from iminuit import Minuit
+from scipy.optimize import minimize, rosen, rosen_der
+import scipy.optimize as op
+import pickle
 
 def cpandel(t, d, n = 0.0, sigma = 2.0, lambda_s = 120., rho = 0.004, t0=0.0):
 
@@ -66,102 +68,69 @@ def cpandel(t, d, n = 0.0, sigma = 2.0, lambda_s = 120., rho = 0.004, t0=0.0):
 
 	return 0.0
 
-pdf = [[]]
-time_lim = [0.0,0.0]
-dist_lim = [0.0,0.0]
-peaktime = [0.0]
-
 def readTables() :
-	global pdf
-	global time_lim
-	global dist_lim
-	global peaktime
 
-	infile = open("fittertables.dat","r")
-	lines = infile.readlines()
-	linecount = 0
-	xcount = 0
-	ny = 0
-	nx = 0
-	minx = 0.0
-	maxx = 0.0
-	miny = 0.0
-	maxy = 0.0
-	maxvalue = 0.0;
+    pdf = []
+    peaktime = []
 
-	for line in lines :
-		splitline = line.split(",",100)
-		if linecount == 0 :
-			nx = int(splitline[0].replace("\n",""))
-			ny = int(splitline[1].replace("\n",""))
-			minx = float(splitline[2].replace("\n",""))
-			maxx = float(splitline[3].replace("\n",""))
-			miny = float(splitline[4].replace("\n",""))
-			maxy = float(splitline[5].replace("\n",""))
-			linecount += 1
-		else :
-			if xcount == ny :
-				pdf.append([])
-				maxvalue = 0.0
-				peaktime.append(0.0)
-				xcount = 0
-			for value in splitline :
-				pdf[-1].append(float(value.replace("\n","")))
-				if pdf[-1][-1] > maxvalue :
-					maxvalue = pdf[-1][-1]
-					peaktime[-1] = len(pdf[-1])-1
-				xcount += 1
-			linecount += 1
-	time_lim = [miny,maxy]
-	dist_lim = [minx,maxx]
-	print(len(pdf))
+    for i in range(400) :
+        pdf.append([])
+        for j in range(10010) :
+            pdf[-1].append(0.0)
 
-def ComputeChiSqr(n=0., sigma = 2.0, lambda_s = 120., rho = 0.004, t0=0.0) :
-	global pdf
-	global peaktime
+    input_dict  = pickle.load(open("ChargeTimePdf_April19th.pkl", 'rb'))
 
-	chi2 = 0.0;
-	#for d in range(10,11) :
-	for d in range(10,100) :
-		for t in range(-5,100) :
-			mc = pdf[d][t+10]
-			amp = pdf[d][peaktime[d]]/cpandel(float(peaktime[d])-9.5, float(d)+0.5, n, sigma, lambda_s, rho,t0)
-			pandel = amp*cpandel(float(t)+0.5, float(d)+0.5, n, sigma, lambda_s, rho,t0)
-			if mc > 1.0e-8 :
-				chi2 += ((mc-pandel)**2.0)/mc
+    dist  = input_dict["dist"]
+    char  = input_dict["char"]
+    time  = input_dict["time"]
 
-	return chi2
+    for i in range(len(char)):
+        pdf[dist[i]][time[i]] = char[i]
+
+    for i in range(len(pdf)) :
+        peaktime.append(0)
+        for j in range(len(pdf[i])):
+            if pdf[i][i] > pdf[i][peaktime[-1]]:
+                peaktime[-1] = j
+
+    return pdf, peaktime
+
+def LikelihoodFunctor(_pdf,_peaktime):
+
+    pdf = _pdf
+    peaktime = _peaktime
+
+    # uses the prior defined functions to build a likelihood function that when given a track (linefit) will produce a negative loglikelihood value
+    def likelihoodFunction(n=0., sigma = 2.0, lambda_s = 120., rho = 0.004, t0=0.0, atten=50.,_amp=1.0):
+        chi2 = 0.0;
+        #for d in range(10,11) :
+        for d in range(10,100) :
+                for t in range(-5,100) :
+                        mc = pdf[d][t+10]
+                        amp = _amp*np.exp(-d/atten)/(d*d)
+                        amp *= pdf[d][peaktime[d]]/cpandel(float(peaktime[d])-9.5, float(d)+0.5, n, sigma, lambda_s, rho,t0)
+                        pandel = amp*cpandel(float(t)+0.5, float(d)+0.5, n, sigma, lambda_s, rho,t0)
+                        if mc > 1.0e-8 :
+                                chi2 += ((mc-pandel)**2.0)/mc
+
+        return chi2
+
+    return likelihoodFunction
 
 if __name__ == "__main__":
 
-	readTables()
+    pdf, peaktime = readTables()
 
-	_n = -0.000
-	_sigma = 1.1224100170980873
-	_lambda_s = 400.85716609806737
-	_rho = 0.02549076497220394
-	_t0 = 9.05393322601339
+    print(pdf[10])
 
-	minimizer = Minuit(ComputeChiSqr,
-			n              = _n,
-			error_n        = 0.01,
-			limit_n        = (-0.2,0.2),  
-                        sigma          = _sigma,
-                        error_sigma    = 1.0,
-                        limit_sigma    = (0.0,3.0),
-                        lambda_s       = _lambda_s,
-                        error_lambda_s = 1.0,
-                        limit_lambda_s = (200.0,600.),
-                        rho            = _rho,  
-                        error_rho      = 0.01,
-                        limit_rho      = (0.0,0.06),
-			t0             = _t0,
-			error_t0       = 1.0,
-			limit_t0       = (8.0,12.0),
-                        errordef       = 1.0,
-                        )
+    qFunctor = LikelihoodFunctor(pdf, peaktime)
 
-	minimizer.migrad()
+    def func(x):
+        n,sigma,lambda_s,rho,t0,atten,amp = x
+        return qFunctor(n,sigma,lambda_s,rho,t0,atten,amp)
 
-	solution = minimizer.values
-	print(solution)
+    solution = op.minimize(fun=func,
+                               x0=np.array([0.,2.0,120.,0.004,0.0,50.,1.0]),
+                               method='Nelder-Mead')
+
+    print(solution)

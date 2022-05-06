@@ -16,52 +16,46 @@ import sys
 import argparse
 import math as m
 from Utilities.RecoUtility import GetGeoTime
-from Utilities.DOMUtility import NoPMTKey, AddPMTKey
+from Utilities.DOMUtility import NoPMTKey, AddPMTKey, DOMProperties
 from Utilities.OpticalParameters import c, n, ngroup, tau
 
 # Functional that is fed data from InitialGuess for PMT locations and the PDF we wish to use. Uses those locations to build a Pandel Function for a given track
-def LikelihoodFunctor(data,domsUsed,vertexrad,_tau):
+def LikelihoodFunctor(data,domsUsed,_vertexrad,_tau,_minr,_domutil):
     # turn PMT locations and time hits into numpy arrays for easier numpy algebra
     pulse_series = data
     geo_doms = domsUsed
 
-    vx = 0.0
-    vy = 0.0
-    vz = 0.0 
-    v =np.array([0.0,0.0,0.0])
-
-    c_n = c/ngroup                                     # light in water
-    theta_c = np.arccos(1./n)                       # Cherenkov angle in water in radians
-    lambda_s = 120.                                 # scattering length of light for violet light
-    lambda_a = 15.                                  # absorption length of light for violet light
-    thistau = _tau                                        # time parameter that has to be fit using simulations or data      
-    vertexRad = vertexrad
+    tau = _tau                                        # time parameter that has to be fit using simulations or data      
+    vertexRad = _vertexrad
+    pdark = 1e-8
+    minr = _minr
+    domutil = _domutil
     # min time index for the first hit PMT
 
     # uses the prior defined functions to build a likelihood function that when given a track (linefit) will produce a negative loglikelihood value
-    def likelihoodFunction(vtheta, vphi, theta, phi, t0):
-        dark = 1.e-8
+    def likelihoodFunction(vtheta, vphi, theta, phi, t0,Energy):
 
-        vertex = dataclasses.I3Position(vertexRad*np.sin(vtheta)*np.cos(vphi),vertexRad*np.sin(vtheta)*np.sin(vphi),vertexRad*np.cos(vtheta))
-        direction = dataclasses.I3Direction(np.sin(theta)*np.cos(phi),np.sin(theta)*np.sin(phi),np.cos(theta))
+        vertex = [vertexRad*np.sin(vtheta)*np.cos(vphi),vertexRad*np.sin(vtheta)*np.sin(vphi),vertexRad*np.cos(vtheta)]
+        direction = [np.sin(theta)*np.cos(phi),np.sin(theta)*np.sin(phi),np.cos(theta)]
 
         sum_nloglike = 0.0
         for dom in pulse_series.keys() :
-            domkey =  dom #NoPMTKey(dom) fixed with pmt information in GCD
-            d,dc,t = GetGeoTime([geo_doms[domkey].position.x,geo_doms[domkey].position.y,geo_doms[domkey].position.z],
-                                [vertex.x,vertex.y,vertex.z],
-                                [direction.x,direction.y,direction.z])
-            p_charge = np.exp(-d/thistau)/max(dc,0.25)
+            d,dc,t,theta,phi = GetGeoTime([geo_doms[dom].position.x,geo_doms[dom].position.y,geo_doms[dom].position.z],
+                                vertex,
+                                direction)
+            #p_charge = np.exp(-d/tau)*domutil.GetPMTScaledAcceptance(int(dom.pmt),theta,phi)/max(dc,minr)
+            p_charge = np.exp(-d/tau)/max(dc,minr)
             for pulse in pulse_series[dom] :
                 charge = 1.0
                 time_r = pulse.time - t0 - t
                 cpandel_out = pdf(time_r ,d)
-                if(type(pulse_series) == 'icecube.dataclasses.I3RecoPulseSeriesMap') :
-                    charge = pulse.charge                
+                if type(pulse_series) == 'icecube.dataclasses.I3RecoPulseSeriesMap' :
+                    charge = pulse.charge
+                #print("pdf = "+str(Energy*cpandel_out*p_charge)+" dark = "+str(pdark))
                 if time_r < 0 :
-                    sum_nloglike -= charge*np.log(cpandel_out*p_charge+dark) + time_r
+                    sum_nloglike -= charge*(np.log(Energy*cpandel_out*p_charge+pdark) + time_r)
                 else :
-                    sum_nloglike -= charge*np.log(cpandel_out*p_charge+dark)
+                    sum_nloglike -= charge*np.log(Energy*cpandel_out*p_charge+pdark)
 
         return sum_nloglike
 
@@ -140,6 +134,7 @@ class TrackReco(icetray.I3ConditionalModule):
         self.AddParameter("vertexRad","Radius to put vertex at",100.)
         self.AddParameter("UseMC","Use MC Truth Track to seed",False)
         self.AddParameter("tau","Optical attenuation length",tau)
+        self.AddParameter("minr","Minimum radius for attenuation",0.25)
         self.AddOutBox("OutBox")
 
     def Configure(self):
@@ -153,6 +148,9 @@ class TrackReco(icetray.I3ConditionalModule):
         # Some quantities that are environment dependent
         self.theta_c = np.arccos(1./n)                       # Cherenkov angle in water in radians
         self.tau  = self.GetParameter("tau")
+        self.minr = self.GetParameter("minr")
+        self.domprop = DOMProperties()
+        self.ndoms = 200
 
     # Main function of this file. Structured this way so that it can be easily imported aswell in any other implementation. 
 
@@ -161,16 +159,18 @@ class TrackReco(icetray.I3ConditionalModule):
         self.domsUsed = frame['I3Geometry'].omgeo
 
         maxradius = 0.0
+        self.ndoms = 0
         for dom in self.domsUsed.keys() :
             pos = self.domsUsed[dom].position
             radius = np.sqrt(pos.x**2.0+pos.y**2.0+pos.z**2.0)
             maxradius = max(maxradius,radius)
+            self.ndoms += 1
 
         self.vertexRad = maxradius + 100.0
 
         self.PushFrame(frame)
 
-    def DAQ(self,frame):
+    def Physics(self,frame):
         if not frame.Has(self.pulseseries) :
             self.PushFrame(frame)
             return
@@ -184,8 +184,6 @@ class TrackReco(icetray.I3ConditionalModule):
         linefit = frame[self.seedtrack]
 
         direction = dataclasses.I3Direction(linefit.dir.x,linefit.dir.y,linefit.dir.z) 
-
-        qFunctor = LikelihoodFunctor(data,self.domsUsed,self.vertexRad,self.tau)
 
         p_2 = linefit.pos.x**2.0+linefit.pos.y**2.0+linefit.pos.z**2.0
         pd = (linefit.pos.x*direction.x+linefit.pos.y*direction.y+linefit.pos.z*direction.z)
@@ -203,12 +201,14 @@ class TrackReco(icetray.I3ConditionalModule):
 
         T0 = GetVertexTime(vertex,direction,data,self.domsUsed)
 
+        qFunctor = LikelihoodFunctor(data,self.domsUsed,self.vertexRad,self.tau,self.minr,self.domprop)
+
         # Minimize using scipy
         def func(x):
-            vtheta, vphi, theta, phi, t0 = x
-            return qFunctor(vtheta, vphi, theta, phi, t0)
+            vtheta, vphi, theta, phi, t0, energy = x
+            return qFunctor(vtheta, vphi, theta, phi, t0,energy)
         solution = op.minimize(fun=func, 
-                               x0=np.array([VTheta, VPhi, direction.theta, direction.phi, T0]), 
+                               x0=np.array([VTheta, VPhi, direction.theta, direction.phi, T0,1.0]), 
                                method='Nelder-Mead')
 
         vx = self.vertexRad*np.sin(solution.x[0])*np.cos(solution.x[1])
@@ -218,6 +218,8 @@ class TrackReco(icetray.I3ConditionalModule):
         phi = solution.x[3] 
         theta = solution.x[2]
         u = dataclasses.I3Direction(np.sin(theta)*np.cos(phi), np.sin(theta)*np.sin(phi), np.cos(theta))
+        #print("initial = "+str(direction.theta)+","+str(direction.phi)+","+str(VTheta)+","+str(VPhi))
+        #print("final = "+str(theta)+","+str(phi)+","+str(solution.x[0])+","+str(solution.x[1]))
 
         # Record the final result
         recoParticle = dataclasses.I3Particle()
@@ -234,11 +236,12 @@ class TrackReco(icetray.I3ConditionalModule):
         recoParticle.speed = c
         recoParticle.pos = q
         recoParticle.time = solution.x[4]
+        #print("Energy = "+str(solution.x[5]))
 
         # include both linefit and improved recos for comparison
         frame[self.output] = recoParticle  
         frame[self.output+"_nloglike"] =  dataclasses.I3Double(solution.fun)
-        frame[self.output+"_seed_llhval"] = dataclasses.I3Double(qFunctor(VTheta, VPhi, direction.theta, direction.phi, T0))
+        frame[self.output+"_seed_llhval"] = dataclasses.I3Double(qFunctor(VTheta, VPhi, direction.theta, direction.phi, T0,solution.x[5]))
         
         self.PushFrame(frame)    
 

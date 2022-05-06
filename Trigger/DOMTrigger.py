@@ -4,6 +4,8 @@ from icecube.dataclasses import ModuleKey
 import numpy as np
 from math import sqrt
 from copy import deepcopy
+import collections
+from time import process_time
 
 class DOMTrigger(icetray.I3ConditionalModule):
     """
@@ -16,7 +18,7 @@ class DOMTrigger(icetray.I3ConditionalModule):
         self.AddParameter("inputmap","Name of the Physics I3MCTree name","I3RecoPulseSeriesMap")
         self.AddParameter("PEthreshold"," Pulse charge threshold",0.25)
         self.AddParameter("CutOnTrigger","Cut events that do not trigger.",False)
-        self.AddParameter("SingleDOMCoincidenceN","",2)
+        self.AddParameter("SingleDOMCoincidenceN","",3)
         self.AddParameter("SingleDOMCoincidenceWindow","",10)
         self.AddParameter("SingleStringNRows","",3)
         self.AddParameter("ForceAdjacency","Require adjacency ",True)
@@ -30,7 +32,12 @@ class DOMTrigger(icetray.I3ConditionalModule):
         self.SingleDOMCoincidenceN = self.GetParameter("SingleDOMCoincidenceN")
         self.SingleDOMCoincidenceWindow = self.GetParameter("SingleDOMCoincidenceWindow")
 
-    def DetectorStatus(self,frame) :
+    def Geometry(self,frame):
+        self.domsUsed = frame['I3Geometry'].omgeo
+        self.PushFrame(frame)
+
+
+    def Simulation(self,frame) :
 
         frame["SingleDOMCoincidenceN"+self.output] = dataclasses.I3Double(self.SingleDOMCoincidenceN)
         frame["SingleDOMCoincidenceWindow"+self.output] = dataclasses.I3Double(self.SingleDOMCoincidenceWindow)
@@ -38,45 +45,67 @@ class DOMTrigger(icetray.I3ConditionalModule):
     
     def DAQ(self,frame) :
 
-        PulseSeriesMap = frame[self.inputmap]
+        PulseSeriesMap = frame['triggerpulsemap']
         DOMCoincidence_dict = {}
+        DOMPulseCount = {}
+        DOMPMTCount = {}
+        
         DOMCoincidence_time = dataclasses.I3MapKeyVectorDouble()
         DOMCoincidence_ncoin = dataclasses.I3MapKeyVectorInt()
         DOMCoincidence_pmts = dataclasses.I3MapKeyVectorInt()
 
-        #print(PulseSeriesMap)
-
         for omkey in PulseSeriesMap.keys() :
-            OMKEY = OMKey(omkey.string,omkey.om,0)
-            if OMKEY not in DOMCoincidence_dict.keys() :
-                DOMCoincidence_dict[OMKEY] = {}
-            for pulse in PulseSeriesMap[omkey]:
-                if pulse.charge < self.PEthreshold :
-                    continue
-                #this is not great, what if two pulses at same time in different PMTs in same DOM???
-                if float(pulse.time) not in DOMCoincidence_dict[OMKEY].keys() :
-                    DOMCoincidence_dict[OMKEY][pulse.time]=[omkey.pmt]
-                
-                for time in DOMCoincidence_dict[OMKEY].keys() :
-                    if pulse.time < float(time)+self.SingleDOMCoincidenceWindow and float(time) < pulse.time:
-                        if omkey.pmt not in DOMCoincidence_dict[OMKEY][time] :
-                            DOMCoincidence_dict[OMKEY][time].append(omkey.pmt)
+            DOMCoincidence_dict[omkey] = {}
+            pulses = PulseSeriesMap[omkey]
+            lookback = 0
+            if len(pulses) > 12 :
+                averagetime = 0.0
+                for i, pulse in enumerate(pulses) :
+                    averagetime += pulse.time
+                averagetime /= len(pulses)
+                minbunchtime = 9999999.0
+                maxbunchtime = 0.0
+                for i,pulse in enumerate(pulses) :
+                    if abs(pulse.time-averagetime)<300. :
+                        minbunchtime  = min(minbunchtime,pulse.time)
+                        maxbunchtime = max(maxbunchtime,pulse.time)
+                            
+                    DOMCoincidence_time[omkey] = [minbunchtime,maxbunchtime]
+                    DOMCoincidence_ncoin[omkey] = [4,4]
+                    DOMCoincidence_pmts[omkey] = [4,4]
+                continue
+            for i, pulse in enumerate(pulses) :
+                time = int(pulse.time)
+                if time not in DOMCoincidence_dict[omkey].keys() :
+                    DOMCoincidence_dict[omkey][time]={int(pulse.width)}
+                    DOMPMTCount[omkey]={int(pulse.width)}
+                else :
+                    DOMCoincidence_dict[omkey][time].add(int(pulse.width))
+                    DOMPMTCount[omkey].add(int(pulse.width))
+    
+                for j in range(lookback,i) :
+                    backpulse = pulses[j]
+                    if backpulse.time < time-self.SingleDOMCoincidenceWindow :
+                        lookback = j
+                    else :
+                        DOMCoincidence_dict[omkey][time].add(backpulse.width)
 
-        for OMKEY in DOMCoincidence_dict.keys() :
-            times = list()
-            coinc = list()
-            pmts = list()
-            for time in DOMCoincidence_dict[OMKEY].keys() :
-                if len(DOMCoincidence_dict[OMKEY][time]) < self.SingleDOMCoincidenceN :
-                    continue
-                times.append(time)
-                coinc.append(len(DOMCoincidence_dict[OMKEY][time]))
-                for pmt in DOMCoincidence_dict[OMKEY][time] :
-                    pmts.append(pmt)
-            if len(times) > 0 :
-                DOMCoincidence_time[OMKEY] = times
-                DOMCoincidence_ncoin[OMKEY] = coinc
-                DOMCoincidence_pmts[OMKEY] = pmts
+            if len(DOMPMTCount[omkey]) >= self.SingleDOMCoincidenceN :
+                
+                times = list()
+                coinc = list()
+                pmts = list()
+                for time in DOMCoincidence_dict[omkey].keys() :
+                    if len(DOMCoincidence_dict[omkey][time]) < self.SingleDOMCoincidenceN:
+                        continue
+                    times.append(time)
+                    coinc.append(len(DOMCoincidence_dict[omkey][time]))
+                    for pmt in DOMCoincidence_dict[omkey][time] :
+                        pmts.append(int(pmt))
+                if len(times) > 0 :
+                    DOMCoincidence_time[omkey] = times
+                    DOMCoincidence_ncoin[omkey] = coinc
+                    DOMCoincidence_pmts[omkey] = pmts
 
         frame["DOMTrigger_time"+self.output] = DOMCoincidence_time
         frame["DOMTrigger_ncoin"+self.output] = DOMCoincidence_ncoin

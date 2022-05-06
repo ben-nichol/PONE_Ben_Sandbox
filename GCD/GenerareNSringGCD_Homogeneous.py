@@ -8,7 +8,7 @@ import sys
 import gcdHelpers
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-s", "--spacing",type = float, default = 100.0, help="Spacing for strings.")
+parser.add_argument("-s", "--spacing",type = float, default = 50.0, help="Spacing for strings.")
 parser.add_argument("-n", "--nstring",type= int, default = 10, help="Number of strings.")
 parser.add_argument("-d", "--ndoms",type= int, default = 20, help="Doms per string.")
 parser.add_argument("-r", "--domradius",type= int, default = (17.0*2.54*0.01*0.5), help="Radius of dom. Defaults to 17\"")

@@ -74,8 +74,8 @@ class curveFit(icetray.I3ConditionalModule):
         for omkey in recoPulseMap.keys():
 
             # Check if I want to debug this frame
-            if self.frame_counter in self.frames and omkey[0] in self.strings and omkey[1] in self.doms:
-                print('Frame number - '+ str(self.frame_counter), 'String number - ' + str(omkey[0]), 'DOM number - '+ str(omkey[1]))
+            if self.frame_counter in self.frames and omkey.string in self.strings and omkey.om in self.doms:
+                print('Frame number - '+ str(self.frame_counter), 'String number - ' + str(omkey.string), 'DOM number - '+ str(omkey.om))
                 debug_mode = True
             else:
                 debug_mode = False

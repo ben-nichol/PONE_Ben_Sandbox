@@ -320,3 +320,5 @@ class DetectorTrigger(icetray.I3ConditionalModule):
         frame["TriggerTime"+self.output] = dataclasses.I3Double(mintrigtime)
                 
         self.PushFrame(frame)
+        Pframe = icetray.I3Frame('P')
+        self.PushFrame(Pframe)

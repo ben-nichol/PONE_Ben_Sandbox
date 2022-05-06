@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#/usr/bin/env python
 
 '''
 
@@ -111,15 +111,13 @@ class CausalPulseCleaning(icetray.I3ConditionalModule):
         self.domsUsed = frame['I3Geometry'].omgeo
         self.PushFrame(frame)
    
-    def DAQ(self,frame):
+    def Physics(self,frame):
     
         mcpeMap = frame[self.input]
         causalMCPEMap = dataclasses.I3RecoPulseSeriesMap()
-
         if len(mcpeMap.keys()) < 1 :
             self.PushFrame(frame)
             return
-
         #make assumption that DOM with highest charge is the baseline, 
         #the 10 ns window in theis DOM with the highest charge is 
         # the baseline for other photons being causal.
@@ -130,6 +128,8 @@ class CausalPulseCleaning(icetray.I3ConditionalModule):
             self.PushFrame(frame)
             return
 
+        ncausal = 0
+
         pos1 = self.domsUsed[MaxchargeDOM].position
         for omkey in mcpeMap.keys():
             #if omkey not in mcpeMap:
@@ -138,6 +138,7 @@ class CausalPulseCleaning(icetray.I3ConditionalModule):
               continue
             pos2 = self.domsUsed[omkey].position
             causalHits = self.getCausalMCPEs(pos1,pos2,mcpeMap[omkey],coincetime)
+            ncausal += len(causalHits)
             if len(causalHits) > 0 :
                 causalMCPEMap[omkey] = causalHits
     

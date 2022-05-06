@@ -25,6 +25,8 @@ class DOMProperties():
         #List for PMT acceptance table
         self.PMTacceptance = list()
 
+        self.PMTMaxacceptance = list()
+
         #Overall acceptance
         self.Totalacceptance = list()
 
@@ -33,6 +35,9 @@ class DOMProperties():
 
         #Maximum value for the PMT acceptance
         self.maxAngularAcceptance = 0.0
+
+        #average value of the PMT acceptance
+        self.averageAngularAcceptance = 0.0
 
         #Max value for the quantum efficiency
         self.maxQE = 0.0
@@ -59,8 +64,10 @@ class DOMProperties():
         maxTotaleff = 0.0;
 
         self.PMTacceptance = list()
+        self.PMTMaxacceptance = list()
         self.PMTDirection = list()
         self.maxAngularAcceptance = 0.0
+        self.averageAngularAcceptance = 0.0
         self.Totalacceptance = list()
 
         zenithcount = 0
@@ -69,9 +76,11 @@ class DOMProperties():
             if zenithcount % 179 == 0 :
                 zenithcount = 0
                 self.PMTacceptance.append([])
+                self.PMTMaxacceptance.append(0.0)
             self.PMTacceptance[-1].append([])
             for value in splitline :
                 self.PMTacceptance[-1][-1].append(float(value))
+                self.PMTMaxacceptance[-1] = max(float(value),self.PMTMaxacceptance[-1])
                 
             zenithcount += 1
 
@@ -83,7 +92,12 @@ class DOMProperties():
                     self.Totalacceptance[-1][-1] += self.PMTacceptance[n][i][j]
                 if self.Totalacceptance[-1][-1] > self.maxAngularAcceptance :
                     self.maxAngularAcceptance = self.Totalacceptance[-1][-1]
-
+        sumtotal = 0.0
+        nsum = 0
+        for i in range(len(self.Totalacceptance)) :
+            sumtotal += sum(self.Totalacceptance[i])
+            nsum += len(self.Totalacceptance[i])
+        self.averageAngularAcceptance = sumtotal/nsum
         #Compute PMT view direction from the centroid of the acceptance.
         for i in range(len(self.PMTacceptance)):
             acceptancesum = 0.0
@@ -127,6 +141,13 @@ class DOMProperties():
                     self.Totalacceptance[-1][-1] += self.PMTacceptance[n][i][j]
                 if self.Totalacceptance[-1][-1] > self.maxAngularAcceptance :
                     self.maxAngularAcceptance = self.Totalacceptance[-1][-1]
+
+        sumtotal = 0.0
+        nsum = 0
+        for i in range(len(self.Totalacceptance)) :
+            sumtotal += sum(self.Totalacceptance[i])
+            nsum += len(self.Totalacceptance[i])
+        self.averageAngularAcceptance = sumtotal/nsum
 
         #Compute PMT view direction from the centroid of the acceptance.
         for i in range(len(self.PMTacceptance)):
@@ -295,6 +316,9 @@ class DOMProperties():
     def GetMaxTotalAcceptance(self) :
         return self.maxQE*self.maxAngularAcceptance
 
+    def GetAverageTotalAcceptance(self) :
+        return self.averageAngularAcceptance
+
     """!
     GetMaxAngularAcceptance()
     Inputs: NONE
@@ -309,3 +333,8 @@ class DOMProperties():
 
     def GetNPMTs(self):
         return len(self.PMTacceptance)
+
+    def GetPMTScaledAcceptance(self,pmt,theta,phi) :
+        i = min(max(0,int(theta*180./np.pi)),len(self.PMTacceptance[int(pmt)-1]))
+        j = min(max(0,int(phi*180./np.pi)),len(self.PMTacceptance[int(pmt)-1][0]))
+        return self.PMTacceptance[int(pmt)-1][i][j]/self.PMTMaxacceptance[int(pmt)-1]

@@ -43,8 +43,7 @@ def LikelihoodFunctor(data,domsUsed,_tau):
         vertex = dataclasses.I3Position(vx,vy,vz)
         sum_nloglike = 0.0
         for dom in pulse_series.keys() :
-            domkey =  dom #NoPMTKey(dom) fixed with GCD
-            dc,t = GetPhotonTravelTime([geo_doms[domkey].position.x,geo_doms[domkey].position.y,geo_doms[domkey].position.z],[vertex.x,vertex.y,vertex.z])
+            dc,t = GetPhotonTravelTime([geo_doms[dom].position.x,geo_doms[dom].position.y,geo_doms[dom].position.z],[vertex.x,vertex.y,vertex.z])
             p_charge = np.exp(-dc/thistau)/max(dc,0.25)
             for pulse in pulse_series[dom] :
                 charge = 1.0
@@ -60,44 +59,42 @@ def LikelihoodFunctor(data,domsUsed,_tau):
 
 def GetVertexTime(pulse_series,geo_doms):                                 
 
-	c_n = c/ngroup                                     # light in water
-	ismc = False
-	if(type(pulse_series) == 'icecube.dataclasses.I3RecoPulseSeriesMap') :
-		ismc = True
+    c_n = c/ngroup                                     # light in water
+    ismc = False
+    if(type(pulse_series) == 'icecube.dataclasses.I3RecoPulseSeriesMap') :
+        ismc = True
 	
-	totalcharge = 0.0
-	vx = 0.0
-	vy = 0.0
-	vz = 0.0
+    totalcharge = 0.0
+    vx = 0.0
+    vy = 0.0
+    vz = 0.0
 
-	for domkey in pulse_series.keys() :
-		domkey_nopmt =  domkey #NoPMTKey(domkey) fixed with GCD
-		for pulse in pulse_series[domkey] :
-			totalcharge += pulse.charge
-			vx += geo_doms[domkey_nopmt].position.x*pulse.charge
-			vy += geo_doms[domkey_nopmt].position.y*pulse.charge
-			vz += geo_doms[domkey_nopmt].position.z*pulse.charge
+    for domkey in pulse_series.keys() :
+        for pulse in pulse_series[domkey] :
+	    totalcharge += pulse.charge
+	    vx += geo_doms[domkey].position.x*pulse.charge
+	    vy += geo_doms[domkey].position.y*pulse.charge
+	    vz += geo_doms[domkey].position.z*pulse.charge
 
-	if totalcharge < 5.0 :
-		return 0.0, dataclasses.I3Position(0.0,0.0,0.0), totalcharge
-	vertex = dataclasses.I3Position(vx/totalcharge,vy/totalcharge,vz/totalcharge)
+    if totalcharge < 5.0 :
+        return 0.0, dataclasses.I3Position(0.0,0.0,0.0), totalcharge
+    vertex = dataclasses.I3Position(vx/totalcharge,vy/totalcharge,vz/totalcharge)
 
-	T0 = 0.0
+    T0 = 0.0
 
-	for domkey in pulse_series.keys() :
-		domkey_nopmt =  domkey#NoPMTKey(domkey)fixed with GCD
-		for pulse in pulse_series[domkey] :
-			dx = vertex.x - geo_doms[domkey_nopmt].position.x
-			dy = vertex.y - geo_doms[domkey_nopmt].position.y
-			dz = vertex.z - geo_doms[domkey_nopmt].position.z
-			dist = np.sqrt(dx*dx+dy*dy+dz*dz)
-			T0 += pulse.time - dist/c_n
+    for domkey in pulse_series.keys() :
+	for pulse in pulse_series[domkey] :
+	    dx = vertex.x - geo_doms[domkey].position.x
+	    dy = vertex.y - geo_doms[domkey].position.y
+	    dz = vertex.z - geo_doms[domkey].position.z
+	    dist = np.sqrt(dx*dx+dy*dy+dz*dz)
+	    T0 += pulse.time - dist/c_n
             
-	if totalcharge < 5.0 :
-		return T0, vertex, totalcharge
-	T0 /= totalcharge
-	T0 -= 5.0
-	return T0, vertex, totalcharge
+    if totalcharge < 5.0 :
+        return T0, vertex, totalcharge
+    T0 /= totalcharge
+    T0 -= 5.0
+    return T0, vertex, totalcharge
 
 class CascadeReco(icetray.I3ConditionalModule):
 
@@ -123,7 +120,7 @@ class CascadeReco(icetray.I3ConditionalModule):
         self.domsUsed = frame['I3Geometry'].omgeo
         self.PushFrame(frame)
 
-    def DAQ(self,frame):
+    def Physics(self,frame):
 
         if not frame.Has(self.pulseseries) :
             self.PushFrame(frame)

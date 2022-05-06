@@ -4,7 +4,7 @@ from scipy import interpolate as inter
 from scipy.signal import savgol_filter
 from scipy import stats
 from scipy import integrate
-import ROOT
+import tables as tb
 
 pdf = [[]]
 pdfnorm = []

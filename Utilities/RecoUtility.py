@@ -62,11 +62,18 @@ def GetGeoTime(position,vert,direction) :
         dotprod = x*np.sin(direction[0])*np.cos(direction[1]) + y*np.sin(direction[0])*np.sin(direction[1]) + z*np.cos(direction[0])
     else :
         dotprod = x*direction[0] + y*direction[1] + z*direction[2]
-    dc = max(0.0,x*x + y*y + z*z-dotprod*dotprod)
+
+    emission_point = []
+    dc = max(0.25,x*x + y*y + z*z-dotprod*dotprod)
+    ed = (dc/np.tan(theta_c))
+    emission_point = [ed*direction[0],ed*direction[1],ed*direction[2]]
+    emission_dir = [(position[0]-emission_point[0])/dc,(position[1]-emission_point[1])/dc,(position[2]-emission_point[2])/dc]
+    theta = np.arccos(-emission_dir[2])
+    phi = np.arccos(-emission_dir[0]/np.sqrt(1.-emission_dir[2]**2.0))
     dc = np.sqrt(dc)
     d = dc/np.sin(theta_c)
-    t = d/c_n + dotprod/c - dc/(np.tan(theta_c)*c)
-    return d,dc,t
+    t = d/c_n + dotprod/c - ed*c
+    return d,dc,t, theta, phi
 
 """!
 GetPhotonTravelTime(position,vert)

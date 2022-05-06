@@ -7,27 +7,30 @@ import sys
 import os                                                                       
 import argparse                                                                 
 import math as m 
-from ROOT import *
+import pickle
+
+def gaussian(x,x0,sigma):
+  return 1./(np.sqrt(2.*np.pi)*sigma)*np.exp(-np.power((x - x0)/sigma, 2.)/2.)
 
 parser = argparse.ArgumentParser()                                              
-parser.add_argument("-o", "--outfile",type = str, default="./test_output.root",help="")
+parser.add_argument("-o", "--outfile",type = str, default="./output.h5",help="")
 parser.add_argument("-i", "--infile",type=str, default="./test_input.i3",help="")
 #parser.add_argument("-g", "--gcdfile",type=str, default=os.getenv('PONESRCDIR')+"/GCD/PONE_Phase1.i3.gz",help="")
-parser.add_argument("-g", "--gcdfile",type=str,default="",help="")  
+parser.add_argument("-g", "--gcdfile",type=str,default="/data/p-one/sim/calibration/sim0012/jobfiles/",help="")  
 
 args = parser.parse_args()                                                      
                                                                                 
-_dir = "/data/p-one/tmcelroy/photonbomb/"#args.infile                                                              
+_dir = args.infile                                                              
 file_list_aux = os.listdir(_dir)                                                
-file_list = [x for x in file_list_aux if '.i3.gz' in x and os.stat(os.path.join(_dir,x)).st_size > 800000]                         
+file_list = [x for x in file_list_aux if '.i3.gz' in x] # and os.stat(os.path.join(_dir,x)).st_size > 800000]                         
                                                                                 
 nfiles = len(file_list)  
 print(nfiles)
 
-#file_list = ["/data/p-one/tmcelroy/photonbomb/PhotonBomb_0_prep.i3.gz"]
-
-rootoutfile = TFile(args.outfile,"RECREATE")
-TimeChargeDist = TH2F("TimeChargeDist","",400,0.,400.,10010,-10.,10000.)               
+dist = list()
+char = list()
+time = list()
+          
 PDFBins = []
 
 deltaT = 1.0
@@ -52,9 +55,7 @@ for i in range(400):
                                                                                 
 for infile in file_list: 
   print(infile)
-  print(os.stat(os.path.join(_dir,infile)).st_size)                                                       
   infilei3 =  dataio.I3File(os.path.join(_dir,infile))                            
-  #infile =  dataio.I3File(infile)
   for frame in infilei3:                                                          
                                                                                 
     if not frame.Has('I3EventHeader') :                                          
@@ -72,7 +73,7 @@ for infile in file_list:
 
     for dom in pulse_series.keys() :
       pulse_list =  pulse_series[dom]
-      dom_key = OMKey(dom.string, dom.om, 0)
+      dom_key = OMKey(dom.string, dom.om, 1)
       dom_pos = geoMap[dom_key].position
       distance = np.sqrt((bomb_pos.x-dom_pos.x)**2.0+(bomb_pos.y-dom_pos.y)**2.0+(bomb_pos.z-dom_pos.z)**2.0)
 
@@ -82,12 +83,10 @@ for infile in file_list:
           distbin = int(distance) 
           if distbin<0 or distbin>399 :
             continue
-          #print("Time = "+str(time) + " distance = "+str(distance)+" norm = "+str(norm(float(i))))
-          TimeChargeDist.Fill(float(distance),float(time),TMath.Gaus(float(i),0.0,1.0,True))
           timebin = 10+int(time)
           distbin = int(distance)
           if timebin>-1 and timebin<10010 :
-            PDFBins[distbin][timebin] += TMath.Gaus(float(i),0.0,1.0,True)
+            PDFBins[distbin][timebin] += gaussian(float(i),0.0,1.0)
 
   infilei3.close()
 
@@ -96,20 +95,14 @@ for i in range(400) :
 		if nDOMs[i] < 1 :
 			continue
 		PDFBins[i][j] /= nDOMs[i]
-		TimeChargeDist.SetBinContent(i+1,j+1,TimeChargeDist.GetBinContent(i+1,j+1)/nDOMs[i])
 
-outfile = file("fittertables.dat","w")
-outfile.write("400,10010,0.0,400.0,-10.,10000.\n")
-
-sum_pdf = 0.0
-for i in range(400) :                                                           
-  for j in range(10010) :
-    sum_pdf += PDFBins[i][j]
 for i in range(400) :
-  for j in range(10010) : 
-    outfile.write(str(PDFBins[i][j]/sum_pdf)+"\n")
-outfile.close()
+        for j in range(10010) :
+            dist.append(i)
+            char.append(PDFBins[i][j])
+            time.append(j)
 
-rootoutfile.cd()
-TimeChargeDist.Write()
-rootoutfile.Close()
+ouputdict = {"dist":dist,"char":char,"time":time}
+
+pickle.dump(ouputdict,open(args.outfile+".pkl","wb"))
+

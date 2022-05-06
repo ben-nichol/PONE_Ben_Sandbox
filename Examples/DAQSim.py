@@ -75,7 +75,7 @@ tray.AddModule(SimpleDOMSimulation, 'DOMLauncher',
                minTsep = args.pulsesep,
                SplitDoms = True,
                dropstrings = dropstrings,
-               add_noise = False
+               add_noise = True
               )
 
 tray.AddModule(DOMTrigger,"DOMTrigger",
