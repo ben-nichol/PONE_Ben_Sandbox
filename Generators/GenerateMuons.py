@@ -8,9 +8,11 @@ class MuonGenerator () :
         infile = open(os.getenv('PONESRCDIR')+"/data/fluxtable_1460.csv","r")
         lines = infile.readlines()
         #first 4 lines are header
+        Zenithline = 5
 
-        zenithbinlines = lines[5].split(" ",1000)
+        zenithbinlines = lines[Zenithline].split(" ",1000)
         self.zenithbins = list()
+        self.energybins = list()
         self.flux = list()
         for i in range(1,len(zenithbinlines)) :
             if zenithbinlines[i] == '' :
@@ -33,16 +35,21 @@ class MuonGenerator () :
         #for i in range(len(self.zenithbins)) :
         #    print(str(self.zenithbins[i]*np.pi/180.)+" "+str(float(i)*self.dz))
 
-        for l in range(5,len(lines)) :
+        for l in range(Zenithline+1,len(lines)) :
             splitline = lines[l].split(" ",1000)
+            self.energybins.append(np.log10(float(splitline[0]))-3.0)
+
             for i in range(1,len(splitline)) :
                 try :
                     _flux = float(splitline[i])
-                    self.flux[-i].append(max(_flux*np.cos(self.zenithbins[i-1]*np.pi/180.),0.0))
+                    self.flux[i-1].append(max(_flux*np.cos(self.zenithbins[i-1]*np.pi/180.),0.0))
+                    #self.flux[-i].append(max(_flux*np.cos(self.zenithbins[i-1]*np.pi/180.),0.0))
                 except :
                     k=0
 
-        self.minenergy = 1.95-3.0 #convert MeV to GeV
+        self.minenergy = self.energybins[0] #convert MeV to GeV
+        self.de = (self.energybins[-1]-self.energybins[0])/(len(self.energybins)-1)
+        self.dz = (np.pi/180.)*(self.zenithbins[-1]-self.zenithbins[0])/(len(self.zenithbins)-1)
         
         #print("max energy "+str(self.minenergy+self.de*len(self.flux[0])))
 
@@ -139,6 +146,7 @@ class MuonGenerator () :
     def GetZenithCDF(self,radius):
         minZenith, maxtheta = self.ComputeAcceptanceRange(radius)
         thiscdf = self.FullZenithCDF.copy()
+        #print(str(radius)+ " " +str(minZenith) + " " + str(self.dz*(len(thiscdf)-1))+" "+str(self.maxzenith*np.pi/180.))
         for z in range(len(thiscdf)) :
             if z*self.dz < minZenith :
                 thiscdf[z] = 0.0
@@ -213,13 +221,10 @@ class MuonGenerator () :
         self.cylR = _cylR
         self.cylH = 1400.0
         self.d_cdf = int(1e4)
-        self.p = list()
-        for i in range(self.d_cdf) :
-            self.p = float(i)/self.d_cdf
 
         self.mingenenergy = float(_minenergy)
         self.maxgenenergy = float(_maxenergy)
-        self.maxinjectionR = 10000.
+        self.maxinjectionR = 7000.
         np.random.seed(seed)
 
         self.ReadFluxTable()
@@ -243,7 +248,7 @@ class MuonGenerator () :
     
         random = np.random.rand()
         zbin = int(random*self.d_cdf)
-    
+        #print(zbin) 
         zenith = self.Zenithcdf_inv[rbin_int][zbin]
     
         random = np.random.rand()
@@ -263,11 +268,16 @@ class MuonGenerator () :
             p_high = self.FullZenithCDF[zenbin+1]
             p = p+(p_high-p)*(zenbin_extra)
         #if radius > 7000. :
-        #    print("radius = "+str(radius))
-        #    print(self.FullZenithCDF[zenbin])
-        #    print(self.FullZenithCDF[zenbin+1])
-        #    print(zenbin)
-        #    print(p) 
+        #print("radius = "+str(radius))
+        #print(self.FullZenithCDF[zenbin])
+        #print(self.FullZenithCDF[zenbin+1])
+        #print(zenbin)
+        #print(zenith)
+        #print(minzenith)
+        #print(p)
+        if not p < 1.0 :
+            #print("p = "+str(p))
+            p=0.999999
         weight = (np.pi/maxtheta)*(1./(1. - p))
         #weight = p
         random = np.random.rand()
