@@ -21,7 +21,7 @@ class MuonGenerator () :
                 continue
             try :
                 _flux = float(zenithbinlines[i]) 
-                self.zenithbins.append(max(_flux,0.0))
+                self.zenithbins.append(max(_flux*(np.pi/180.),0.0))
                 self.flux.append(list())
             except :
                 #do nothing
@@ -30,7 +30,8 @@ class MuonGenerator () :
         self.maxzenith = self.zenithbins[-1]
         #print(self.maxzenith*np.pi/180.)
         self.de = 0.1
-        self.dz = np.pi/180.
+        self.minzenith = self.zenithbins[0]
+        self.dz = ((self.maxzenith-self.minzenith)/(len(self.zenithbins)-1))
 
         #for i in range(len(self.zenithbins)) :
         #    print(str(self.zenithbins[i]*np.pi/180.)+" "+str(float(i)*self.dz))
@@ -42,14 +43,13 @@ class MuonGenerator () :
             for i in range(1,len(splitline)) :
                 try :
                     _flux = float(splitline[i])
-                    self.flux[i-1].append(max(_flux*np.cos(self.zenithbins[i-1]*np.pi/180.),0.0))
-                    #self.flux[-i].append(max(_flux*np.cos(self.zenithbins[i-1]*np.pi/180.),0.0))
+                    self.flux[i-1].append(max(_flux*np.cos(self.zenithbins[i-1]),0.0))
+                    #self.flux[-i].append(max(_flux*np.cos(self.zenithbins[i-1]),0.0))
                 except :
                     k=0
 
         self.minenergy = self.energybins[0] #convert MeV to GeV
         self.de = (self.energybins[-1]-self.energybins[0])/(len(self.energybins)-1)
-        self.dz = (np.pi/180.)*(self.zenithbins[-1]-self.zenithbins[0])/(len(self.zenithbins)-1)
         
         #print("max energy "+str(self.minenergy+self.de*len(self.flux[0])))
 
@@ -77,7 +77,7 @@ class MuonGenerator () :
             zenith = dz*z
             for e in range(len(self.flux[z])) :
                 rate += self.flux[z][e]*self.GetEnergyde(e)
-            ZenithWeight.append(rate*np.sin((0.5+z)*self.dz))
+            ZenithWeight.append(rate*np.sin(self.minzenith+(0.5+float(z))*self.dz))
         totalflux = sum(ZenithWeight)
 
         z=0
@@ -89,7 +89,7 @@ class MuonGenerator () :
                 p-= ZenithWeight[z]/totalflux
                 cdf += ZenithWeight[z]/totalflux
                 z+=1
-            self.zenithcdf.append((float(z)+(p/(ZenithWeight[z]/totalflux)))*self.dz)
+            self.zenithcdf.append(self.minzenith+(float(z)+(p/(ZenithWeight[z]/totalflux)))*self.dz)
 
     def MakeEnergyCDFs(self) :
         self.energyinvers_cdfs = list()
@@ -119,7 +119,7 @@ class MuonGenerator () :
             self.energyinvers_cdfs.append(inverse_cdf)
 
     def GetEnergyde(self,e) :
-        return (10.**(self.minenergy + self.de*(e+1)) - 10.**(self.minenergy + self.de*e))
+        return 10.**(self.minenergy + self.de*float(e+1)) - 10.**(self.minenergy + self.de*float(e))
 
     def MakeZenithCDF(self) :
         self.FullZenithCDF = list()
@@ -127,7 +127,7 @@ class MuonGenerator () :
         for z in range(len(self.flux)) :
             _flux = 0.0
             for e in range(len(self.flux[z])) :
-                _flux += self.flux[z][e] *self.GetEnergyde(e)*np.sin((0.5+z)*self.dz)
+                _flux += self.flux[z][e]*self.GetEnergyde(e)*np.sin(self.minzenith+(0.5+float(z))*self.dz)
             self.FullZenithCDF.append(_flux)
         totalFlux = sum(self.FullZenithCDF)
 
@@ -141,12 +141,12 @@ class MuonGenerator () :
 
 
     def GetZenithBin(self,zenith) :
-        return max(0,min(int((zenith/np.pi)*180.),len(self.flux)-1))
+        return max(0,min(int((zenith),len(self.flux)-1))
 
     def GetZenithCDF(self,radius):
         minZenith, maxtheta = self.ComputeAcceptanceRange(radius)
         thiscdf = self.FullZenithCDF.copy()
-        #print(str(radius)+ " " +str(minZenith) + " " + str(self.dz*(len(thiscdf)-1))+" "+str(self.maxzenith*np.pi/180.))
+        #print(str(radius)+ " " +str(minZenith) + " " + str(self.dz*(len(thiscdf)-1))+" "+str(self.maxzenith))
         for z in range(len(thiscdf)) :
             if z*self.dz < minZenith :
                 thiscdf[z] = 0.0
@@ -160,7 +160,7 @@ class MuonGenerator () :
         z = 0
         inverscdf = list()
         for i in range(self.d_cdf) :
-            p = float(0.5+i)/self.d_cdf -cdf
+            p = (0.5+float(i))/self.d_cdf -cdf
             while thiscdf[z] <= p:
                 p-= thiscdf[z]
                 cdf += thiscdf[z]
@@ -185,12 +185,12 @@ class MuonGenerator () :
             minZenith, maxtheta = self.ComputeAcceptanceRange(radius)
          #   print("radius = "+str(radius)+" minZenith = "+str(minZenith)+" maxtheta = "+str(maxtheta))
             for z in range(len(self.flux)):
-                zenith =  (z+0.5)*self.dz
+                zenith =  (float(z)+0.5)*self.dz
                 if zenith < minZenith :
                     continue
                 for e in range(len(self.flux[z])) :
-                    rate += self.flux[z][e]*np.sin(zenith)*2.0*maxtheta*self.dz*self.GetEnergyde(e)
-            rate *= radius
+                    rate += self.flux[z][e]*(np.sin(zenith)*dz)*(2.0*maxtheta*radius)*self.GetEnergyde(e)
+
             RadialWeight.append(rate)
 
         totalflux = sum(RadialWeight)
@@ -205,7 +205,7 @@ class MuonGenerator () :
         self.Zenithcdf_inv = list()
         self.Zenithcdf = list()
         for i in range(self.d_cdf) :
-            p = float(0.5+i)/self.d_cdf -cdf
+            p = (0.5+float(i))/self.d_cdf -cdf
             while RadialWeight[r]/totalflux <= p :
                 p-= RadialWeight[r]/totalflux
                 cdf += RadialWeight[r]/totalflux

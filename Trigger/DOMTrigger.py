@@ -58,22 +58,22 @@ class DOMTrigger(icetray.I3ConditionalModule):
             DOMCoincidence_dict[omkey] = {}
             pulses = PulseSeriesMap[omkey]
             lookback = 0
-            if len(pulses) > 12 :
-                averagetime = 0.0
-                for i, pulse in enumerate(pulses) :
-                    averagetime += pulse.time
-                averagetime /= len(pulses)
-                minbunchtime = 9999999.0
-                maxbunchtime = 0.0
-                for i,pulse in enumerate(pulses) :
-                    if abs(pulse.time-averagetime)<300. :
-                        minbunchtime  = min(minbunchtime,pulse.time)
-                        maxbunchtime = max(maxbunchtime,pulse.time)
-                            
-                    DOMCoincidence_time[omkey] = [minbunchtime,maxbunchtime]
-                    DOMCoincidence_ncoin[omkey] = [4,4]
-                    DOMCoincidence_pmts[omkey] = [4,4]
-                continue
+            #if len(pulses) > 12 :
+            #    averagetime = 0.0
+            #    for i, pulse in enumerate(pulses) :
+            #        averagetime += pulse.time
+            #    averagetime /= len(pulses)
+            #    minbunchtime = 9999999.0
+            #    maxbunchtime = 0.0
+            #    for i,pulse in enumerate(pulses) :
+            #        if abs(pulse.time-averagetime)<300. :
+            #            minbunchtime  = min(minbunchtime,pulse.time)
+            #            maxbunchtime = max(maxbunchtime,pulse.time)
+            #                
+            #        DOMCoincidence_time[omkey] = [minbunchtime,maxbunchtime]
+            #        DOMCoincidence_ncoin[omkey] = [4,4]
+            #        DOMCoincidence_pmts[omkey] = [4,4]
+            #    continue
             for i, pulse in enumerate(pulses) :
                 time = int(pulse.time)
                 if time not in DOMCoincidence_dict[omkey].keys() :

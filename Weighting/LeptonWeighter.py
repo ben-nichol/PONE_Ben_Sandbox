@@ -23,7 +23,7 @@ class LeptonWeighter(icetray.I3ConditionalModule):
         self.AddParameter("fluxScale","Scale for flux parameterization",10**5)
         self.AddParameter("injectionRadius"," Radius of injection",500.)
         self.AddParameter("computetaueffective","Compue the tau effective weight for muons",False)
-        self.AddParameter("nuSQuIDS_WeightTables","Tables for Earth survival weights",os.getenv('PONESRCDIR')+"/data/nsq_mupropagation_weight.h5")
+        self.AddParameter("nuSQuIDS_WeightTables","Tables for Earth survival weights",os.getenv('PONESRCDIR')+"/data/nsq_allneu_propagation_weight_gamma2.h5")
         self.AddOutBox("OutBox")
 
     def Configure(self):
@@ -56,7 +56,7 @@ class LeptonWeighter(icetray.I3ConditionalModule):
         self.Emax = max(energyrange)
         self.Emin = min(energyrange)
         self.units = nsq.Const()
-        self.Eflux = lambda E: 1e18*E**(-1.0)
+        self.Eflux = lambda E: 1e18*E**(-2.0)
 
     def Simulation(self,frame) :
         if frame.Has("LeptonInjectorProperties"):
@@ -66,6 +66,18 @@ class LeptonWeighter(icetray.I3ConditionalModule):
                 self.injectionRadius = frame["LeptonInjectorProperties"].cylinderRadius
 
         self.PushFrame(frame)
+
+    def GetnuSQUiDSIndex(self,primary_type) :
+        typeindex = 0
+        antiindex = 0
+        if primary_type == LW.ParticleType.NuMu or primary_type == LW.ParticleType.NuMuBar :
+            typeindex =  1
+        elif primary_type == LW.ParticleType.NuTau or primary_type == LW.ParticleType.NuTauBar :
+            typeindex =  2
+        if primary_type == LW.ParticleType.NuEBar or primary_type == LW.ParticleType.NuMuBar or primary_type == LW.ParticleType.NuTauBar :
+            antiindex = 1
+
+        return typeindex,antiindex
 
     def DAQ(self,frame) :
 
@@ -109,35 +121,20 @@ class LeptonWeighter(icetray.I3ConditionalModule):
         nusq_energy = neutrino.energy*self.units.GeV
         cos_zen = np.cos(neutrino.dir.zenith)
 
-        if (cos_zen < self.cosmax and cos_zen > self.cosmin) and (nusq_energy < self.Emax and nusq_energy > self.Emin):
-            if LWevent.primary_type == LW.ParticleType.NuE :
-                survival_weight = self.nsq_atm.EvalFlavor(0,cos_zen,nusq_energy,0)/self.Eflux(nusq_energy) 
-            elif LWevent.primary_type == LW.ParticleType.NuEBar :
-                survival_weight = self.nsq_atm.EvalFlavor(0,cos_zen,nusq_energy,1)/self.Eflux(nusq_energy)
-            elif LWevent.primary_type == LW.ParticleType.NuMu :
-                survival_weight = self.nsq_atm.EvalFlavor(1,cos_zen,nusq_energy,0)/self.Eflux(nusq_energy)
-            elif LWevent.primary_type == LW.ParticleType.NuMuBar :
-                survival_weight = self.nsq_atm.EvalFlavor(1,cos_zen,nusq_energy,1)/self.Eflux(nusq_energy)
-            elif LWevent.primary_type == LW.ParticleType.NuTau :
-                survival_weight = self.nsq_atm.EvalFlavor(2,cos_zen,nusq_energy,0)/self.Eflux(nusq_energy)
-            elif LWevent.primary_type == LW.ParticleType.NuTauBar :
-                survival_weight = self.nsq_atm.EvalFlavor(2,cos_zen,nusq_energy,1)/self.Eflux(nusq_energy)
+        typeindex,antiindex=self.GetnuSQUiDSIndex(LWevent.primary_type)
+
+        if (cos_zen < self.cosmax and cos_zen > self.cosmin) :
+            if (nusq_energy < self.Emax and nusq_energy > self.Emin):
+                survival_weight = self.nsq_atm.EvalFlavor(typeindex,cos_zen,nusq_energy,antiindex)/self.Eflux(nusq_energy) 
+            elif nusq_energy <= self.Emin :
+                survival_weight = 1.0
+            else :
+                survival_weight = 0.0
         elif (nusq_energy < self.Emax and nusq_energy > self.Emin):
-            if LWevent.primary_type == LW.ParticleType.NuE :
-                survival_weight = self.nsq_atm.EvalFlavor(0,0.0,nusq_energy,0)/self.Eflux(nusq_energy)
-            elif LWevent.primary_type == LW.ParticleType.NuEBar :
-                survival_weight = self.nsq_atm.EvalFlavor(0,0.0,nusq_energy,1)/self.Eflux(nusq_energy)
-            elif LWevent.primary_type == LW.ParticleType.NuMu :
-                survival_weight = self.nsq_atm.EvalFlavor(1,0.0,nusq_energy,0)/self.Eflux(nusq_energy)
-            elif LWevent.primary_type == LW.ParticleType.NuMuBar :
-                survival_weight = self.nsq_atm.EvalFlavor(1,0.0,nusq_energy,1)/self.Eflux(nusq_energy)
-            elif LWevent.primary_type == LW.ParticleType.NuTau :
-                survival_weight = self.nsq_atm.EvalFlavor(2,0.0,nusq_energy,0)/self.Eflux(nusq_energy)
-            elif LWevent.primary_type == LW.ParticleType.NuTauBar :
-                survival_weight = self.nsq_atm.EvalFlavor(2,0.0,nusq_energy,1)/self.Eflux(nusq_energy)
-        elif (cos_zen < self.cosmax and cos_zen > self.cosmin) and nusq_energy <= self.Emin :
-            survival_weight = 1.0
+            print("wouldn't happen")
+            survival_weight = self.nsq_atm.EvalFlavor(typeindex,0.0,nusq_energy,antiindex)/self.Eflux(nusq_energy)
         else :
+            #kill event
             survival_weight = 0.0
     
         flux = self.fluxScale*(neutrino.energy*self.units.GeV)**-self.fluxIndex + self.fluxConst
