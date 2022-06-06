@@ -53,9 +53,10 @@ class DOMTrigger(icetray.I3ConditionalModule):
         DOMCoincidence_time = dataclasses.I3MapKeyVectorDouble()
         DOMCoincidence_ncoin = dataclasses.I3MapKeyVectorInt()
         DOMCoincidence_pmts = dataclasses.I3MapKeyVectorInt()
-
+        
         for omkey in PulseSeriesMap.keys() :
             DOMCoincidence_dict[omkey] = {}
+            DOMPMTCount[omkey] = set()
             pulses = PulseSeriesMap[omkey]
             lookback = 0
             #if len(pulses) > 12 :
@@ -78,7 +79,7 @@ class DOMTrigger(icetray.I3ConditionalModule):
                 time = int(pulse.time)
                 if time not in DOMCoincidence_dict[omkey].keys() :
                     DOMCoincidence_dict[omkey][time]={int(pulse.width)}
-                    DOMPMTCount[omkey]={int(pulse.width)}
+                    DOMPMTCount[omkey].add(int(pulse.width))
                 else :
                     DOMCoincidence_dict[omkey][time].add(int(pulse.width))
                     DOMPMTCount[omkey].add(int(pulse.width))
@@ -89,7 +90,7 @@ class DOMTrigger(icetray.I3ConditionalModule):
                         lookback = j
                     else :
                         DOMCoincidence_dict[omkey][time].add(backpulse.width)
-
+            #print(DOMPMTCount[omkey])
             if len(DOMPMTCount[omkey]) >= self.SingleDOMCoincidenceN :
                 
                 times = list()
@@ -106,6 +107,8 @@ class DOMTrigger(icetray.I3ConditionalModule):
                     DOMCoincidence_time[omkey] = times
                     DOMCoincidence_ncoin[omkey] = coinc
                     DOMCoincidence_pmts[omkey] = pmts
+
+                #print(times)
 
         frame["DOMTrigger_time"+self.output] = DOMCoincidence_time
         frame["DOMTrigger_ncoin"+self.output] = DOMCoincidence_ncoin

@@ -369,7 +369,7 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
         #frame[self.outputmap_mcpe] = mcpemap
         #print("apply pmt response")
         frame[self.outputmap], frame['triggerpulsemap'] = self.ApplyPMTResponse(mcpemap)
-
+        #print(frame['triggerpulsemap'])
         #print("final")
         #print(frame[self.outputmap])
 
