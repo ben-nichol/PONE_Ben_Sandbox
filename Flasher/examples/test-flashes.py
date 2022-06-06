@@ -67,27 +67,27 @@ tray.AddModule(clsim.FakeFlasherInfoGenerator, "FakeFlasherInfoGenerator",
                FlashingDOM = icetray.OMKey(5, 10, 1),
                FlasherTime = 0.*I3Units.ns,
                FlasherMask = 0b111111000000, # only the 6 horizontal LEDs 
-               FlasherBrightness = 127, # full brightness
-               FlasherWidth = 127)      # full width
+               FlasherBrightness = 10, # full brightness
+               FlasherWidth = 60)      # full width
 
-#tray.AddSegment(clsim.I3CLSimMakePhotons, "goCLSIM",
-#    UseGPUs=True,
-#    UseCPUs=False,
-#    UseGeant4=False,
-#    UseI3PropagatorService=False,
-#    RandomService = randomService,
-#    DoNotParallelize=False,
-#    UnweightedPhotons=False,
-#    StopDetectedPhotons=True,
-#    PhotonSeriesName = 'I3Photons',
-#    MCPESeriesName='',
-#    FlasherInfoVectName="I3FlasherInfo",
-#    GCDFile = options.GCDFILE,
-#    IceModelLocation=Medium.MakePoneMediumProperties(),
-#    WavelengthAcceptance = dom_properties.GetCLSimQETable( factor=dom_properties.GetMaxAngularAcceptance()*1.05 ),
-#    DOMRadius = (17.0*2.54*0.01/2.0)*icetray.I3Units.m,
-#    DOMOversizeFactor=1.0, #(17./13.),
-#)
+tray.AddSegment(clsim.I3CLSimMakePhotons, "goCLSIM",
+    UseGPUs=True,
+    UseCPUs=False,
+    UseGeant4=False,
+    UseI3PropagatorService=False,
+    RandomService = randomService,
+    DoNotParallelize=False,
+    UnweightedPhotons=False,
+    StopDetectedPhotons=True,
+    PhotonSeriesName = 'I3Photons',
+    MCPESeriesName='',
+    FlasherInfoVectName="I3FlasherInfo",
+    GCDFile = options.GCDFILE,
+    IceModelLocation=Medium.MakePoneMediumProperties(),
+    WavelengthAcceptance = dom_properties.GetCLSimQETable( factor=dom_properties.GetMaxAngularAcceptance()*1.05 ),
+    DOMRadius = (17.0*2.54*0.01/2.0)*icetray.I3Units.m,
+    DOMOversizeFactor=1.0, #(17./13.),
+)
 
 tray.AddModule("I3Writer","writer",
     Filename = options.OUTFILE)
