@@ -3,9 +3,10 @@
 from optparse import OptionParser
 from os.path import expandvars
 
+# use parser options to setup simulation in prompt
 usage = "usage: %prog [options] inputfile"
 parser = OptionParser(usage)
-parser.add_option("-o", "--outfile",default="test-flashes.i3",
+parser.add_option("-o", "--outfile",default="test-flashers.i3",
                   dest="OUTFILE", help="Write output to OUTFILE (.i3{.gz} format)")
 parser.add_option("-s", "--seed",type="int",default=12344,
                   dest="SEED", help="Initial seed for the random number generator")
@@ -25,21 +26,42 @@ if len(args) != 0:
                 crap += " "
         parser.error(crap)
 
-from I3Tray import *
+# system imports
 import os
 import sys
-
-from icecube import icetray, dataclasses, dataio, phys_services, clsim, sim_services
-
-import WaterOpticalModel.MakePoneMediumPropertiesConservativeExtendedRange as Medium
-from Utilities.DOMUtility import DOMProperties
-
 import math
 import numpy
 
-dom_properties = DOMProperties()
+# icetray imports
+from I3Tray import *
+from icecube import icetray, dataclasses, dataio, phys_services, clsim, sim_services
 
-tray = I3Tray()
+# pone imports
+import WaterOpticalModel.MakePoneMediumPropertiesConservativeExtendedRange as Medium
+from Utilities.DOMUtility import DOMProperties
+from Flasher.POCAM import generatePOCAM
+
+# geometry
+geometry = dataio.I3File(options.GCDFILE)
+gframe = geometry.pop_frame()  
+geo = gframe["I3Geometry"]
+
+# flasher
+flasher_key = icetray.OMKey(5,10,1)
+flasher_position = geo.omgeo[flasher_key].position
+flasher_photons = 1e8
+flasher_width = 5 * I3Units.ns
+flasher_pulse_type = clsim.I3CLSimFlasherPulse.FlasherPulseType.LED405nm
+
+# dom properties instance and derived values
+dom_properties = DOMProperties()
+wl_acceptance_max = dom_properties.GetMaxAngularAcceptance() * 1.05
+wl_acceptance = dom_properties.GetCLSimQETable(factor=wl_acceptance_max)
+dom_radius = (17.0*2.54*0.01/2.0)*icetray.I3Units.m
+dom_oversize = 1.0 # 17./13.
+
+# optical medium
+optical_medium = Medium.MakePoneMediumProperties()
 
 # a random number generator
 try:
@@ -52,10 +74,15 @@ except AttributeError:
         seed = options.SEED*10000 + options.RUNNUMBER,
     )
 
+# start icecube tray
+tray = I3Tray()
+
+# add geometry and daq stream
 tray.AddModule("I3InfiniteSource","streams",
                Prefix=options.GCDFILE,
                Stream=icetray.I3Frame.DAQ)
 
+# add event header
 tray.AddModule("I3MCEventHeaderGenerator","gen_header",
                Year=2012,
                DAQTime=7968509615844458,
@@ -63,35 +90,39 @@ tray.AddModule("I3MCEventHeaderGenerator","gen_header",
                EventID=1,
                IncrementEventID=True)
 
-tray.AddModule(clsim.FakeFlasherInfoGenerator, "FakeFlasherInfoGenerator",
-               FlashingDOM = icetray.OMKey(5, 10, 1),
-               FlasherTime = 0.*I3Units.ns,
-               FlasherMask = 0b111111000000, # only the 6 horizontal LEDs 
-               FlasherBrightness = 10, # full brightness
-               FlasherWidth = 60)      # full width
+# add fake isotropic flasher similar to POCAM
+tray.AddModule(generatePOCAM.GeneratePOCAM,
+               SeriesFrameKey="FlasherPulseSeries",
+               PhotonPosition=flasher_position,
+               NumberOfPhotons=flasher_photons,
+               PulseWidth=flasher_width,
+               Seed=options.SEED,
+      	       Isotropy=True,
+               FlasherPulseType=flasher_pulse_type)
 
+# start photon propagation with CLsim
 tray.AddSegment(clsim.I3CLSimMakePhotons, "goCLSIM",
     UseGPUs=True,
     UseCPUs=False,
     UseGeant4=False,
     UseI3PropagatorService=False,
-    RandomService = randomService,
+    RandomService=randomService,
     DoNotParallelize=False,
-    UnweightedPhotons=False,
+    UnweightedPhotons=True,
     StopDetectedPhotons=True,
     PhotonSeriesName = 'I3Photons',
     MCPESeriesName='',
-    FlasherInfoVectName="I3FlasherInfo",
-    GCDFile = options.GCDFILE,
-    IceModelLocation=Medium.MakePoneMediumProperties(),
-    WavelengthAcceptance = dom_properties.GetCLSimQETable( factor=dom_properties.GetMaxAngularAcceptance()*1.05 ),
-    DOMRadius = (17.0*2.54*0.01/2.0)*icetray.I3Units.m,
-    DOMOversizeFactor=1.0, #(17./13.),
+    FlasherPulseSeriesName="FlasherPulseSeries",
+    GCDFile=options.GCDFILE,
+    IceModelLocation=optical_medium,
+    WavelengthAcceptance=wl_acceptance,
+    DOMRadius=dom_radius,
+    DOMOversizeFactor=dom_oversize,
 )
 
+# write propagated photons to file
 tray.AddModule("I3Writer","writer",
     Filename = options.OUTFILE)
 
-
-
-tray.Execute(options.NUMEVENTS+3)
+# execute
+tray.Execute(options.NUMEVENTS + 3)
