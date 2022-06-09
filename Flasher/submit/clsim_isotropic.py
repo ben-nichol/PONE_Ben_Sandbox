@@ -2,11 +2,10 @@
 
 # system imports
 from optparse import OptionParser
-from os.path import expandvars
 
 # icetray imports
 from I3Tray import I3Tray
-from icetray import OMKey, I3Units
+from icetray import OMKey, I3Units, I3Frame
 from icecube import dataio, phys_services, clsim
 
 # pone imports
@@ -80,7 +79,7 @@ tray = I3Tray()
 # add geometry and daq stream
 tray.AddModule("I3InfiniteSource","streams",
                Prefix=options.GCDFILE,
-               Stream=icetray.I3Frame.DAQ)
+               Stream=I3Frame.DAQ)
 
 # add event header
 tray.AddModule("I3MCEventHeaderGenerator","gen_header",

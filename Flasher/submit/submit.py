@@ -40,12 +40,12 @@ tag = 'submit-test'
 
 # specify arguments dictionary as used by [script] with --option
 # example: --numphotons=100 --> {'numphotons' : 100}
-# script must accept --outfile argument (generated automatically)
 # script must accept --gcd argument (generated automatically)
+# script must accept --outfile argument (generated automatically)
 args = {'oversize' : 1.0,
         'numevents' : 1,
         'flasherkey' : '5-10',
-        'numphotons' : 1e8,
+        'numphotons' : 1e6,
         'fwhm' : 5.0,
         #'wavelength' : 405, # not implemented
         #'optical_medium' : '', # not implemented
@@ -152,8 +152,6 @@ submit_info = 'executable  = {script} \n\
                                   env     = env,
                                   args    = args,
                                  )
-
-sys.exit()
 
 if submit:
     # write submit file
