@@ -28,7 +28,7 @@ parser.add_option("-r", "--runnumber", type="int", default=1,
                   dest="RUNNUMBER", help="The run number for this simulation")
 parser.add_option("-n", "--numevents", type="int", default=100,
                   dest="NUMEVENTS", help="The number of events per run")
-parser.add_option("-fk", "--flasherkey", type="%s-%s", default='1-1',
+parser.add_option("-fk", "--flasherkey", type="str", default='1-1',
                   dest="FLASHERKEY", help="Flasher position GCD string-om index")
 parser.add_option("-ph", "--numphotons", type="int", default=1e5,
                   dest="NUMPHOTONS", help="The number of photons per flash")

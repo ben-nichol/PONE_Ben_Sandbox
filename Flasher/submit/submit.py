@@ -110,18 +110,18 @@ with open(executable, 'w') as f:
     
     # write out arguments
     for key in args:
-        f.write('%s=%s\n' %(key.upper(), args[key]))
+        f.write('%s="%s"\n' %(key.upper(), args[key]))
     f.write('\n####\n\n')
     
     # python options
     python = ''
     for key in args:
         if type(args[key]) == str:
-            python += ' --%s %s' %(key, args[key])
+            python += ' --%s "%s"' %(key, args[key])
         if type(args[key]) == int:
-            python += ' --%s %i' %(key, args[key])
+            python += ' --%s "%i"' %(key, args[key])
         if type(args[key]) == int:
-            python += ' --%s %.5f' %(key, args[key])
+            python += ' --%s "%.5f"' %(key, args[key])
     python += ' '
     
     # execution line
@@ -132,7 +132,7 @@ with open(executable, 'w') as f:
 ### SUBMIT
 ########################################################################
 # submit file
-env         = "HDF5_USE_FILE_LOCKING='FALSE'"
+env         = 'HDF5_USE_FILE_LOCKING="FALSE"'
 log_str     = 'job_%s' %(out_file)
 submit_info = 'executable  = {script} \n\
                +SingularityImage = {singularity} \n\
