@@ -135,17 +135,17 @@ with open(executable, 'w') as f:
 ### SUBMIT
 ########################################################################
 # submit file
-submit_info = 'executable  = "{script}" \n\
+submit_info = 'executable  = {script} \n\
                +SingularityImage = "{singularity}" \n\
-               universe    = "vanilla" \n\
-               request_gpus = "1" \n\
-               request_memory = "{mem}GB" \n\
+               universe    = vanilla \n\
+               request_gpus = 1 \n\
+               request_memory = {mem}GB \n\
                log         = "{out_log}/{log_str}.log" \n\
                output      = "{out_out}/{log_str}.out" \n\
                error       = "{out_err}/{log_str}.err" \n\
                arguments   = "{args}" \n\
-               requirements = "HasSingularity" \n\
-               transfer_executable = "True" \n\
+               requirements = HasSingularity \n\
+               transfer_executable = True \n\
                queue 1 \n'.format(
                                   script = executable,
                                   singularity = singularity,
