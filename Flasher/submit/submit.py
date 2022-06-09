@@ -160,10 +160,9 @@ submit_info = 'executable  = {script} \n\
                                   args    = args,
                                  )
 
-sys.exit()
 if submit:
     # write submit file
-    sub_file = '%s.submit' %(join(out_sub, log_str))
+    sub_file = '%s.submit' %(join(out_sub, tag))
     with open(sub_file, 'w') as f:
         f.write(submit_info)
 
