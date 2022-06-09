@@ -1,17 +1,17 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 ########################################################################
 ### ENVIRONMENT
 ########################################################################
-eval $(/cvmfs/icecube.opensciencegrid.org/py2-v3.1.1/setup.sh)
-metaproject='/home/fhenningsen/osc/py2-ext/build'
+CONTAINER=/home/users/$USER/pone_offline/env-shell_Container.sh
 
 ########################################################################
 ### INPUT
 ########################################################################
-
+SCRIPT=${1}
+OUTPUT=${2}
 
 ########################################################################
 ### SIMULATION
 ########################################################################
-$metaproject/env-shell.sh python ${simulation_script} 
+bash ${CONTAINER} python ${SCRIPT} -o ${OUTPUT}
