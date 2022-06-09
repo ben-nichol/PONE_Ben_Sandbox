@@ -1,144 +1,122 @@
+#!/usr/bin/env python
+
+# system imports
+from optparse import OptionParser
 from os.path import expandvars
 
-from icecube.icetray import I3Tray
-from I3Tray import * # otherwise the C++ modules have the wrong signatures
-from icecube import simclasses
-from icecube import dataclasses
-from icecube.dataclasses import *
+# icetray imports
 from icecube import icetray, dataio, phys_services, clsim
 
-import math
-import random
-import numpy as np
+# pone imports
+import WaterOpticalModel.MakePoneMediumPropertiesConservativeExtendedRange as Medium
+from Utilities.DOMUtility import DOMProperties
+from pocam import generatePOCAM
 
-from genPOCAM import GeneratePOCAM_Module
+# use parser options to setup simulation in prompt
+usage = "usage: %prog [options] inputfile"
+parser = OptionParser(usage)
+parser.add_option("-o", "--outfile",default="test-data/test-pocam.i3",
+                  dest="OUTFILE", help="Write output to OUTFILE (.i3{.gz} format)")
+parser.add_option("-s", "--seed",type="int",default=12344,
+                  dest="SEED", help="Initial seed for the random number generator")
+parser.add_option("-g", "--gcd",default=expandvars("$I3_TESTDATA/GCD/GeoCalibDetectorStatus_IC86.55697_corrected_V2.i3.gz"),
+                  dest="GCDFILE", help="Read geometry from GCDFILE (.i3{.gz} format)")
+parser.add_option("-r", "--runnumber", type="int", default=1,
+                  dest="RUNNUMBER", help="The run number for this simulation")
+parser.add_option("-n", "--numevents", type="int", default=100,
+                  dest="NUMEVENTS", help="The number of events per run")
 
-import argparse
-from optparse import OptionParser
-import glob
+# parse cmd line args, bail out if anything is not understood
+(options,args) = parser.parse_args()
+if len(args) != 0:
+        crap = "Got undefined options:"
+        for a in args:
+                crap += a
+                crap += " "
+        parser.error(crap)
 
+# geometry
+geometry = dataio.I3File(options.GCDFILE)
+gframe = geometry.pop_frame()  
+geo = gframe["I3Geometry"]
 
-parser = OptionParser(description="This script creates photons from the specified POCAM, propagates them and stores the output in an .i3 output file.")
-parser.add_option("--output-i3-file", help = "I3 File to write the numbers of dom hits for each run to, e.g. tmp/numbers_of_dom_hits.i3")
-parser.add_option("--number-of-photons", type = "float",default=1e9)
-parser.add_option("--number-of-runs", type = "int",default=10)
-parser.add_option("--use-isotropy",action="store_true", default=False,help="Uses isotropic emission when set, otherwise hemispherical")
-parser.add_option("--add-cable",action="store_true", default=False,help="Places cable next to every POCAM position")
-parser.add_option("--gcd-file", type = "str",default="/home/fschmuckermaier/gcd/GeoCalibDetectorStatus_IC86.55697_corrected_V2.i3.gz")
-parser.add_option("--POCAM-index", type = "int",default=3,help="Number of POCAM to flash according to list below in script, default is the second POCAM at string 88")
-parser.add_option("--seed",type="int",default=12345,help="Initial seed for the random number generator")
-(options, args) = parser.parse_args()
+# flasher
+flasher_key = icetray.OMKey(5,10,1)
+flasher_position = geo.omgeo[flasher_key].position
+flasher_photons = 1e10
+flasher_width = 5 * icetray.I3Units.ns
+flasher_pulse_type = clsim.I3CLSimFlasherPulse.FlasherPulseType.LED405nm
 
-gcd_file=expandvars(options.gcd_file)
+# dom properties instance and derived values
+dom_properties = DOMProperties()
+wl_acceptance_max = dom_properties.GetMaxAngularAcceptance() * 1.05
+wl_acceptance = dom_properties.GetCLSimQETable(factor=wl_acceptance_max)
+dom_radius = (17.0*2.54*0.01/2.0)*icetray.I3Units.m
+dom_oversize = 1.0 # 17./13.
 
-#[x,y,z] of all 21 POCAMs:
-pocam_positions=[            #index, (string,om-number)
-		[18.3,-51.1,348.07], #0,  (87,4)
-		[18.3,-51.1,-421.93],#1,  (87,84)
-		[47.3,-57.0,398.07], #2,  (88,2)
-		[47.3,-57.0,-385.93],#3,  (88,72)
-		[14.3,-80.6,548.07], #4,  (89,2)
-		[14.3,-80.6,298.07], #5,  (89,10)
-		[14.3,-80.6,173.07], #6,  (89,13)
-		[14.3,-80.6,-277.93],#7,  (89,38)
-		[14.3,-80.6,-546.93],#8,  (89,107)
-		[57.3,-83.7,298.07], #9,  (90,12)
-		[57.3,-83.7,248.07], #10, (90,14)
-		[57.3,-83.7,-457.93],#11, (90,100)
-		[89.3,-59.0,123.07], #12, (91,15)
-		[89.3,-59.0,-313.93],#13, (91,50)
-		[62.6,-35.2,398.07], #14, (92,6)
-		[62.6,-35.2,-101.93],#15, (92,18)
-		[62.6,-35.2,-241.93],#16, (92,28)
-		[27.0,-31.2,348.07], #17, (93,8)
-		[27.0,-31.2,-76.93], #18, (93,17)
-		[27.0,-31.2,-349.93],#19, (93,64)
-		[27.0,-32.2,-646.93] #20, (93,113)
-]
-pocam_pos=pocam_positions[options.POCAM_index]
+# optical medium
+optical_medium = Medium.MakePoneMediumProperties()
 
-if options.add_cable: #Configure cables if set
-    # Material properties
-    cable_effective_scattering_length = 100.0 # metres
-    cable_absorption_length = 0.0
-    cable_radius = 0.02 # metres
-
-    #Cable positions: 10cm in y direction from POCAM center
-    cable_positions=[[pos[0], pos[1]+0.1, pos[2]] for pos in pocam_positions]
-    cable_radii=[]
-    cable_scattering_lengths=[]
-    cable_absorption_lengths=[]
-    for i in range(21):
-        cable_radii.append(cable_radius)
-        cable_scattering_lengths.append(cable_effective_scattering_length)
-        cable_absorption_lengths.append(cable_absorption_length)
-
-    def add_cable_to_geometry_frame(frame, positions = [], radii = [], scattering_lengths = [], absorption_lengths = []):
-        positions = (dataclasses.I3Position(pos[0], pos[1], pos[2]) for pos in positions)
-        frame.Put("HoleIceCylinderPositions", dataclasses.I3VectorI3Position(positions))
-        frame.Put("HoleIceCylinderRadii", dataclasses.I3VectorFloat(radii))
-        frame.Put("HoleIceCylinderScatteringLengths", dataclasses.I3VectorFloat(scattering_lengths))
-        frame.Put("HoleIceCylinderAbsorptionLengths", dataclasses.I3VectorFloat(absorption_lengths))
-
-
-tray = I3Tray()
-tray.AddModule("I3InfiniteSource",
-               Prefix = gcd_file,
-               Stream = icetray.I3Frame.DAQ)
-
-if options.add_cable: #add cables if set
-    tray.AddModule(add_cable_to_geometry_frame,
-                   positions = cable_positions,
-                   radii = cable_radii,
-                   scattering_lengths = cable_scattering_lengths,
-                   absorption_lengths = cable_absorption_lengths,
-                   Streams = [icetray.I3Frame.Geometry])
-
-#Configure position & add POCAM module:
-pocam_position = I3Position(*pocam_pos)
-tray.AddModule(GeneratePOCAM_Module,
-               SeriesFrameKey = "PhotonFlasherPulseSeries",
-               PhotonPosition = pocam_position,
-               NumOfPhotons = options.number_of_photons,
-               Seed = options.seed,
-      	       Isotropy= options.use_isotropy,
-               FlasherPulseType = clsim.I3CLSimFlasherPulse.FlasherPulseType.LED405nm)
-
+# a random number generator
 try:
     randomService = phys_services.I3SPRNGRandomService(
-        seed = options.seed,
+        seed = options.SEED,
         nstreams = 10000,
-        streamnum = 1)
+        streamnum = options.RUNNUMBER)
 except AttributeError:
     randomService = phys_services.I3GSLRandomService(
-        seed = options.seed)
+        seed = options.SEED*10000 + options.RUNNUMBER,
+    )
 
-common_clsim_parameters = dict(
-    PhotonSeriesName = "PropagatedPhotons",
-    RandomService = randomService,
-    IceModelLocation = expandvars("$I3_SRC/clsim/resources/ice/spice_mie"),
-    GCDFile = gcd_file,
-    UnWeightedPhotons = True,
-    UnWeightedPhotonsScalingFactor = 1.0,
-    DOMOversizeFactor = 1.0,
-    UnshadowedFraction = 1.0,
-    DoNotParallelize=True,
+# start icecube tray
+tray = icetray.I3Tray()
+
+# add geometry and daq stream
+tray.AddModule("I3InfiniteSource","streams",
+               Prefix=options.GCDFILE,
+               Stream=icetray.I3Frame.DAQ)
+
+# add event header
+tray.AddModule("I3MCEventHeaderGenerator","gen_header",
+               Year=2012,
+               DAQTime=7968509615844458,
+               RunNumber=1,
+               EventID=1,
+               IncrementEventID=True)
+
+# add fake isotropic flasher similar to POCAM
+tray.AddModule(generatePOCAM.GeneratePOCAM,
+               SeriesFrameKey="FlasherPulseSeries",
+               PhotonPosition=flasher_position,
+               NumberOfPhotons=flasher_photons,
+               PulseWidth=flasher_width,
+               Seed=options.SEED,
+      	       Isotropy=True,
+               FlasherPulseType=flasher_pulse_type)
+
+# start photon propagation with CLsim
+tray.AddSegment(clsim.I3CLSimMakePhotons, "goCLSIM",
     UseGPUs=True,
     UseCPUs=False,
-    StopDetectedPhotons = True,
-    FlasherPulseSeriesName = "PhotonFlasherPulseSeries")
+    UseGeant4=False,
+    UseI3PropagatorService=False,
+    RandomService=randomService,
+    DoNotParallelize=False,
+    UnweightedPhotons=True,
+    StopDetectedPhotons=True,
+    PhotonSeriesName = 'I3Photons',
+    MCPESeriesName='',
+    FlasherPulseSeriesName="FlasherPulseSeries",
+    GCDFile=options.GCDFILE,
+    IceModelLocation=optical_medium,
+    WavelengthAcceptance=wl_acceptance,
+    DOMRadius=dom_radius,
+    DOMOversizeFactor=dom_oversize,
+)
 
-tray.AddSegment(clsim.I3CLSimMakeHits,
-                **common_clsim_parameters
-                )
+# write propagated photons to file
+tray.AddModule("I3Writer","writer",
+    Filename = options.OUTFILE)
 
-tray.AddModule("I3Writer", #labeling=name_index-number-of-POCAM_number-of-flashes.i3
-               Filename = options.output_i3_file+"_{a}_{b}.i3".format(a=options.POCAM_index,b=options.number_of_runs))
-tray.AddModule("TrashCan")
-
-if options.number_of_runs == 0:
-    tray.Execute()
-else:
-    tray.Execute(3+options.number_of_runs)
-
-tray.Finish()
+# execute
+tray.Execute(options.NUMEVENTS + 3)

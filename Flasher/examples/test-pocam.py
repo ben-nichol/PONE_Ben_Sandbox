@@ -1,7 +1,16 @@
 #!/usr/bin/env python
 
+# system imports
 from optparse import OptionParser
 from os.path import expandvars
+
+# icetray imports
+from icecube import icetray, dataio, phys_services, clsim
+
+# pone imports
+import WaterOpticalModel.MakePoneMediumPropertiesConservativeExtendedRange as Medium
+from Utilities.DOMUtility import DOMProperties
+from pocam import generatePOCAM
 
 # use parser options to setup simulation in prompt
 usage = "usage: %prog [options] inputfile"
@@ -26,21 +35,6 @@ if len(args) != 0:
                 crap += " "
         parser.error(crap)
 
-# system imports
-import os
-import sys
-import math
-import numpy
-
-# icetray imports
-from I3Tray import *
-from icecube import icetray, dataclasses, dataio, phys_services, clsim, sim_services
-
-# pone imports
-import WaterOpticalModel.MakePoneMediumPropertiesConservativeExtendedRange as Medium
-from Utilities.DOMUtility import DOMProperties
-from pocam import generatePOCAM
-
 # geometry
 geometry = dataio.I3File(options.GCDFILE)
 gframe = geometry.pop_frame()  
@@ -50,7 +44,7 @@ geo = gframe["I3Geometry"]
 flasher_key = icetray.OMKey(5,10,1)
 flasher_position = geo.omgeo[flasher_key].position
 flasher_photons = 1e10
-flasher_width = 5 * I3Units.ns
+flasher_width = 5 * icetray.I3Units.ns
 flasher_pulse_type = clsim.I3CLSimFlasherPulse.FlasherPulseType.LED405nm
 
 # dom properties instance and derived values
@@ -75,7 +69,7 @@ except AttributeError:
     )
 
 # start icecube tray
-tray = I3Tray()
+tray = icetray.I3Tray()
 
 # add geometry and daq stream
 tray.AddModule("I3InfiniteSource","streams",

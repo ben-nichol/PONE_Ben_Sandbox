@@ -1,13 +1,14 @@
-# Icetray module to initiate a POCAM as a light source
+# Icetray module to initiate an isotropic light source
+
+import math
+import random
+import numpy as np
+from datetime import datetime
 
 from icecube import icetray, dataclasses
 from I3Tray import I3Units
 from icecube.dataclasses import *
 from icecube.clsim import I3CLSimFlasherPulse, I3CLSimFlasherPulseSeries
-from datetime import datetime
-import math
-import random
-import numpy as np
 
 class GenerateIsotropic(icetray.I3Module):
     """
@@ -103,13 +104,13 @@ class GenerateIsotropic(icetray.I3Module):
         # one hemisphere
         else:
             position = self.photon_position
-            position = I3Position(*[pocam_position[0],
-                                    pocam_position[1],
-                                    pocam_position[2])
+            position = I3Position(*[position[0],
+                                    position[1],
+                                    position[2]])
             
             # define direction
             direction = I3Direction()
-            up_down = 0 if self.upward else np.pi if self.downward
+            up_down = 0 if self.upward else np.pi if self.downward else np.nan
             direction.set_theta_phi(up_down, 0.)
             
             # define photon pulses
