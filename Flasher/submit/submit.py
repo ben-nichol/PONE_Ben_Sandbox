@@ -16,7 +16,7 @@ user = os.getenv('USER')
 out_dir = '/data/p-one/%s/isotropic' %(user)
 
 # singularity container
-singularity = '/data/p-one/icetray_offline.sif'
+singularity = '/data/p-one/icetray_offline_lw.sif'
 container = '/home/users/%s/pone_offline/env-shell_Container.sh' %(user)
 
 # memory to request
@@ -137,6 +137,7 @@ with open(executable, 'w') as f:
 # submit file
 submit_info = 'executable  = {script} \n\
                +SingularityImage = "{singularity}" \n\
+               +TransferOutput = "" \n\
                universe    = vanilla \n\
                request_gpus = 1 \n\
                request_memory = {mem}GB \n\
