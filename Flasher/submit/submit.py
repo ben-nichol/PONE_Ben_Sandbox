@@ -111,7 +111,7 @@ executable = join(out_sub, 'executable.sh')
 with open(executable, 'w') as f:
     # setup environment
     f.write('#!/bin/bash\n')
-    f.write('CONTAINER=%s\n' %(container)
+    f.write('CONTAINER=%s\n' %(container))
     f.write('SCRIPT=%s\n' %(join(out_sub, basename(script))) )
     f.write('\n####\n\n')
     
