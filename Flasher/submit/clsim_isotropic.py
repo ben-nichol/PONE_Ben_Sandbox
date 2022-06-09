@@ -28,8 +28,8 @@ parser.add_option("-r", "--runnumber", type="int", default=1,
                   dest="RUNNUMBER", help="The run number for this simulation")
 parser.add_option("-n", "--numevents", type="int", default=100,
                   dest="NUMEVENTS", help="The number of events per run")
-parser.add_option("-fk", "--flasherkey", type="tuple", default=(1,1),
-                  dest="FLASHERKEY", help="Flasher position GCD key")
+parser.add_option("-fk", "--flasherkey", type="%s-%s", default='1-1',
+                  dest="FLASHERKEY", help="Flasher position GCD string-om index")
 parser.add_option("-ph", "--numphotons", type="int", default=1e5,
                   dest="NUMPHOTONS", help="The number of photons per flash")
 parser.add_option("-w", "--fwhm", type="float", default=5,
@@ -46,7 +46,8 @@ gframe = geometry.pop_frame()
 geo = gframe["I3Geometry"]
 
 # flasher
-flasher_key = OMKey(options.FLASHERKEY[0], options.FLASHERKEY[1], 1)
+fkey = [int(i) for i in options.FLASHERKEY.split('-')]
+flasher_key = OMKey(fkey[0], fkey[1], 1)
 flasher_position = geo.omgeo[flasher_key].position
 flasher_photons = options.NUMPHOTONS
 flasher_width = options.PULSEFWHM * I3Units.ns

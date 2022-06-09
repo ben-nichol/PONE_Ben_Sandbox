@@ -47,7 +47,7 @@ tag = 'submit-test'
 args = {'gcd' : gcd,
         'oversize' : 1.0,
         'numevents' : 1,
-        'flasherkey' : (5,10),
+        'flasherkey' : '5-10',
         'numphotons' : 1e8,
         'fwhm' : 5.0,
         #'wavelength' : 405, # not implemented
@@ -125,7 +125,7 @@ with open(executable, 'w') as f:
     python += ' '
     
     # execution line
-    f.write('bash ${CONTAINER} python ${SCRIPT} %s' %(python))
+    f.write('bash ${CONTAINER} python ${SCRIPT} %s\n' %(python))
 
 
 ########################################################################
