@@ -135,7 +135,6 @@ with open(executable, 'w') as f:
 ### SUBMIT
 ########################################################################
 # submit file
-env         = 'HDF5_USE_FILE_LOCKING="FALSE"'
 submit_info = 'executable  = {script} \n\
                +SingularityImage = {singularity} \n\
                universe    = vanilla \n\
@@ -156,7 +155,6 @@ submit_info = 'executable  = {script} \n\
                                   out_err = out_error,
                                   out_out = out_out,
                                   log_str = log_str,
-                                  env     = env,
                                   args    = args,
                                  )
 
