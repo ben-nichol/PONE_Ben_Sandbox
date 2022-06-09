@@ -1,12 +1,9 @@
-
-#!/usr/bin/env python
-
 import os
 import sys
 import json
 import datetime
 import numpy as np
-from os.path import join, exists
+from os.path import join, exists, basename
 
 
 ########################################################################
@@ -44,8 +41,8 @@ tag = 'submit-test'
 # specify arguments dictionary as used by [script] with --option
 # example: --numphotons=100 --> {'numphotons' : 100}
 # script must accept --outfile argument (generated automatically)
-args = {'gcd' : gcd,
-        'oversize' : 1.0,
+# script must accept --gcd argument (generated automatically)
+args = {'oversize' : 1.0,
         'numevents' : 1,
         'flasherkey' : '5-10',
         'numphotons' : 1e8,
@@ -87,9 +84,12 @@ out_sim   = folders['simulation']
 out_file = join(out_sim, '%s.i3.bz2' %(tag))
 args['outfile'] = out_file
 
-# copy relevant files to output location 
-os.system('cp %s %s' %(script, join(out_sub, '.') ))
-os.system('cp %s %s' %(gcd, join(out_sub, '.') ))
+# copy relevant files
+os.system('cp %s %s' %(script, join(out_sub, basename(script))) )
+os.system('cp %s %s' %(gcd, join(out_sub, basename(gcd))) )
+
+# use copied gcd
+args['gcd'] = join(out_sub, basename(gcd))
 
 # save arguments
 with open(join(out_sub, 'arguments.txt'), 'w') as f:
@@ -105,7 +105,7 @@ with open(executable, 'w') as f:
     # setup environment
     f.write('#!/bin/bash\n')
     f.write('CONTAINER=%s\n' %(container))
-    f.write('SCRIPT=%s\n' %(script))
+    f.write('SCRIPT=%s\n' %(join(out_sub, basename(script))) )
     f.write('\n####\n\n')
     
     # write out arguments
@@ -116,7 +116,7 @@ with open(executable, 'w') as f:
     # python options
     python = ''
     for key in args:
-        python += ' --%s "${%s}"' %(key, key.upper())
+        python += ' --%s ${%s}' %(key, key.upper())
     python += ' '
     
     # execution line
