@@ -83,6 +83,7 @@ out_sim   = folders['simulation']
 tag += '_'
 for key in args:
     tag += '%s-%s' %(key, args[key])
+    tag += '_'
     print(tag)
 sys.exit()
 
