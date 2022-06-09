@@ -6,7 +6,7 @@ import numpy as np
 from datetime import datetime
 
 from icecube import icetray, dataclasses
-from I3Tray import I3Units, I3Position, I3Direction
+from icecube.icetray import I3Units, I3Position, I3Direction
 from icecube.clsim import I3CLSimFlasherPulse, I3CLSimFlasherPulseSeries
 
 class GenerateIsotropic(icetray.I3Module):
