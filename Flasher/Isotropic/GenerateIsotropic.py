@@ -26,9 +26,6 @@ class GenerateIsotropic(icetray.I3Module):
                           "The I3CLSimFlasherPulse.FlasherPulseType of the photon flashes.\
                           For a list, see: https://github.com/claudiok/clsim/blob/master/public/clsim/I3CLSimFlasherPulse.h#L59",
                           I3CLSimFlasherPulse.FlasherPulseType.LED405nm)
-        self.AddParameter("NumberOfPulses",
-                          "The number of pulses to inject from the given position.",
-                          1)
         self.AddParameter("NumberOfPhotons",
                           "The number of photons to inject from the given position.",
                           1)
@@ -54,7 +51,6 @@ class GenerateIsotropic(icetray.I3Module):
         self.series_frame_key = self.GetParameter("SeriesFrameKey")
         self.photon_position = self.GetParameter("PhotonPosition")
         self.pulse_type = self.GetParameter("FlasherPulseType")
-        self.num_of_pulses = self.GetParameter("NumberOfPulses")
         self.num_of_photons = self.GetParameter("NumberOfPhotons")
         self.pulse_width = self.GetParameter("PulseWidth")
         self.seed = self.GetParameter("Seed")
@@ -96,36 +92,33 @@ class GenerateIsotropic(icetray.I3Module):
         random.seed(self.seed)
         pulse_series = I3CLSimFlasherPulseSeries()
         
-        # generate n pulses
-        for i in range(self.num_of_pulses):
+        # isotropic in 4pi (full sphere)
+        if self.isotropy:
+            photon_direction = I3Direction()
+            photon_direction.set_theta_phi(0., 0.) # arbitrary due to isotropy
+            pulse = self.generate_pulse(self.photon_position, photon_direction,
+                                        self.pulse_type, self.num_of_photons,
+                                        self.pulse_width, self.isotropy)
+            pulse_series.append(pulse)
+
+        # one hemisphere
+        else:
+            position = self.photon_position
+            position = I3Position(*[position[0],
+                                    position[1],
+                                    position[2]])
             
-            # isotropic in 4pi (full sphere)
-            if self.isotropy:
-                photon_direction = I3Direction()
-                photon_direction.set_theta_phi(0., 0.) # arbitrary due to isotropy
-                pulse = self.generate_pulse(self.photon_position, photon_direction,
-                                            self.pulse_type, self.num_of_photons,
-                                            self.pulse_width, self.isotropy)
-                pulse_series.append(pulse)
-    
-            # one hemisphere
-            else:
-                position = self.photon_position
-                position = I3Position(*[position[0],
-                                        position[1],
-                                        position[2]])
-                
-                # define direction
-                direction = I3Direction()
-                up_down = 0 if self.upward else np.pi if self.downward else np.nan
-                direction.set_theta_phi(up_down, 0.)
-                
-                # define photon pulses
-                pulse = self.generate_pulse(position, direction,
-                                            0.5*self.num_of_photons, self.isotropy)
-                
-                # add pulse
-                pulse_series.append(pulse)                         
+            # define direction
+            direction = I3Direction()
+            up_down = 0 if self.upward else np.pi if self.downward else np.nan
+            direction.set_theta_phi(up_down, 0.)
+            
+            # define photon pulses
+            pulse = self.generate_pulse(position, direction,
+                                        0.5*self.num_of_photons, self.isotropy)
+            
+            # add pulse
+            pulse_series.append(pulse)                         
                                     
         # and push to frame
         frame[self.series_frame_key] = pulse_series
