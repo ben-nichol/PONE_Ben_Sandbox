@@ -140,9 +140,9 @@ submit_info = 'executable  = {script} \n\
                universe    = vanilla \n\
                request_gpus = 1 \n\
                request_memory = {mem}GB \n\
-               log         = "{out_log}/{log_str}.log" \n\
-               output      = "{out_out}/{log_str}.out" \n\
-               error       = "{out_err}/{log_str}.err" \n\
+               log         = {out_log}/{log_str}.log \n\
+               output      = {out_out}/{log_str}.out \n\
+               error       = {out_err}/{log_str}.err \n\
                arguments   = "{args}" \n\
                requirements = HasSingularity \n\
                transfer_executable = True \n\
