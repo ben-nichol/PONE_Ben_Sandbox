@@ -81,10 +81,11 @@ out_sim   = folders['simulation']
 
 # update tag with arguments
 tag += '_'
-for key in args:
+for key in sorted(args.keys()):
     tag += '%s-%s' %(key, args[key])
     tag += '_'
     print(tag)
+tag = tag[:-1]
 sys.exit()
 
 # determine outfile name
