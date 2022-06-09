@@ -33,7 +33,7 @@ parser.add_option("-p", "--numphotons", type="int", default=1e5,
                   dest="NUMPHOTONS", help="The number of photons per flash")
 parser.add_option("-w", "--fwhm", type="float", default=5,
                   dest="PULSEFWHM", help="Pulse FWHM  in nanoseconds")
-parser.add_option("-o", "--oversize", type="float", default=1,
+parser.add_option("-z", "--oversize", type="float", default=1,
                   dest="OVERSIZE", help="OM oversizing factor")
 
 # parse cmd line args, bail out if anything is not understood
