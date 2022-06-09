@@ -5,6 +5,7 @@ from optparse import OptionParser
 from os.path import expandvars
 
 # icetray imports
+from I3Tray import I3Tray
 from icecube import icetray, dataio, phys_services, clsim
 
 # pone imports
@@ -43,7 +44,7 @@ geo = gframe["I3Geometry"]
 # flasher
 flasher_key = icetray.OMKey(5,10,1)
 flasher_position = geo.omgeo[flasher_key].position
-flasher_photons = 1e10
+flasher_photons = 1e7
 flasher_width = 5 * icetray.I3Units.ns
 flasher_pulse_type = clsim.I3CLSimFlasherPulse.FlasherPulseType.LED405nm
 
@@ -69,7 +70,7 @@ except AttributeError:
     )
 
 # start icecube tray
-tray = icetray.I3Tray()
+tray = I3Tray()
 
 # add geometry and daq stream
 tray.AddModule("I3InfiniteSource","streams",
