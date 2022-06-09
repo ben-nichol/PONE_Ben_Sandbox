@@ -92,7 +92,6 @@ out_file = join(out_sim, '%s.i3.bz2' %(tag))
 args['outfile'] = out_file
 
 # copy relevant files
-os.system('cp %s %s' %(container, join(out_sub, basename(container))) )
 os.system('cp %s %s' %(script, join(out_sub, basename(script))) )
 os.system('cp %s %s' %(gcd, join(out_sub, basename(gcd))) )
 
@@ -112,7 +111,7 @@ executable = join(out_sub, 'executable.sh')
 with open(executable, 'w') as f:
     # setup environment
     f.write('#!/bin/bash\n')
-    f.write('CONTAINER=%s\n' %(join(out_sub, basename(container))) )
+    f.write('CONTAINER=%s\n' %(container)
     f.write('SCRIPT=%s\n' %(join(out_sub, basename(script))) )
     f.write('\n####\n\n')
     
