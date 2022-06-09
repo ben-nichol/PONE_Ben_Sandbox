@@ -109,7 +109,6 @@ with open(executable, 'w') as f:
     f.write('\n####\n\n')
     
     # write out arguments
-    f.write('# UNUSED, FOR REFERENCE ONLY\n')
     for key in args:
         f.write('%s="%s"\n' %(key.upper(), args[key]))
     f.write('\n####\n\n')
@@ -117,12 +116,7 @@ with open(executable, 'w') as f:
     # python options
     python = ''
     for key in args:
-        if type(args[key]) == str:
-            python += ' --%s "%s"' %(key, args[key])
-        if type(args[key]) == int:
-            python += ' --%s "%i"' %(key, args[key])
-        if type(args[key]) == float:
-            python += ' --%s "%.3f"' %(key, args[key])
+        python += ' --%s "${%s}"' %(key, key.upper())
     python += ' '
     
     # execution line
