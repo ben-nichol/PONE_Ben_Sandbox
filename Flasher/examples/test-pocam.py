@@ -6,7 +6,7 @@ from os.path import expandvars
 # use parser options to setup simulation in prompt
 usage = "usage: %prog [options] inputfile"
 parser = OptionParser(usage)
-parser.add_option("-o", "--outfile",default="test-flashers.i3",
+parser.add_option("-o", "--outfile",default="test-data/test-pocam.i3",
                   dest="OUTFILE", help="Write output to OUTFILE (.i3{.gz} format)")
 parser.add_option("-s", "--seed",type="int",default=12344,
                   dest="SEED", help="Initial seed for the random number generator")
@@ -39,7 +39,7 @@ from icecube import icetray, dataclasses, dataio, phys_services, clsim, sim_serv
 # pone imports
 import WaterOpticalModel.MakePoneMediumPropertiesConservativeExtendedRange as Medium
 from Utilities.DOMUtility import DOMProperties
-from Flasher.POCAM import generatePOCAM
+from pocam import generatePOCAM
 
 # geometry
 geometry = dataio.I3File(options.GCDFILE)
@@ -49,7 +49,7 @@ geo = gframe["I3Geometry"]
 # flasher
 flasher_key = icetray.OMKey(5,10,1)
 flasher_position = geo.omgeo[flasher_key].position
-flasher_photons = 1e8
+flasher_photons = 1e9
 flasher_width = 5 * I3Units.ns
 flasher_pulse_type = clsim.I3CLSimFlasherPulse.FlasherPulseType.LED405nm
 

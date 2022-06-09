@@ -6,7 +6,7 @@ from os.path import expandvars
 # use parser options to setup simulation in prompt
 usage = "usage: %prog [options] inputfile"
 parser = OptionParser(usage)
-parser.add_option("-o", "--outfile",default="test-flashers.i3",
+parser.add_option("-o", "--outfile",default="test-data/test-flashers.i3",
                   dest="OUTFILE", help="Write output to OUTFILE (.i3{.gz} format)")
 parser.add_option("-s", "--seed",type="int",default=12344,
                   dest="SEED", help="Initial seed for the random number generator")

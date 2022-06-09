@@ -1,4 +1,9 @@
 *.i3
 *.i3.gz
 *.i3.bz2
-*.pyc
+*.py[cod]
+*/test-data
+*__pycache__*
+examples/Utilities
+examples/WaterOpticalModel
+examples/Flasher
