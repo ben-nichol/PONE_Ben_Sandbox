@@ -41,8 +41,8 @@ script = '/home/users/%s/pone_offline/Flasher/submit/clsim_isotropic.py' %(user)
 # tag
 tag = 'submit-test'
 
-# specify arguments dictionary as used by [script] with the '--' parser
-# example option: --outfile=./test --> {'outfile' : './test'}
+# specify arguments dictionary as used by [script] with --option
+# example: --numphotons=100 --> {'numphotons' : 100}
 # script must accept --outfile argument (generated automatically)
 args = {'gcd' : gcd,
         'oversize' : 1.0,
@@ -106,10 +106,10 @@ with open(executable, 'w') as f:
     f.write('#!/bin/bash\n')
     f.write('CONTAINER=%s\n' %(container))
     f.write('SCRIPT=%s\n' %(script))
-    f.write('\n####\n')
+    f.write('\n####\n\n')
     
     # write out arguments
-    f.write('# UNUSED, FOR REFERENCE ONLY\n\n')
+    f.write('# UNUSED, FOR REFERENCE ONLY\n')
     for key in args:
         f.write('%s="%s"\n' %(key.upper(), args[key]))
     f.write('\n####\n\n')
