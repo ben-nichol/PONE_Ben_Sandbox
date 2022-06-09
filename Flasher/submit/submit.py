@@ -51,19 +51,19 @@ args = {'oversize' : 1.0,
         #'optical_medium' : '', # not implemented
        }
 
-# update tag with arguments
-tag += '_'
-for key in sorted(args.keys()):
-    tag += '%s-%s' %(key, args[key])
-    tag += '_'
-tag = tag[:-1]
-
 
 ########################################################################
 ### OUTPUT DIRECTORY GENERATION
 ########################################################################
 # create time-sensitive string to avoid overwriting
 t_str = datetime.datetime.now().isoformat('_')[:-7].replace(':', '-')
+
+# update log string with arguments
+log_str = tag + '_'
+for key in sorted(args.keys()):
+    log_str += '%s-%s' %(key, args[key])
+    log_str += '_'
+log_str = log_str[:-1]
 
 # create general output folder
 out_folder = join(out_dir, 'sim_' + tag + '_' + t_str)
@@ -136,7 +136,6 @@ with open(executable, 'w') as f:
 ########################################################################
 # submit file
 env         = 'HDF5_USE_FILE_LOCKING="FALSE"'
-log_str     = 'job_%s' %(tag)
 submit_info = 'executable  = {script} \n\
                +SingularityImage = {singularity} \n\
                universe    = vanilla \n\
