@@ -120,12 +120,12 @@ with open(executable, 'w') as f:
             python += ' --%s "%s"' %(key, args[key])
         if type(args[key]) == int:
             python += ' --%s "%i"' %(key, args[key])
-        if type(args[key]) == int:
+        if type(args[key]) == float:
             python += ' --%s "%.5f"' %(key, args[key])
     python += ' '
     
     # execution line
-    f.write('bash ${CONTAINER} python ${SCRIPT} %s\n' %(python))
+    f.write('bash ${CONTAINER} python ${SCRIPT}%s\n' %(python))
 
 
 ########################################################################
