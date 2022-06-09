@@ -86,6 +86,7 @@ for key in sorted(args.keys()):
     tag += '_'
     print(tag)
 tag = tag[:-1]
+print(tag)
 sys.exit()
 
 # determine outfile name
