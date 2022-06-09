@@ -117,7 +117,12 @@ with open(executable, 'w') as f:
     
     # write out arguments
     for key in args:
-        f.write('%s="%s"\n' %(key.upper(), args[key]))
+        if type(args[key]) == str:
+            f.write('%s="%s"\n' %(key.upper(), args[key]))
+        if type(args[key]) == int:
+            f.write('%s="%i"\n' %(key.upper(), args[key]))
+        if type(args[key]) == float:
+            f.write('%s="%.5f"\n' %(key.upper(), args[key]))
     f.write('\n####\n\n')
     
     # python options
