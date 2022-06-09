@@ -27,13 +27,13 @@ parser.add_option("-r", "--runnumber", type="int", default=1,
                   dest="RUNNUMBER", help="The run number for this simulation")
 parser.add_option("-n", "--numevents", type="int", default=100,
                   dest="NUMEVENTS", help="The number of events per run")
-parser.add_option("-fk", "--flasherkey", type="str", default='1-1',
+parser.add_option("-f", "--flasherkey", type="str", default='1-1',
                   dest="FLASHERKEY", help="Flasher position GCD string-om index")
-parser.add_option("-ph", "--numphotons", type="int", default=1e5,
+parser.add_option("-p", "--numphotons", type="int", default=1e5,
                   dest="NUMPHOTONS", help="The number of photons per flash")
 parser.add_option("-w", "--fwhm", type="float", default=5,
                   dest="PULSEFWHM", help="Pulse FWHM  in nanoseconds")
-parser.add_option("-oz", "--oversize", type="float", default=1,
+parser.add_option("-o", "--oversize", type="float", default=1,
                   dest="OVERSIZE", help="OM oversizing factor")
 
 # parse cmd line args, bail out if anything is not understood
