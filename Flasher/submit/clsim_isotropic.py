@@ -5,8 +5,8 @@ from optparse import OptionParser
 
 # icetray imports
 from I3Tray import I3Tray
-from icetray import OMKey, I3Units, I3Frame
 from icecube import dataio, phys_services, clsim
+from icecube.icetray import OMKey, I3Units, I3Frame
 
 # pone imports
 from Utilities.DOMUtility import DOMProperties
