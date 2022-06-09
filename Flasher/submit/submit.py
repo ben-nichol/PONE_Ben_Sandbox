@@ -45,7 +45,7 @@ tag = 'submit-test'
 args = {'oversize' : 1.0,
         'numevents' : 1,
         'flasherkey' : '5-10',
-        'numphotons' : 1e6,
+        'numphotons' : int(1e6),
         'fwhm' : 5.0,
         #'wavelength' : 405, # not implemented
         #'optical_medium' : '', # not implemented
