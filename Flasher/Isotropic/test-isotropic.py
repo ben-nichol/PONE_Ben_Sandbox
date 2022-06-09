@@ -11,7 +11,7 @@ from icecube import icetray, dataio, phys_services, clsim
 # pone imports
 import WaterOpticalModel.MakePoneMediumPropertiesConservativeExtendedRange as Medium
 from Utilities.DOMUtility import DOMProperties
-from Isotropic import GenerateIsotropic
+from Flasher.Isotropic import GenerateIsotropic
 
 # use parser options to setup simulation in prompt
 usage = "usage: %prog [options] inputfile"

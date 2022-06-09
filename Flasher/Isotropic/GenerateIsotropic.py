@@ -55,8 +55,8 @@ class GenerateIsotropic(icetray.I3Module):
         self.pulse_width = self.GetParameter("PulseWidth")
         self.seed = self.GetParameter("Seed")
         self.isotropy = self.GetParameter("Isotropy")
-        self.upward = self.GetParaemter("Upward")
-        self.downward = self.GetParaemter("Downward")
+        self.upward = self.GetParameter("Upward")
+        self.downward = self.GetParameter("Downward")
 
 
     # definition of the photon pulse
