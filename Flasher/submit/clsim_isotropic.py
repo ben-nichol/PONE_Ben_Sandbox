@@ -17,7 +17,7 @@ import WaterOpticalModel.MakePoneMediumPropertiesConservativeExtendedRange as Me
 # use parser options to setup simulation in prompt
 usage = "usage: %prog [options]"
 parser = OptionParser(usage)
-parser.add_option("-o", "--outfile",default="test-data/test-pocam.i3",
+parser.add_option("-o", "--outfile",default="test.i3.bz2",
                   dest="OUTFILE", help="Write output to OUTFILE (.i3{.gz} format)")
 parser.add_option("-s", "--seed",type="int",default=12344,
                   dest="SEED", help="Initial seed for the random number generator")
