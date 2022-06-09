@@ -72,7 +72,7 @@ folders = {}
 for folder in ['submit', 'job', 'log', 'error', 'out', 'simulation']:
     out_f = join(out_dir, out_folder, folder)
     if not exists(out_f) and submit:
-        print('Creating output directory in {}'.format(out_f))
+        print('\t-- creating sub-directory in {}'.format(folder))
         os.makedirs(out_f)
         folders[folder] = out_f
 
@@ -106,22 +106,23 @@ with open(executable, 'w') as f:
     f.write('#!/bin/bash\n')
     f.write('CONTAINER=%s\n' %(container))
     f.write('SCRIPT=%s\n' %(script))
-    f.write('####\n\n')
+    f.write('\n####\n\n')
     
     # write out arguments
     for key in args:
         f.write('%s=%s\n' %(key.upper(), args[key]))
-        
+    f.write('\n####\n\n')
+    
     # python options
     python = ''
     for key in args:
         if type(args[key]) == str:
-            python += '--%s %s' %(key, args[key])
+            python += ' --%s %s' %(key, args[key])
         if type(args[key]) == int:
-            python += '--%s %i' %(key, args[key])
+            python += ' --%s %i' %(key, args[key])
         if type(args[key]) == int:
-            python += '--%s %.5f' %(key, args[key])
-        python += ' '
+            python += ' --%s %.5f' %(key, args[key])
+    python += ' '
     
     # execution line
     f.write('bash ${CONTAINER} python ${SCRIPT} %s' %(python))
