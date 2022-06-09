@@ -153,7 +153,7 @@ submit_info = 'executable  = {script} \n\
                                   env     = env,
                                   args    = args,
                                  )
-sys.exit()
+
 if submit:
     # write submit file
     sub_file = '%s.submit' %(join(out_sub, log_str))
