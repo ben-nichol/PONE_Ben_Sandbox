@@ -62,7 +62,7 @@ args = {'gcd' : gcd,
 t_str = datetime.datetime.now().isoformat('_')[:-7].replace(':', '-')
 
 # create general output folder
-out_folder = join(out_dir, + 'sim_' + tag + '_' + t_str)
+out_folder = join(out_dir, 'sim_' + tag + '_' + t_str)
 if not exists(out_folder) and submit:
     print('Creating output directory in {}'.format(out_folder))
     os.makedirs(out_folder)
