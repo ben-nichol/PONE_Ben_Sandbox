@@ -51,6 +51,14 @@ args = {'oversize' : 1.0,
         #'optical_medium' : '', # not implemented
        }
 
+# update tag with arguments
+tag += '_'
+for key in sorted(args.keys()):
+    tag += '%s-%s' %(key, args[key])
+    tag += '_'
+tag = tag[:-1]
+
+
 ########################################################################
 ### OUTPUT DIRECTORY GENERATION
 ########################################################################
@@ -78,16 +86,6 @@ out_log   = folders['log']
 out_error = folders['error']
 out_out   = folders['out']
 out_sim   = folders['simulation']
-
-# update tag with arguments
-tag += '_'
-for key in sorted(args.keys()):
-    tag += '%s-%s' %(key, args[key])
-    tag += '_'
-    print(tag)
-tag = tag[:-1]
-print(tag)
-sys.exit()
 
 # determine outfile name
 out_file = join(out_sim, '%s.i3.bz2' %(tag))
