@@ -143,7 +143,6 @@ submit_info = 'executable  = {script} \n\
                log         = {out_log}/{log_str}.log \n\
                output      = {out_out}/{log_str}.out \n\
                error       = {out_err}/{log_str}.err \n\
-               environment = "{env}" \n\
                arguments   = "{args}" \n\
                requirements = HasSingularity \n\
                transfer_executable = True \n\
