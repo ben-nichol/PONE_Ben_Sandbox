@@ -124,4 +124,4 @@ tray.AddModule("I3Writer","writer",
     Filename = options.OUTFILE)
 
 # execute
-tray.Execute(options.NUMEVENTS + 3)
+tray.Execute(options.NUMEVENTS+1 + 3)
