@@ -4,6 +4,7 @@
 *.py[cod]
 */test-data
 *__pycache__*
+*.ipynb_checkpoints
 examples/Utilities
 examples/WaterOpticalModel
 examples/Flasher
