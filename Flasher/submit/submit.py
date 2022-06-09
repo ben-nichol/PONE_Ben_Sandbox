@@ -51,7 +51,6 @@ args = {'oversize' : 1.0,
         #'optical_medium' : '', # not implemented
        }
 
-
 ########################################################################
 ### OUTPUT DIRECTORY GENERATION
 ########################################################################
@@ -79,6 +78,13 @@ out_log   = folders['log']
 out_error = folders['error']
 out_out   = folders['out']
 out_sim   = folders['simulation']
+
+# update tag with arguments
+tag += '_'
+for key in args:
+    tag += '%s-%s' %(key, args[key])
+    print(tag)
+sys.exit()
 
 # determine outfile name
 out_file = join(out_sim, '%s.i3.bz2' %(tag))
@@ -129,7 +135,7 @@ with open(executable, 'w') as f:
 ########################################################################
 # submit file
 env         = 'HDF5_USE_FILE_LOCKING="FALSE"'
-log_str     = 'job_%s' %(out_file)
+log_str     = 'job_%s' %(tag)
 submit_info = 'executable  = {script} \n\
                +SingularityImage = {singularity} \n\
                universe    = vanilla \n\
@@ -154,6 +160,7 @@ submit_info = 'executable  = {script} \n\
                                   args    = args,
                                  )
 
+sys.exit()
 if submit:
     # write submit file
     sub_file = '%s.submit' %(join(out_sub, log_str))
