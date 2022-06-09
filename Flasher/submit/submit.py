@@ -59,7 +59,7 @@ args = {'oversize' : 1.0,
 t_str = datetime.datetime.now().isoformat('_')[:-7].replace(':', '-')
 
 # update log string with arguments
-log_str = tag + '_'
+log_str = str(tag) + '_'
 for key in sorted(args.keys()):
     log_str += '%s-%s' %(key, args[key])
     log_str += '_'
