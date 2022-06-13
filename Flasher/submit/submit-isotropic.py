@@ -152,7 +152,8 @@ for i, tup in enumerate(iters):
         # python options
         python = ''
         for key in args_temp:
-            python += ' --%s ${%s}' %(key, key.upper())
+            var = key.replace('-', '')
+            python += ' --%s ${%s}' %(key, var.upper())
         python += ' '
         
         # execution line
