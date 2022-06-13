@@ -1,5 +1,4 @@
 import os
-import sys
 import json
 import datetime
 import itertools
@@ -28,7 +27,7 @@ mem = 8 # GB
 ### SIMULATION PARAMETERS
 ########################################################################
 # submit 
-submit = False
+submit = True
 
 # gcd
 gcd = '/home/users/%s/pone_offline/GCD/PONE_10String.i3.gz' %(user)
