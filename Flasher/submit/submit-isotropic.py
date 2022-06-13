@@ -73,7 +73,7 @@ t_str = datetime.datetime.now().isoformat('_')[:-7].replace(':', '-')
 
 # create general output folder
 out_folder = join(out_dir, 'sim_' + tag + '_' + t_str)
-if not exists(out_folder) and submit:
+if not exists(out_folder):
     print('Creating output directory in {}'.format(out_folder))
     os.makedirs(out_folder)
 
@@ -82,7 +82,7 @@ folders = {}
 for folder in ['submit', 'job', 'log', 'error', 'out', 'simulation']:
     out_f = join(out_dir, out_folder, folder)
     folders[folder] = out_f
-    if not exists(out_f) and submit:
+    if not exists(out_f):
         print('\t-- creating sub-directory in {}'.format(folder))
         os.makedirs(out_f)
 
@@ -115,7 +115,7 @@ for i, tup in enumerate(iters):
         log_str += '%s-%s' %(key, val)
     log_str = log_str[:-1]
     print(log_str)
-    sys.exit()
+    sys.exit()ls /
     
     # determine outfile name
     out_file = join(out_sim, '%s.i3.bz2' %(log_str))
