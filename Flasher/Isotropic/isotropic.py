@@ -19,25 +19,25 @@ import WaterOpticalModel.MakePoneMediumPropertiesConservativeExtendedRange as Me
 # use parser options to setup simulation in prompt
 usage = "usage: %prog [options]"
 parser = OptionParser(usage)
-parser.add_option("-o", "--outfile",default="test.i3.bz2",
+parser.add_option("-o", "--out-file",default="test.i3.bz2",
                   dest="OUTFILE", help="Write output to OUTFILE (.i3{.gz} format)")
 parser.add_option("-s", "--seed",type="int",default=12344,
                   dest="SEED", help="Initial seed for the random number generator")
 parser.add_option("-g", "--gcd",default='',
                   dest="GCDFILE", help="Read geometry from GCDFILE (.i3{.gz} format)")
-parser.add_option("-r", "--runnumber", type="int", default=1,
+parser.add_option("-r", "--run-number", type="int", default=1,
                   dest="RUNNUMBER", help="The run number for this simulation")
-parser.add_option("-n", "--numevents", type="int", default=100,
+parser.add_option("-n", "--num-events", type="int", default=100,
                   dest="NUMEVENTS", help="The number of events per run")
-parser.add_option("-f", "--flasherkey", type="str", default='1-1',
+parser.add_option("-f", "--flasher-key", type="str", default='1-1',
                   dest="FLASHERKEY", help="Flasher position GCD string-om index")
-parser.add_option("-p", "--numphotons", type="int", default=1e5,
+parser.add_option("-p", "--num-photons", type="int", default=1e5,
                   dest="NUMPHOTONS", help="The number of photons per flash")
 parser.add_option("-w", "--fwhm", type="float", default=5,
                   dest="PULSEFWHM", help="Pulse FWHM  in nanoseconds")
 parser.add_option("-z", "--oversize", type="float", default=1.0,
                   dest="OVERSIZE", help="OM oversizing factor")
-parser.add_option("-d", "--detectemitter", type="int", default=1,
+parser.add_option("-d", "--detect-emitter", type="int", default=1,
                   dest="DETECTEMITTER", help="Whether to save photons detected at the emitter OM. 0 off, 1 on")
 
 # parse cmd line args, bail out if anything is not understood

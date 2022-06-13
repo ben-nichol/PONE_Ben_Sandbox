@@ -44,26 +44,26 @@ tag = 'submit-test'
 # script must accept --gcd argument (generated automatically)
 # script must accept --outfile argument (generated automatically)
 # use lists; all permutations will be simulated
-args = {'oversize'      : [1.0],
-        'numevents'     : [100],
-        'flasherkey'    : ['1-10', '5-10', '10-10'],
-        'numphotons'    : [int(1e10)],
-        'fwhm'          : [1, 5.0, 10],
-        'detectemitter' : [int(True)],
-        #'wavelength' : 405, # not implemented
-        #'optical_medium' : '', # not implemented
+args = {'oversize'       : [1.0],
+        'num-events'     : [100],
+        'flasher-key'    : ['1-10', '5-10', '10-10'],
+        'num-photons'    : [int(1e10)],
+        'fwhm'           : [1, 5.0, 10],
+        'detect-emitter' : [int(True)],
+        #'wavelength' : [405], # not implemented
+        #'optical_medium' : [''], # not implemented
        }
 
 # permute values
-iter_list = [args[k] for k in sorted(args.keys())]
+iter_keys = [k for k in sorted(args.keys())]
+iter_list = [args[k] for k in iter_keys]
 iters = list(itertools.product(*iter_list))
 print('Number of simulations: %i' %(len(iters)))
 print('Permutations: %s' %(iters))
 
 print()
-print(sorted(args.keys()))
+print(iter_keys)
 print(iter_list)
-sys.exit()
 
 ########################################################################
 ### OUTPUT DIRECTORY GENERATION
@@ -93,30 +93,33 @@ out_error = folders['error']
 out_out   = folders['out']
 out_sim   = folders['simulation']
 
+# copy relevant files
+os.system('cp %s %s' %(script, join(out_sub, basename(script))) )
+os.system('cp %s %s' %(gcd, join(out_sub, basename(gcd))) )
+
+# use copied gcd
+args['gcd'] = join(out_sub, basename(gcd))
+
 
 ########################################################################
 ### ITERATE PERMUTATIONS
 ########################################################################
-for i in iters:
-
+for i, tup in enumerate(iters):
+    
     ####################################################################
     ### OUT FILE TAGGING
     # create individual log string
     log_str = str(tag) + '_'
-    
-        
+    for j, key in enumerate(iter_keys):
+        val = tup[j]
+        log_str += '%s-%s' %(key, val)
     log_str = log_str[:-1]
+    print(log_str)
+    sys.exit()
     
     # determine outfile name
-    out_file = join(out_sim, '%s.i3.bz2' %(tag))
+    out_file = join(out_sim, '%s.i3.bz2' %(log_str))
     args['outfile'] = out_file
-    
-    # copy relevant files
-    os.system('cp %s %s' %(script, join(out_sub, basename(script))) )
-    os.system('cp %s %s' %(gcd, join(out_sub, basename(gcd))) )
-    
-    # use copied gcd
-    args['gcd'] = join(out_sub, basename(gcd))
     
     # save arguments
     with open(join(out_sub, 'arguments.txt'), 'w') as f:
