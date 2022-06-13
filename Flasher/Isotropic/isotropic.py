@@ -36,10 +36,10 @@ parser.add_option("-w", "--fwhm", type="float", default=5,
                   dest="PULSEFWHM", help="Pulse FWHM  in nanoseconds")
 parser.add_option("-z", "--oversize", type="float", default=1,
                   dest="OVERSIZE", help="OM oversizing factor")
-parser.add_option("-e", "--detectemitter", action='store_true',
-                  dest="DETECTEMITTER", help="Save photons detecter at the emitter OM")
-parser.add_option("-f", "--no-detectemitter", action='store_false',
-                  dest="DETECTEMITTER", help="Save photons detecter at the emitter OM")
+parser.add_option("--detectemitter", action='store_true',
+                  dest="DETECTEMITTER", help="Save photons detected at the emitter OM")
+parser.add_option("--no-detectemitter", action='store_false',
+                  dest="DETECTEMITTER", help="Don't save photons detected at the emitter OM")
 parser.set_defaults(DETECTEMITTER=False)
 
 # parse cmd line args, bail out if anything is not understood
