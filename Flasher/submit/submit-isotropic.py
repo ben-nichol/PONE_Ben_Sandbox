@@ -93,6 +93,11 @@ out_sim   = folders['simulation']
 os.system('cp %s %s' %(script, join(out_sub, basename(script))) )
 os.system('cp %s %s' %(gcd, join(out_sub, basename(gcd))) )
 
+# save arguments
+with open(join(out_sub, 'arguments.txt'), 'w') as f:
+     f.write(json.dumps(args))
+np.save(join(out_sub, 'arguments.npy'), args)
+
 
 ########################################################################
 ### ITERATE PERMUTATIONS
