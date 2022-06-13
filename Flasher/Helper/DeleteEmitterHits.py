@@ -33,6 +33,7 @@ class DeleteEmitterHits(icetray.I3Module):
         
         # pop keys of flasher OMs to remove from output hits
         for key in self.flasher_pulse_series:
+            print(key)
             photon_series.pop(key, 'None')
             
         # delete original hit series

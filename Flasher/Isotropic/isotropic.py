@@ -128,10 +128,11 @@ tray.AddSegment(clsim.I3CLSimMakePhotons, "goCLSIM",
    )
 
 # remove emitter key
-tray.AddModule(DeleteEmitterHits.DeleteEmitterHits,
-               FlasherPulseSeriesName="FlasherPulseSeries",
-               PhotonSeriesName='I3Photons'
-              )
+if not options.DETECTEMITTER:
+    tray.AddModule(DeleteEmitterHits.DeleteEmitterHits,
+                   FlasherPulseSeriesName="FlasherPulseSeries",
+                   PhotonSeriesName='I3Photons'
+                  )
 
 # write propagated photons to file
 tray.AddModule("I3Writer","writer",
