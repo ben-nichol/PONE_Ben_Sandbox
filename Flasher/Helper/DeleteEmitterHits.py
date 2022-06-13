@@ -38,6 +38,9 @@ class DeleteEmitterHits(icetray.I3Module):
         
         # insert new photon series
         frame[self.photon_series] = photon_series
+        
+        # document changes
+        frame['DetectEmitter'] = False
 
         # and push frame
         self.PushFrame(frame, "OutBox")

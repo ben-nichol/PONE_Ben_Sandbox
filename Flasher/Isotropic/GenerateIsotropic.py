@@ -4,8 +4,8 @@ import random
 import numpy as np
 
 from icecube import icetray
-from icecube.dataclasses import I3Position, I3Direction
 from icecube.icetray import I3Units
+from icecube.dataclasses import I3Position, I3Direction, ModuleKey
 from icecube.clsim import I3CLSimFlasherPulse, I3CLSimFlasherPulseSeries
 
 class GenerateIsotropic(icetray.I3Module):
@@ -17,7 +17,10 @@ class GenerateIsotropic(icetray.I3Module):
         self.AddParameter("FlasherPulseSeriesName",
                           "Name of the I3Frame Key the photon flash should be written to",
                           "PhotonFlasherPulseSeries")
-        self.AddParameter("PhotonPosition",
+        self.AddParameter("FlasherKey",
+                          "The ModuleKey of the Flasher.",
+                          ModuleKey(1,1))
+        self.AddParameter("FlasherPosition",
                           "The position of the photon source.",
                           I3Position(0,0,0))
         self.AddParameter("FlasherPulseType",
@@ -47,7 +50,8 @@ class GenerateIsotropic(icetray.I3Module):
     # configuration of the icetray module
     def Configure(self):
         self.series_frame_key = self.GetParameter("FlasherPulseSeriesName")
-        self.photon_position = self.GetParameter("PhotonPosition")
+        self.flasher_key = self.GetParameter("FlasherKey")
+        self.flasher_position = self.GetParameter("FlasherPosition")
         self.pulse_type = self.GetParameter("FlasherPulseType")
         self.num_of_photons = self.GetParameter("NumberOfPhotons")
         self.pulse_width = self.GetParameter("PulseWidth")
@@ -58,11 +62,11 @@ class GenerateIsotropic(icetray.I3Module):
 
 
     # definition of the photon pulse
-    def generate_pulse(self, photon_position, photon_direction, pulse_type,
+    def generate_pulse(self, flasher_position, photon_direction, pulse_type,
                        number_of_photons, pulse_width, isotropy):
         # setup pulse instance
         pulse = I3CLSimFlasherPulse()
-        pulse.SetPos(photon_position)
+        pulse.SetPos(flasher_position)
         pulse.SetDir(photon_direction)
         pulse.SetTime(0.0*I3Units.ns)
         pulse.SetType(pulse_type)
@@ -94,14 +98,14 @@ class GenerateIsotropic(icetray.I3Module):
         if self.isotropy:
             photon_direction = I3Direction()
             photon_direction.set_theta_phi(0., 0.) # arbitrary due to isotropy
-            pulse = self.generate_pulse(self.photon_position, photon_direction,
+            pulse = self.generate_pulse(self.flasher_position, photon_direction,
                                         self.pulse_type, self.num_of_photons,
                                         self.pulse_width, self.isotropy)
             pulse_series.append(pulse)
 
         # one hemisphere
         else:
-            position = self.photon_position
+            position = self.flasher_position
             position = I3Position(*[position[0],
                                     position[1],
                                     position[2]])
@@ -114,10 +118,14 @@ class GenerateIsotropic(icetray.I3Module):
             # define photon pulses
             pulse = self.generate_pulse(position, direction,
                                         0.5*self.num_of_photons, self.isotropy)
-            
+                
             # add pulse
             pulse_series.append(pulse)                         
                                     
-        # and push to frame
+        # push to frame
         frame[self.series_frame_key] = pulse_series
+        
+        # document additions
+        frame['FlasherKey'] = self.flasher_key
+        
         self.PushFrame(frame, "OutBox")

@@ -55,6 +55,7 @@ geo = gframe["I3Geometry"]
 # flasher
 fkey = [int(i) for i in options.FLASHERKEY.split('-')]
 flasher_key = OMKey(fkey[0], fkey[1], 1)
+module_key = ModuleKey(flasher_key.string, flasher_key.om)
 flasher_position = geo.omgeo[flasher_key].position
 flasher_photons = options.NUMPHOTONS
 flasher_width = options.PULSEFWHM * I3Units.ns
@@ -69,9 +70,6 @@ dom_oversize = options.OVERSIZE
 
 # optical medium
 optical_medium = Medium.MakePoneMediumProperties()
-
-print(options.DETECTEMITTER)
-sys.exit()
 
 # a random number generator
 try:
@@ -105,7 +103,8 @@ tray.AddModule("I3MCEventHeaderGenerator", "gen_header",
 # add fake isotropic flasher similar to POCAM
 tray.AddModule(GenerateIsotropic.GenerateIsotropic,
                FlasherPulseSeriesName="FlasherPulseSeries",
-               PhotonPosition=flasher_position,
+               FlasherKey=module_key,
+               FlasherPosition=flasher_position,
                NumberOfPhotons=flasher_photons,
                PulseWidth=flasher_width,
                Seed=options.SEED,
@@ -136,7 +135,7 @@ tray.AddSegment(clsim.I3CLSimMakePhotons, "goCLSIM",
 # remove emitter key
 if options.DETECTEMITTER == False:
     tray.AddModule(DeleteEmitterHits.DeleteEmitterHits,
-                   FlasherKey=ModuleKey(flasher_key.string, flasher_key.om),
+                   FlasherKey=module_key,
                    PhotonSeriesName='I3Photons',
                   )
 
