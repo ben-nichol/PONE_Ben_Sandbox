@@ -8,7 +8,7 @@ from icecube.icetray import I3Units
 from icecube.dataclasses import I3Position, I3Direction, ModuleKey
 from icecube.clsim import I3CLSimFlasherPulse, I3CLSimFlasherPulseSeries
 
-class GenerateIsotropic(icetray.I3Module):
+class GenerateLED(icetray.I3Module):
     """
     Generate an isotropic photon flash into a DAQ Frame.
     """
@@ -36,15 +36,6 @@ class GenerateIsotropic(icetray.I3Module):
         self.AddParameter("Seed",
                           "Seed for the random number generator",
                           1234)
-        self.AddParameter("Isotropy",
-                          "Using isotropic or hemispheric photon emission",
-			  True)
-        self.AddParameter("Upward",
-                          "Using upward uniform hemispheric photon emission",
-			  False)
-        self.AddParameter("Downward",
-                          "Using downward uniform hemispheric photon emission",
-			  False)
         self.AddOutBox("OutBox")
     
     # configuration of the icetray module
