@@ -186,7 +186,7 @@ for i, tup in enumerate(iters):
     
     if submit:
         # write submit file
-        sub_file = '%s.submit' %(join(out_sub, tag))
+        sub_file = '%s.submit' %(join(out_sub, log_str))
         with open(sub_file, 'w') as f:
             f.write(submit_info)
     
