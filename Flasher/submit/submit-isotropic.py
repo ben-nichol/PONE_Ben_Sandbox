@@ -36,7 +36,7 @@ gcd = '/home/users/%s/pone_offline/GCD/PONE_10String.i3.gz' %(user)
 script = '/home/users/%s/pone_offline/Flasher/Isotropic/isotropic.py' %(user)
 
 # tag
-tag = 'submit-test'
+tag = 'isotropic_sample'
 
 # specify arguments dictionary as used by [script] with --option
 # example: --numphotons=100 --> {'numphotons' : 100}
