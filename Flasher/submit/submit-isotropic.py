@@ -47,7 +47,7 @@ args = {'oversize'       : [1.0],
         'num-events'     : [100],
         'flasher-key'    : ['01-10', '05-10', '10-10'],
         'num-photons'    : [int(1e10)],
-        'fwhm'           : [1, 5.0, 10],
+        'fwhm'           : [1.00, 5.00, 10.00],
         'detect-emitter' : [int(True)],
         #'wavelength' : [405], # not implemented
         #'optical_medium' : [''], # not implemented
