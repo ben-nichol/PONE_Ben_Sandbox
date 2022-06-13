@@ -103,7 +103,7 @@ for i in iters:
     ### OUT FILE TAGGING
     # create individual log string
     log_str = str(tag) + '_'
-    for 
+    
         
     log_str = log_str[:-1]
     
