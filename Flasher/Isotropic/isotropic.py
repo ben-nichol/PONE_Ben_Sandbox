@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 # system imports
-import sys
 from optparse import OptionParser
 
 # icetray imports
@@ -36,13 +35,10 @@ parser.add_option("-p", "--numphotons", type="int", default=1e5,
                   dest="NUMPHOTONS", help="The number of photons per flash")
 parser.add_option("-w", "--fwhm", type="float", default=5,
                   dest="PULSEFWHM", help="Pulse FWHM  in nanoseconds")
-parser.add_option("-z", "--oversize", type="float", default=1,
+parser.add_option("-z", "--oversize", type="float", default=1.0,
                   dest="OVERSIZE", help="OM oversizing factor")
-parser.add_option("--detectemitter", action='store_true',
-                  dest="DETECTEMITTER", help="Save photons detected at the emitter OM")
-parser.add_option("--no-detectemitter", action='store_false',
-                  dest="DETECTEMITTER", help="Don't save photons detected at the emitter OM")
-parser.set_defaults(DETECTEMITTER=False)
+parser.add_option("-d", "--detectemitter", type="int", default=1,
+                  dest="DETECTEMITTER", help="Whether to save photons detected at the emitter OM. 0 off, 1 on")
 
 # parse cmd line args, bail out if anything is not understood
 (options,args) = parser.parse_args()
@@ -133,7 +129,7 @@ tray.AddSegment(clsim.I3CLSimMakePhotons, "goCLSIM",
    )
 
 # remove emitter key
-if options.DETECTEMITTER == False:
+if options.DETECTEMITTER == int(False):
     tray.AddModule(DeleteEmitterHits.DeleteEmitterHits,
                    FlasherKey=module_key,
                    PhotonSeriesName='I3Photons',
