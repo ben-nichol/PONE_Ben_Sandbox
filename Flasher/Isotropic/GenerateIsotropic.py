@@ -1,6 +1,5 @@
 # Icetray module to initiate an isotropic light source
 
-import math
 import random
 import numpy as np
 
