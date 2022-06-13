@@ -29,12 +29,12 @@ class DeleteEmitterHits(icetray.I3Module):
 
     # function to write this into the DAQ frame
     def DAQ(self, frame):
+        flasher_pulse_series = frame[self.flasher_pulse_series]
         photon_series = copy.deepcopy(frame[self.photon_series])
         
         # pop keys of flasher OMs to remove from output hits
-        for key in self.flasher_pulse_series:
-            print(key)
-            photon_series.pop(key)
+        for key in flasher_pulse_series:
+            photon_series.pop(key, 'None')
             
         # delete original hit series
         frame.Delete(self.photon_series)
