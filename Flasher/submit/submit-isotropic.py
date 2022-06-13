@@ -30,10 +30,10 @@ mem = 8 # GB
 submit = True
 
 # gcd
-gcd = '/home/users/%s/pone_offline/GCD/PONE_Phase1.i3.gz' %(user)
+gcd = '/home/users/%s/pone_offline/GCD/PONE_10String.i3.gz' %(user)
 
 # executable
-script = '/home/users/%s/pone_offline/Flasher/submit/clsim_isotropic.py' %(user)
+script = '/home/users/%s/pone_offline/Flasher/Isotropic/isotropic.py' %(user)
 
 # tag
 tag = 'submit-test'
