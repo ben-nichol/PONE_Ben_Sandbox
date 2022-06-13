@@ -3,9 +3,8 @@
 import math
 import random
 import numpy as np
-from datetime import datetime
 
-from icecube import icetray, dataclasses
+from icecube import icetray
 from icecube.dataclasses import I3Position, I3Direction
 from icecube.icetray import I3Units
 from icecube.clsim import I3CLSimFlasherPulse, I3CLSimFlasherPulseSeries
