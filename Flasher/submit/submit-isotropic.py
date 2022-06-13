@@ -81,10 +81,10 @@ if not exists(out_folder) and submit:
 folders = {}
 for folder in ['submit', 'job', 'log', 'error', 'out', 'simulation']:
     out_f = join(out_dir, out_folder, folder)
+    folders[folder] = out_f
     if not exists(out_f) and submit:
         print('\t-- creating sub-directory in {}'.format(folder))
         os.makedirs(out_f)
-        folders[folder] = out_f
 
 out_sub   = folders['submit']
 out_job   = folders['job']
