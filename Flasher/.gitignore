@@ -8,3 +8,9 @@
 examples/Utilities
 examples/WaterOpticalModel
 examples/Flasher
+Isotropic/Utilities
+Isotropic/Flasher
+Isotropic/WaterOpticalModel
+LED/Utilities
+LED/WaterOpticalModel
+LED/Flasher
