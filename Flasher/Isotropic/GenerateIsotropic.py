@@ -125,7 +125,4 @@ class GenerateIsotropic(icetray.I3Module):
         # push to frame
         frame[self.series_frame_key] = pulse_series
         
-        # document additions
-        frame['FlasherKey'] = self.flasher_key
-        
         self.PushFrame(frame, "OutBox")
