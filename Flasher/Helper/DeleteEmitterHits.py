@@ -1,10 +1,8 @@
 # Icetray module to initiate an isotropic light source
 
-import copy
-
 from icecube import icetray
+from icecube.dataclasses import ModuleKey
 from icecube.simclasses import I3CompressedPhotonSeriesMap
-from icecube.clsim import I3CLSimFlasherPulseSeries
 
 
 class DeleteEmitterHits(icetray.I3Module):
@@ -13,9 +11,9 @@ class DeleteEmitterHits(icetray.I3Module):
     """
     def __init__(self, context):
         icetray.I3Module.__init__(self, context)
-        self.AddParameter("FlasherPulseSeriesName",
-                          "Name of the I3Frame Key the pulses are written into",
-                          "FlasherPulseSeriesName")
+        self.AddParameter("FlasherKey",
+                          "Module key of the flasher position",
+                          ModuleKey(1,1))
         self.AddParameter("PhotonSeriesName",
                           "Name of the I3Frame Key the photon flash should be written to",
                           "PhotonSeriesName")
@@ -24,7 +22,7 @@ class DeleteEmitterHits(icetray.I3Module):
     
     # configuration of the icetray module
     def Configure(self):
-        self.flasher_pulse_series = self.GetParameter("FlasherPulseSeriesName")
+        self.flasher_key = self.GetParameter("FlasherKey")
         self.photon_series = self.GetParameter("PhotonSeriesName")
         
 
@@ -34,8 +32,7 @@ class DeleteEmitterHits(icetray.I3Module):
         photon_series = I3CompressedPhotonSeriesMap(frame[self.photon_series])
         
         # pop keys of flasher OMs to remove from output hits
-        for key in flasher_pulse_series:
-            del photon_series[key]
+        del photon_series[self.flasher_key]
             
         # delete original hit series
         frame.Delete(self.photon_series)

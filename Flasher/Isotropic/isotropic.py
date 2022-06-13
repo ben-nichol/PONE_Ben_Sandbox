@@ -6,6 +6,7 @@ from optparse import OptionParser
 # icetray imports
 from I3Tray import I3Tray
 from icecube import dataio, phys_services, clsim
+from icecube.dataclasses import ModuleKey
 from icecube.icetray import OMKey, I3Units, I3Frame
 
 # pone imports
@@ -85,7 +86,8 @@ tray = I3Tray()
 # add geometry and daq stream
 tray.AddModule("I3InfiniteSource","streams",
                Prefix=options.GCDFILE,
-               Stream=I3Frame.DAQ)
+               Stream=I3Frame.DAQ,
+              )
 
 # add event header
 tray.AddModule("I3MCEventHeaderGenerator", "gen_header",
@@ -93,18 +95,18 @@ tray.AddModule("I3MCEventHeaderGenerator", "gen_header",
                DAQTime=7968509615844458,
                RunNumber=options.RUNNUMBER,
                EventID=1,
-               IncrementEventID=True
+               IncrementEventID=True,
               )
 
 # add fake isotropic flasher similar to POCAM
 tray.AddModule(GenerateIsotropic.GenerateIsotropic,
-               SeriesFrameKey="FlasherPulseSeries",
+               FlasherPulseSeriesName="FlasherPulseSeries",
                PhotonPosition=flasher_position,
                NumberOfPhotons=flasher_photons,
                PulseWidth=flasher_width,
                Seed=options.SEED,
       	       Isotropy=True,
-               FlasherPulseType=flasher_pulse_type
+               FlasherPulseType=flasher_pulse_type,
               )
 
 # start photon propagation with CLsim
@@ -124,19 +126,20 @@ tray.AddSegment(clsim.I3CLSimMakePhotons, "goCLSIM",
     IceModelLocation=optical_medium,
     WavelengthAcceptance=wl_acceptance,
     DOMRadius=dom_radius,
-    DOMOversizeFactor=dom_oversize
+    DOMOversizeFactor=dom_oversize,
    )
 
 # remove emitter key
-if not options.DETECTEMITTER:
+if options.DETECTEMITTER == False:
     tray.AddModule(DeleteEmitterHits.DeleteEmitterHits,
-                   FlasherPulseSeriesName="FlasherPulseSeries",
-                   PhotonSeriesName='I3Photons'
+                   FlasherKey=ModuleKey(flasher_key.string, flasher_key.om),
+                   PhotonSeriesName='I3Photons',
                   )
 
 # write propagated photons to file
 tray.AddModule("I3Writer","writer",
-               Filename = options.OUTFILE)
+               Filename = options.OUTFILE,
+              )
 
 # execute
 tray.Execute(options.NUMEVENTS + 3)

@@ -1,9 +1,11 @@
 # Icetray module to initiate an isotropic light source
 
+import math
 import random
 import numpy as np
+from datetime import datetime
 
-from icecube import icetray
+from icecube import icetray, dataclasses
 from icecube.dataclasses import I3Position, I3Direction
 from icecube.icetray import I3Units
 from icecube.clsim import I3CLSimFlasherPulse, I3CLSimFlasherPulseSeries
@@ -14,7 +16,7 @@ class GenerateIsotropic(icetray.I3Module):
     """
     def __init__(self, context):
         icetray.I3Module.__init__(self, context)
-        self.AddParameter("SeriesFrameKey",
+        self.AddParameter("FlasherPulseSeriesName",
                           "Name of the I3Frame Key the photon flash should be written to",
                           "PhotonFlasherPulseSeries")
         self.AddParameter("PhotonPosition",
@@ -46,7 +48,7 @@ class GenerateIsotropic(icetray.I3Module):
     
     # configuration of the icetray module
     def Configure(self):
-        self.series_frame_key = self.GetParameter("SeriesFrameKey")
+        self.series_frame_key = self.GetParameter("FlasherPulseSeriesName")
         self.photon_position = self.GetParameter("PhotonPosition")
         self.pulse_type = self.GetParameter("FlasherPulseType")
         self.num_of_photons = self.GetParameter("NumberOfPhotons")
@@ -116,8 +118,8 @@ class GenerateIsotropic(icetray.I3Module):
                                         0.5*self.num_of_photons, self.isotropy)
             
             # add pulse
-            pulse_series.append(pulse)        
-      
+            pulse_series.append(pulse)                         
+                                    
         # and push to frame
         frame[self.series_frame_key] = pulse_series
         self.PushFrame(frame, "OutBox")
