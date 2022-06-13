@@ -128,10 +128,7 @@ for i, tup in enumerate(iters):
     with open(join(out_sub, 'arguments.txt'), 'w') as f:
          f.write(json.dumps(args_temp))
     np.save(join(out_sub, 'arguments.npy'), args_temp)
-    
-    print(log_str, args_temp)
-    sys.exit()
-    
+       
     
     ####################################################################
     ### GENERATE EXECUTABLE
@@ -162,6 +159,8 @@ for i, tup in enumerate(iters):
         
         # execution line
         f.write('bash ${CONTAINER} python ${SCRIPT}%s\n' %(python))
+        
+    sys.exit()
     
     
     ####################################################################
