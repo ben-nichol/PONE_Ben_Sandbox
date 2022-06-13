@@ -3,6 +3,7 @@
 import copy
 
 from icecube import icetray
+from icecube.simclasses import I3CompressedPhotonSeriesMap
 from icecube.clsim import I3CLSimFlasherPulseSeries
 
 
@@ -30,11 +31,11 @@ class DeleteEmitterHits(icetray.I3Module):
     # function to write this into the DAQ frame
     def DAQ(self, frame):
         flasher_pulse_series = frame[self.flasher_pulse_series]
-        photon_series = copy.deepcopy(frame[self.photon_series])
+        photon_series = I3CompressedPhotonSeriesMap(frame[self.photon_series])
         
         # pop keys of flasher OMs to remove from output hits
         for key in flasher_pulse_series:
-            photon_series.pop(key, 'None')
+            del photon_series[key]
             
         # delete original hit series
         frame.Delete(self.photon_series)
