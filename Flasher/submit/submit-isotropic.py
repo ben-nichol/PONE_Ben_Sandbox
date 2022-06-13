@@ -115,7 +115,7 @@ for i, tup in enumerate(iters):
         log_str += '%s-%s' %(key, val)
     log_str = log_str[:-1]
     print(log_str)
-    sys.exit()ls /
+    sys.exit()
     
     # determine outfile name
     out_file = join(out_sim, '%s.i3.bz2' %(log_str))
