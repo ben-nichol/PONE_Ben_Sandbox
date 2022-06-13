@@ -140,12 +140,13 @@ for i, tup in enumerate(iters):
         
         # write out arguments
         for key in args_temp:
+            var = key.replace('-', '')
             if type(args_temp[key]) == str:
-                f.write('%s="%s"\n' %(key.upper(), args_temp[key]))
+                f.write('%s="%s"\n' %(var.upper(), args_temp[key]))
             if type(args_temp[key]) == int:
-                f.write('%s="%i"\n' %(key.upper(), args_temp[key]))
+                f.write('%s="%i"\n' %(var.upper(), args_temp[key]))
             if type(args_temp[key]) == float:
-                f.write('%s="%.5f"\n' %(key.upper(), args_temp[key]))
+                f.write('%s="%.5f"\n' %(var.upper(), args_temp[key]))
         f.write('\n####\n\n')
         
         # python options
