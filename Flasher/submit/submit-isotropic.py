@@ -122,15 +122,15 @@ for i, tup in enumerate(iters):
     args_temp['gcd'] = join(out_sub, basename(gcd))
     
     # save arguments
-    with open(join(out_sub, 'arguments.txt'), 'w') as f:
+    with open(join(out_sub, '%s_arguments.txt' %(log_str)), 'w') as f:
          f.write(json.dumps(args_temp))
-    np.save(join(out_sub, 'arguments.npy'), args_temp)
+    np.save(join(out_sub, '%s_arguments.npy' %(log_str)), args_temp)
        
     
     ####################################################################
     ### GENERATE EXECUTABLE
     
-    executable = join(out_sub, 'executable.sh')
+    executable = join(out_sub, '%s_executable.sh' %(log_str))
     with open(executable, 'w') as f:
         # setup environment
         f.write('#!/bin/bash\n')
