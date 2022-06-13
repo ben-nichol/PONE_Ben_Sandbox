@@ -66,15 +66,27 @@ class GenerateIsotropic(icetray.I3Module):
                        number_of_photons, pulse_width, isotropy):
         # setup pulse instance
         pulse = I3CLSimFlasherPulse()
+        
+        # flasher position
         pulse.SetPos(flasher_position)
+        
+        # initial direction
         pulse.SetDir(photon_direction)
+        
+        # pulse start time
         pulse.SetTime(0.0*I3Units.ns)
+        
+        # pulse type        
+        # see: https://github.com/icecube/icetray/blob/bdcab4f8fa7c672a460e79b2b6c2f05534e42ccd/simclasses/public/simclasses/I3FlasherPulse.h#L59
+        # see: https://github.com/icecube/icetray/blob/bdcab4f8fa7c672a460e79b2b6c2f05534e42ccd/clsim/private/clsim/I3CLSimLightSourceToStepConverterFlasher.cxx#L432
+        # see: https://github.com/icecube/icetray/blob/bdcab4f8fa7c672a460e79b2b6c2f05534e42ccd/clsim/python/GetIceCubeFlasherSpectrum.py
         pulse.SetType(pulse_type)
-
+        
         # number of photons
         pulse.SetNumberOfPhotonsNoBias(number_of_photons)
         
-        # pulse duration
+        # pulse FWHM
+        # see: https://github.com/icecube/icetray/blob/bdcab4f8fa7c672a460e79b2b6c2f05534e42ccd/clsim/private/clsim/I3CLSimLightSourceToStepConverterFlasher.cxx#L514
         pulse.SetPulseWidth(pulse_width)
 
     	# isotropic in 4pi (full sphere)
@@ -115,7 +127,7 @@ class GenerateIsotropic(icetray.I3Module):
             up_down = 0 if self.upward else np.pi if self.downward else np.nan
             direction.set_theta_phi(up_down, 0.)
             
-            # define photon pulses
+            # initialize photon pulses
             pulse = self.generate_pulse(position, direction,
                                         0.5*self.num_of_photons, self.isotropy)
                 
@@ -124,5 +136,4 @@ class GenerateIsotropic(icetray.I3Module):
                                     
         # push to frame
         frame[self.series_frame_key] = pulse_series
-        
         self.PushFrame(frame, "OutBox")
