@@ -97,9 +97,6 @@ out_sim   = folders['simulation']
 os.system('cp %s %s' %(script, join(out_sub, basename(script))) )
 os.system('cp %s %s' %(gcd, join(out_sub, basename(gcd))) )
 
-# use copied gcd
-args['gcd'] = join(out_sub, basename(gcd))
-
 
 ########################################################################
 ### ITERATE PERMUTATIONS
@@ -108,24 +105,32 @@ for i, tup in enumerate(iters):
     
     ####################################################################
     ### OUT FILE TAGGING
+    # create mock copy of the arguments dict for use at this iteration
+    args_temp = {}      
+    
     # create individual log string
     log_str = str(tag) + '_'
     for j, key in enumerate(iter_keys):
         val = tup[j]
         log_str += '%s-%s' %(key, val)
         log_str += '_'
+        args_temp[key] = val
     log_str = log_str[:-1]
-    print(log_str)
-    sys.exit()
     
     # determine outfile name
     out_file = join(out_sim, '%s.i3.bz2' %(log_str))
-    args['outfile'] = out_file
+    args_temp['out-file'] = out_file
+    
+    # use copied gcd
+    args_temp['gcd'] = join(out_sub, basename(gcd))
     
     # save arguments
     with open(join(out_sub, 'arguments.txt'), 'w') as f:
-         f.write(json.dumps(args))
-    np.save(join(out_sub, 'arguments.npy'), args)
+         f.write(json.dumps(args_temp))
+    np.save(join(out_sub, 'arguments.npy'), args_temp)
+    
+    print(log_str, args_temp)
+    sys.exit()
     
     
     ####################################################################
@@ -140,18 +145,18 @@ for i, tup in enumerate(iters):
         f.write('\n####\n\n')
         
         # write out arguments
-        for key in args:
-            if type(args[key]) == str:
-                f.write('%s="%s"\n' %(key.upper(), args[key]))
-            if type(args[key]) == int:
-                f.write('%s="%i"\n' %(key.upper(), args[key]))
-            if type(args[key]) == float:
-                f.write('%s="%.5f"\n' %(key.upper(), args[key]))
+        for key in args_temp:
+            if type(args_temp[key]) == str:
+                f.write('%s="%s"\n' %(key.upper(), args_temp[key]))
+            if type(args_temp[key]) == int:
+                f.write('%s="%i"\n' %(key.upper(), args_temp[key]))
+            if type(args_temp[key]) == float:
+                f.write('%s="%.5f"\n' %(key.upper(), args_temp[key]))
         f.write('\n####\n\n')
         
         # python options
         python = ''
-        for key in args:
+        for key in args_temp:
             python += ' --%s ${%s}' %(key, key.upper())
         python += ' '
         
@@ -171,7 +176,6 @@ for i, tup in enumerate(iters):
                    log         = {out_log}/{log_str}.log \n\
                    output      = {out_out}/{log_str}.out \n\
                    error       = {out_err}/{log_str}.err \n\
-                   arguments   = "{args}" \n\
                    requirements = HasSingularity \n\
                    transfer_executable = True \n\
                    queue 1 \n'.format(
@@ -182,7 +186,6 @@ for i, tup in enumerate(iters):
                                       out_err = out_error,
                                       out_out = out_out,
                                       log_str = log_str,
-                                      args    = args,
                                      )
     
     if submit:
