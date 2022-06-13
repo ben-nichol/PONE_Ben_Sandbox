@@ -61,9 +61,6 @@ iters = list(itertools.product(*iter_list))
 print('Number of simulations: %i' %(len(iters)))
 print('Permutations: %s' %(iters))
 
-print()
-print(iter_keys)
-print(iter_list)
 
 ########################################################################
 ### OUTPUT DIRECTORY GENERATION
@@ -102,6 +99,7 @@ os.system('cp %s %s' %(gcd, join(out_sub, basename(gcd))) )
 ### ITERATE PERMUTATIONS
 ########################################################################
 for i, tup in enumerate(iters):
+    
     
     ####################################################################
     ### OUT FILE TAGGING
@@ -160,8 +158,6 @@ for i, tup in enumerate(iters):
         # execution line
         f.write('bash ${CONTAINER} python ${SCRIPT}%s\n' %(python))
         
-    sys.exit()
-    
     
     ####################################################################
     ### SUBMIT
