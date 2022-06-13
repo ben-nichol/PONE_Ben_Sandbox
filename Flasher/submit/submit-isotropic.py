@@ -45,7 +45,7 @@ tag = 'submit-test'
 # use lists; all permutations will be simulated
 args = {'oversize'       : [1.0],
         'num-events'     : [100],
-        'flasher-key'    : ['1-10', '5-10', '10-10'],
+        'flasher-key'    : ['01-10', '05-10', '10-10'],
         'num-photons'    : [int(1e10)],
         'fwhm'           : [1, 5.0, 10],
         'detect-emitter' : [int(True)],
