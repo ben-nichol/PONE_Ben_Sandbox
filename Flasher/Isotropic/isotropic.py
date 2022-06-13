@@ -10,6 +10,7 @@ from icecube.icetray import OMKey, I3Units, I3Frame
 
 # pone imports
 from Utilities.DOMUtility import DOMProperties
+from Flasher.Helper import DeleteEmitterHits
 from Flasher.Isotropic import GenerateIsotropic
 import WaterOpticalModel.MakePoneMediumPropertiesConservativeExtendedRange as Medium
 
@@ -35,6 +36,8 @@ parser.add_option("-w", "--fwhm", type="float", default=5,
                   dest="PULSEFWHM", help="Pulse FWHM  in nanoseconds")
 parser.add_option("-z", "--oversize", type="float", default=1,
                   dest="OVERSIZE", help="OM oversizing factor")
+parser.add_option("-e", "--emitterdetection", type="bool", default=False,
+                  dest="EMITTERDETECTION", help="Whether to save photons detecter at the emitter OM")
 
 # parse cmd line args, bail out if anything is not understood
 (options,args) = parser.parse_args()
@@ -82,12 +85,13 @@ tray.AddModule("I3InfiniteSource","streams",
                Stream=I3Frame.DAQ)
 
 # add event header
-tray.AddModule("I3MCEventHeaderGenerator","gen_header",
+tray.AddModule("I3MCEventHeaderGenerator", "gen_header",
                Year=2022,
                DAQTime=7968509615844458,
                RunNumber=options.RUNNUMBER,
                EventID=1,
-               IncrementEventID=True)
+               IncrementEventID=True
+              )
 
 # add fake isotropic flasher similar to POCAM
 tray.AddModule(GenerateIsotropic.GenerateIsotropic,
@@ -97,7 +101,8 @@ tray.AddModule(GenerateIsotropic.GenerateIsotropic,
                PulseWidth=flasher_width,
                Seed=options.SEED,
       	       Isotropy=True,
-               FlasherPulseType=flasher_pulse_type)
+               FlasherPulseType=flasher_pulse_type
+              )
 
 # start photon propagation with CLsim
 tray.AddSegment(clsim.I3CLSimMakePhotons, "goCLSIM",
@@ -109,19 +114,25 @@ tray.AddSegment(clsim.I3CLSimMakePhotons, "goCLSIM",
     DoNotParallelize=False,
     UnweightedPhotons=True,
     StopDetectedPhotons=True,
-    PhotonSeriesName = 'I3Photons',
+    PhotonSeriesName='I3Photons',
     MCPESeriesName='',
     FlasherPulseSeriesName="FlasherPulseSeries",
     GCDFile=options.GCDFILE,
     IceModelLocation=optical_medium,
     WavelengthAcceptance=wl_acceptance,
     DOMRadius=dom_radius,
-    DOMOversizeFactor=dom_oversize,
-)
+    DOMOversizeFactor=dom_oversize
+   )
+
+# remove emitter key
+tray.AddModule(DeleteEmitterHits.DeleteEmitterHits,
+               FlasherPulseSeriesName="FlasherPulseSeries",
+               PhotonSeriesName='I3Photons'
+              )
 
 # write propagated photons to file
 tray.AddModule("I3Writer","writer",
-    Filename = options.OUTFILE)
+               Filename = options.OUTFILE)
 
 # execute
 tray.Execute(options.NUMEVENTS + 3)

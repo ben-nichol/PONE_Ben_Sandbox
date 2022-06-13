@@ -47,6 +47,7 @@ args = {'oversize' : 1.0,
         'flasherkey' : '5-10',
         'numphotons' : int(1e6),
         'fwhm' : 5.0,
+        'emitterdetection' : False,
         #'wavelength' : 405, # not implemented
         #'optical_medium' : '', # not implemented
        }
