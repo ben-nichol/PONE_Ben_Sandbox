@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 # system imports
+import sys
 from optparse import OptionParser
 
 # icetray imports
@@ -68,6 +69,9 @@ dom_oversize = options.OVERSIZE
 
 # optical medium
 optical_medium = Medium.MakePoneMediumProperties()
+
+print(options.DETECTEMITTER)
+sys.exit()
 
 # a random number generator
 try:
