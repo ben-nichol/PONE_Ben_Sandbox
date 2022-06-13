@@ -113,6 +113,7 @@ for i, tup in enumerate(iters):
     for j, key in enumerate(iter_keys):
         val = tup[j]
         log_str += '%s-%s' %(key, val)
+        log_str += '_'
     log_str = log_str[:-1]
     print(log_str)
     sys.exit()
