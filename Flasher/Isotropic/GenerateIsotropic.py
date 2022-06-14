@@ -70,7 +70,8 @@ class GenerateIsotropic(icetray.I3Module):
         # flasher position
         pulse.SetPos(flasher_position)
         
-        # initial direction
+        # initial 
+        # arbitrary for isotropic pulses
         pulse.SetDir(photon_direction)
         
         # pulse start time
