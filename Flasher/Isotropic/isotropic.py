@@ -43,9 +43,9 @@ parser.add_option("-g",
 
 parser.add_option("-a", 
                   "--angular-acceptance", 
-                  default='$I3_BUILD/ice-models/resources/models/angsens/as.full',
-                  dest="GCDFILE", 
-                  help="Read geometry from GCDFILE (.i3{.gz} format)")
+                  default='$PONESRCDIR/Flasher/resources/as.full',
+                  dest="ANGULARACCEPTANCE", 
+                  help="Read angular acceptance polynomial coefficients from file.")
 
 parser.add_option("-r", 
                   "--run-number", 
@@ -117,7 +117,7 @@ flasher_pulse_type = clsim.I3CLSimFlasherPulse.FlasherPulseType.LED405nm
 dom_properties = DOMProperties()
 wl_acceptance_max = dom_properties.GetMaxAngularAcceptance() * 1.05
 wl_acceptance = dom_properties.GetCLSimQETable(factor=wl_acceptance_max)
-ang_acceptance = 
+ang_acceptance = options.ANGULARACCEPTANCE
 dom_radius = (17.0 * 2.54 * 0.01 / 2.0) * I3Units.m
 dom_oversize = options.OVERSIZE
 
@@ -181,7 +181,7 @@ tray.AddSegment(clsim.I3CLSimMakePhotons, "goCLSIM",
     FlasherPulseSeriesName="FlasherPulseSeries",
     GCDFile=options.GCDFILE,
     IceModelLocation=optical_medium,
-    HoleIceParameterization=angular_acceptance,
+    HoleIceParameterization=ang_acceptance,
     WavelengthAcceptance=wl_acceptance,
     DOMRadius=dom_radius,
     DOMOversizeFactor=dom_oversize,
