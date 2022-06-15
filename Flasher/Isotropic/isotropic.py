@@ -35,8 +35,7 @@ parser.add_option("-s",
                   help="Initial seed for the random number generator")
 
 parser.add_option("-g", 
-                  "--gcd", 
-                  type="str",
+                  "--gcd",
                   default='$PONESRCDIR/GCD/PONE_10String.i3.gz',
                   dest="GCDFILE",
                   help="Read geometry from GCDFILE (.i3{.gz} format)")
