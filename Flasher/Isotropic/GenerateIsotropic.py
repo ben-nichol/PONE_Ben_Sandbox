@@ -110,7 +110,8 @@ class GenerateIsotropic(icetray.I3Module):
         # isotropic in 4pi (full sphere)
         if self.isotropy:
             photon_direction = I3Direction()
-            photon_direction.set_theta_phi(0., 0.) # arbitrary due to isotropy
+            photon_direction.set_theta_phi(0.,
+                                           0.)
             pulse = self.generate_pulse(self.flasher_position, photon_direction,
                                         self.pulse_type, self.num_of_photons,
                                         self.pulse_width, self.isotropy)

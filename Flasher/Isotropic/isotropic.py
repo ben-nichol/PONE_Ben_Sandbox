@@ -19,24 +19,34 @@ import WaterOpticalModel.MakePoneMediumPropertiesConservativeExtendedRange as Me
 # use parser options to setup simulation in prompt
 usage = "usage: %prog [options]"
 parser = OptionParser(usage)
+
 parser.add_option("-o", "--out-file",default="test.i3.bz2",
                   dest="OUTFILE", help="Write output to OUTFILE (.i3{.gz} format)")
+
 parser.add_option("-s", "--seed",type="int",default=12344,
                   dest="SEED", help="Initial seed for the random number generator")
+
 parser.add_option("-g", "--gcd",default='',
                   dest="GCDFILE", help="Read geometry from GCDFILE (.i3{.gz} format)")
+
 parser.add_option("-r", "--run-number", type="int", default=1,
                   dest="RUNNUMBER", help="The run number for this simulation")
+
 parser.add_option("-n", "--num-events", type="int", default=100,
                   dest="NUMEVENTS", help="The number of events per run")
+
 parser.add_option("-f", "--flasher-key", type="str", default='1-1',
                   dest="FLASHERKEY", help="Flasher position GCD string-om index")
+
 parser.add_option("-p", "--num-photons", type="int", default=1e5,
                   dest="NUMPHOTONS", help="The number of photons per flash")
+
 parser.add_option("-w", "--fwhm", type="float", default=5,
                   dest="PULSEFWHM", help="Pulse FWHM  in nanoseconds")
+
 parser.add_option("-z", "--oversize", type="float", default=1.0,
                   dest="OVERSIZE", help="OM oversizing factor")
+
 parser.add_option("-d", "--detect-emitter", type="int", default=1,
                   dest="DETECTEMITTER", help="Whether to save photons detected at the emitter OM. 0 off, 1 on")
 
@@ -61,7 +71,7 @@ flasher_pulse_type = clsim.I3CLSimFlasherPulse.FlasherPulseType.LED405nm
 dom_properties = DOMProperties()
 wl_acceptance_max = dom_properties.GetMaxAngularAcceptance() * 1.05
 wl_acceptance = dom_properties.GetCLSimQETable(factor=wl_acceptance_max)
-dom_radius = (17.0*2.54*0.01/2.0) * I3Units.m
+dom_radius = (17.0 * 2.54 * 0.01 / 2.0) * I3Units.m
 dom_oversize = options.OVERSIZE
 
 # optical medium
@@ -118,11 +128,13 @@ tray.AddSegment(clsim.I3CLSimMakePhotons, "goCLSIM",
     DoNotParallelize=False,
     UnweightedPhotons=True,
     StopDetectedPhotons=True,
+    #OMKeyMaskName=I3Vector,
     PhotonSeriesName='I3Photons',
-    MCPESeriesName='',
+    MCPESeriesNamse='',
     FlasherPulseSeriesName="FlasherPulseSeries",
     GCDFile=options.GCDFILE,
     IceModelLocation=optical_medium,
+    UseHoleIceParameterization=False,
     WavelengthAcceptance=wl_acceptance,
     DOMRadius=dom_radius,
     DOMOversizeFactor=dom_oversize,
