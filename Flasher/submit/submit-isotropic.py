@@ -52,7 +52,6 @@ args = {'oversize'           : [1.0],
         'num-photons'        : [int(1e10)],
         'fwhm'               : [5.00],
         'detect-emitter'     : [int(True)],
-        'angular-acceptance' : [angular]
         #'wavelength' : [405], # not implemented
         #'optical_medium' : [''], # not implemented
        }
@@ -96,6 +95,8 @@ out_sim   = folders['simulation']
 # copy relevant files
 os.system('cp %s %s' %(script, join(out_sub, basename(script))) )
 os.system('cp %s %s' %(gcd, join(out_sub, basename(gcd))) )
+os.system('cp %s %s' %(angular, join(out_sub, basename(angular))) )
+
 
 # save arguments
 with open(join(out_sub, 'arguments.txt'), 'w') as f:
@@ -129,6 +130,9 @@ for i, tup in enumerate(iters):
     
     # use copied gcd
     args_temp['gcd'] = join(out_sub, basename(gcd))
+    
+    # use copied angular acceptance
+    args_temp['angular-acceptance'] = join(out_sub, basename(angular))
     
     # save arguments
     with open(join(out_sub, '%s_arguments.txt' %(log_str)), 'w') as f:
