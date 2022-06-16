@@ -154,12 +154,9 @@ class LineFitReco(icetray.I3ConditionalModule):
     # of an I3Direction object for the particle's direction, a double for the particle's
     # speed, and an I3Position object for the particle vertex (position at t=0)  
     def Physics(self,frame):
-
-        #print("in line")
-
-        if not self.passFrame(frame) :
-            self.PushFrame(frame)
-            return
+      if not self.passFrame(frame) :
+        self.PushFrame(frame)
+        return
 
         datapoints = self.getLinefitDataPoints(frame)
         x = [data[0] for data in datapoints]

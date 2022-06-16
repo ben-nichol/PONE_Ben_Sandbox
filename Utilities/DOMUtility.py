@@ -7,7 +7,6 @@ from icecube.icetray import I3Units, OMKey
 from icecube import icetray, dataclasses, dataio, simclasses
 from icecube import clsim
 import matplotlib as mpl
-mpl.use('Agg')
 import matplotlib.pyplot as plt
 
 def NoPMTKey(domkey):
