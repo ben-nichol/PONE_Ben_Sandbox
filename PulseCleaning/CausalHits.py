@@ -21,7 +21,7 @@ class CausalPulseCleaning(icetray.I3ConditionalModule):
     '''
     def __init__(self, context):
         icetray.I3ConditionalModule.__init__(self, context)
-        self.AddParameter("GCDFile","GCD to be simulated",'')
+        #self.AddParameter("GCDFile","GCD to be simulated",'')
         self.AddParameter("inputseries","GCD to be simulated","MCPESeriesMap")
         self.AddParameter("output","GCD to be simulated","causalpulses")
         self.AddParameter("windowscale","Scale the causality window by factor to make it a looser cut",1.2)
@@ -32,7 +32,7 @@ class CausalPulseCleaning(icetray.I3ConditionalModule):
 
     def Configure(self):
 
-        self.gcdFile = self.GetParameter("GCDFile")
+       # self.gcdFile = self.GetParameter("GCDFile")
         self.input = self.GetParameter("inputseries")
         self.output = self.GetParameter("output")
         self.windowscale = self.GetParameter("windowscale")
@@ -112,7 +112,7 @@ class CausalPulseCleaning(icetray.I3ConditionalModule):
         self.PushFrame(frame)
    
     def Physics(self,frame):
-    
+            
         mcpeMap = frame[self.input]
         causalMCPEMap = dataclasses.I3RecoPulseSeriesMap()
         if len(mcpeMap.keys()) < 1 :
@@ -141,7 +141,8 @@ class CausalPulseCleaning(icetray.I3ConditionalModule):
             ncausal += len(causalHits)
             if len(causalHits) > 0 :
                 causalMCPEMap[omkey] = causalHits
-    
+
+
         frame[self.output] = causalMCPEMap
         frame[self.output+"_string"] = dataclasses.I3Double(MaxchargeDOM.string)
         frame[self.output+"_om"] = dataclasses.I3Double(MaxchargeDOM.om)

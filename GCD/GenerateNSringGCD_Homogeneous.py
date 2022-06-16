@@ -4,7 +4,7 @@ from icecube.dataclasses import I3Constants
 import numpy as np
 import argparse
 import sys
-
+from GCD.GenerateLatticeStructure import generateLaticeSpots
 import gcdHelpers
 
 parser = argparse.ArgumentParser()
@@ -35,56 +35,57 @@ def generateGeometry():
     anglediff = np.pi*(1./3)
     neighbourangles = [offset, anglediff+offset,2.0*anglediff+offset, 3.0*anglediff+offset, 4.0*anglediff+offset, 5.0*anglediff+offset]
 
-    stringposx = [0.0]
-    stringposy = [0.0]
-
-    while len(stringposx) < nstrings :
-
-        minradius = 1000000.0
-        minradstring = 0
-        minradstringneighbours = 10000
-        for i in range(len(stringposx)) :
-                nneighbours = 0
-                rad = np.sqrt((stringposx[i])**2.0+(stringposy[i])**2.0)
-                for j in range(len(stringposx)):
-                        if i==j :
-                                continue
-                        dist = np.sqrt((stringposx[j]-stringposx[i])**2.0+(stringposy[j]-stringposy[i])**2.0)
-                        if dist<spacing*1.2 :
-                                nneighbours += 1
-                if nneighbours < len(neighbourangles) and rad <= minradius :
-                        if rad < minradius :
-                                minradius = rad;
-                                minradstring = i
-                                minradstringneighbours = nneighbours
-                        elif nneighbours < minradstringneighbours :
-                                minradius = rad
-                                minradstring = i
-                                minradstringneighbours = nneighbours
-
-        maxneighours = 0
-        maxneighbourstring = 0
-        for j in range(len(neighbourangles)) :
-                newposx = stringposx[minradstring]+spacing*np.sin(neighbourangles[j])
-                newposy = stringposy[minradstring]+spacing*np.cos(neighbourangles[j])
-
-                nneighbours = 0
-                overlap = False
-                for k in range(len(stringposx)) :
-                        dist = np.sqrt((newposx-stringposx[k])**2.0+(newposy-stringposy[k])**2.0)
-                        if dist < spacing*0.8 :
-                                nneighbours = 0
-                                overlap = True
-                        if dist<spacing*1.2 :
-                                nneighbours += 1
-                if nneighbours > maxneighours and not overlap:
-                        maxneighours = nneighbours
-                        maxneighbourstring = j
-        stringposx.append(stringposx[minradstring]+spacing*np.sin(neighbourangles[maxneighbourstring]))
-        stringposy.append(stringposy[minradstring]+spacing*np.cos(neighbourangles[maxneighbourstring]))
-
-    mean_x = sum(stringposx)/len(stringposx)
-    mean_y = sum(stringposy)/len(stringposy)
+    stringposx, stringposy, theta = generateLaticeSpots(nstrings)
+#    stringposx = [0.0]
+#    stringposy = [0.0]
+#
+#    while len(stringposx) < nstrings :
+#
+#        minradius = 1000000.0
+#        minradstring = 0
+#        minradstringneighbours = 10000
+#        for i in range(len(stringposx)) :
+#                nneighbours = 0
+#                rad = np.sqrt((stringposx[i])**2.0+(stringposy[i])**2.0)
+#                for j in range(len(stringposx)):
+#                        if i==j :
+#                                continue
+#                        dist = np.sqrt((stringposx[j]-stringposx[i])**2.0+(stringposy[j]-stringposy[i])**2.0)
+#                        if dist<1.2 :
+#                                nneighbours += 1
+#                if nneighbours < len(neighbourangles) and rad <= minradius :
+#                        if rad < minradius :
+#                                minradius = rad;
+#                                minradstring = i
+#                                minradstringneighbours = nneighbours
+#                        elif nneighbours < minradstringneighbours :
+#                                minradius = rad
+#                                minradstring = i
+#                                minradstringneighbours = nneighbours
+#
+#        maxneighours = 0
+#        maxneighbourstring = 0
+#        for j in range(len(neighbourangles)) :
+#                newposx = stringposx[minradstring]+np.sin(neighbourangles[j])
+#                newposy = stringposy[minradstring]+np.cos(neighbourangles[j])
+#
+#                nneighbours = 0
+#                overlap = False
+#                for k in range(len(stringposx)) :
+#                        dist = np.sqrt((newposx-stringposx[k])**2.0+(newposy-stringposy[k])**2.0)
+#                        if dist < 0.8 :
+#                                nneighbours = 0
+#                                overlap = True
+#                        if dist<1.2 :
+#                                nneighbours += 1
+#                if nneighbours > maxneighours and not overlap:
+#                        maxneighours = nneighbours
+#                        maxneighbourstring = j
+#        stringposx.append(stringposx[minradstring]+np.sin(neighbourangles[maxneighbourstring]))
+#        stringposy.append(stringposy[minradstring]+np.cos(neighbourangles[maxneighbourstring]))
+#
+#    mean_x = sum(stringposx)/len(stringposx)
+#    mean_y = sum(stringposy)/len(stringposy)
 
     sp = 950.0/19.0
     depthlist = [(-450.0+sp*i)*I3Units.meter for i in range(20)]
@@ -95,10 +96,12 @@ def generateGeometry():
             omGeometry.omtype = dataclasses.I3OMGeo.OMType.mDOM
             omGeometry.orientation = orientation
             omGeometry.area = area
-            x = stringposx[i]-mean_x
-            y = stringposy[i]-mean_y
+            #x = stringposx[i]-mean_x
+            #y = stringposy[i]-mean_y
+            x = stringposx[i]
+            y = stringposy[i]
             z = depthlist[m]
-            omGeometry.position = dataclasses.I3Position(x,y,z)
+            omGeometry.position = dataclasses.I3Position(x*spacing,y*spacing,z)
             for j in range(args.npmts) :
                 omkey = OMKey(i+1, m+1, j+1)
                 geomap[omkey] = omGeometry

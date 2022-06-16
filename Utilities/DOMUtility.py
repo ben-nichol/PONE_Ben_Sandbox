@@ -94,9 +94,12 @@ class DOMProperties():
                     self.maxAngularAcceptance = self.Totalacceptance[-1][-1]
         sumtotal = 0.0
         nsum = 0
+        #print("max = " + str(max(self.Totalacceptance)))
+        self.maxAngularAcceptance = max(self.Totalacceptance)
         for i in range(len(self.Totalacceptance)) :
             sumtotal += sum(self.Totalacceptance[i])
             nsum += len(self.Totalacceptance[i])
+
         self.averageAngularAcceptance = sumtotal/nsum
         #Compute PMT view direction from the centroid of the acceptance.
         for i in range(len(self.PMTacceptance)):

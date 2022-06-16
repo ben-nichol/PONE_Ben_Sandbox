@@ -131,7 +131,7 @@ class TrackReco(icetray.I3ConditionalModule):
         self.AddParameter("pulseseries","Name of the Merged MCPE tree name","MergedSeriesMap")
         self.AddParameter("seedtrack","Track to seed fit","linefit")
         self.AddParameter("output","Track to store fit.","llnfit")
-        self.AddParameter("vertexRad","Radius to put vertex at",100.)
+        self.AddParameter("vertexRad","Radius to put vertex at",200.)
         self.AddParameter("UseMC","Use MC Truth Track to seed",False)
         self.AddParameter("tau","Optical attenuation length",tau)
         self.AddParameter("minr","Minimum radius for attenuation",0.25)
@@ -150,7 +150,6 @@ class TrackReco(icetray.I3ConditionalModule):
         self.tau  = self.GetParameter("tau")
         self.minr = self.GetParameter("minr")
         self.domprop = DOMProperties()
-        self.ndoms = 200
 
     # Main function of this file. Structured this way so that it can be easily imported aswell in any other implementation. 
 
@@ -159,14 +158,12 @@ class TrackReco(icetray.I3ConditionalModule):
         self.domsUsed = frame['I3Geometry'].omgeo
 
         maxradius = 0.0
-        self.ndoms = 0
         for dom in self.domsUsed.keys() :
             pos = self.domsUsed[dom].position
             radius = np.sqrt(pos.x**2.0+pos.y**2.0+pos.z**2.0)
             maxradius = max(maxradius,radius)
-            self.ndoms += 1
 
-        self.vertexRad = maxradius + 100.0
+        self.vertexRad += maxradius
 
         self.PushFrame(frame)
 
@@ -184,17 +181,16 @@ class TrackReco(icetray.I3ConditionalModule):
         linefit = frame[self.seedtrack]
 
         direction = dataclasses.I3Direction(linefit.dir.x,linefit.dir.y,linefit.dir.z) 
-
         p_2 = linefit.pos.x**2.0+linefit.pos.y**2.0+linefit.pos.z**2.0
         pd = (linefit.pos.x*direction.x+linefit.pos.y*direction.y+linefit.pos.z*direction.z)
         r_2 = self.vertexRad**2.0
 
-        if pd**2.0-p_2+r_2 < 0.0 :
-            return
-
-        L = -pd - np.sqrt(pd**2.0-p_2+r_2)
-
-        vertex = dataclasses.I3Position(linefit.pos.x+L*direction.x,linefit.pos.y+L*direction.y,linefit.pos.z+L*direction.z)
+        if p_2 > self.vertexRad :
+            ratio = self.vertexRad/p_2
+            vertex = dataclasses.I3Position(linefit.pos.x*ratio,linefit.pos.y*ratio,linefit.pos.z*ratio)
+        elif pd**2.0-p_2+r_2 > 0.0 :
+            L = -pd - np.sqrt(pd**2.0-p_2+r_2)
+            vertex = dataclasses.I3Position(linefit.pos.x+L*direction.x,linefit.pos.y+L*direction.y,linefit.pos.z+L*direction.z)
         
         VTheta = vertex.theta
         VPhi = vertex.phi

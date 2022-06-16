@@ -44,6 +44,8 @@ class DOMTrigger(icetray.I3ConditionalModule):
         self.PushFrame(frame)
     
     def DAQ(self,frame) :
+        
+        #print("DOM Trigger Start")
 
         PulseSeriesMap = frame['triggerpulsemap']
         DOMCoincidence_dict = {}
@@ -75,7 +77,9 @@ class DOMTrigger(icetray.I3ConditionalModule):
             #        DOMCoincidence_ncoin[omkey] = [4,4]
             #        DOMCoincidence_pmts[omkey] = [4,4]
             #    continue
+            #print("looping " + str(len(pulses)))
             for i, pulse in enumerate(pulses) :
+                #print(str(i) +" "+str(lookback)+" "+str(len(pulses)))
                 time = int(pulse.time)
                 if time not in DOMCoincidence_dict[omkey].keys() :
                     DOMCoincidence_dict[omkey][time]={int(pulse.width)}
@@ -113,5 +117,6 @@ class DOMTrigger(icetray.I3ConditionalModule):
         frame["DOMTrigger_time"+self.output] = DOMCoincidence_time
         frame["DOMTrigger_ncoin"+self.output] = DOMCoincidence_ncoin
         frame["DOMTrigger_pmts"+self.output] = DOMCoincidence_pmts
+        #print("DOM Trigger End")
 
         self.PushFrame(frame)

@@ -183,6 +183,8 @@ class DetectorTrigger(icetray.I3ConditionalModule):
     
     def DAQ(self,frame) :
 
+        #print("Detecctor Trigger Start")
+
         DOMCoincidence_time = frame["DOMTrigger_time"+self.input]
         DOMCoincidence_ncoin = frame["DOMTrigger_ncoin"+self.input]
         DOMCoincidence_pmts = frame["DOMTrigger_pmts"+self.input]
@@ -318,7 +320,9 @@ class DetectorTrigger(icetray.I3ConditionalModule):
 
         frame[self.PulseSeriesOut] = outputpulsemap
         frame["TriggerTime"+self.output] = dataclasses.I3Double(mintrigtime)
-                
+       
+        #print("Detector Trigger Done")
+
         self.PushFrame(frame)
         Pframe = icetray.I3Frame('P')
         self.PushFrame(Pframe)

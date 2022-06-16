@@ -21,8 +21,8 @@ class LineFitReco(icetray.I3ConditionalModule):
         self.AddParameter("inputseries","Input pulse series","MCPESeriesMap")
         self.AddParameter("output","Output track name.","linefit")
         self.AddParameter("hitThresh","Threshold for number of pulses in DOM",1)
-        self.AddParameter("domThresh","Threshold for number of DOMs",10)
-
+        self.AddParameter("domThresh","Threshold for number of DOMs",6)
+        self.AddParameter("vertRadius","radius to readust the vertext to",200.)
         self.AddOutBox("OutBox")
 
     def Configure(self):
@@ -31,6 +31,21 @@ class LineFitReco(icetray.I3ConditionalModule):
         self.domThresh = self.GetParameter("domThresh")
         self.input = self.GetParameter("inputseries")
         self.output = self.GetParameter("output")
+        self.vertexRad = self.GetParameter("vertRadius")
+
+    def Geometry(self,frame):
+
+        self.domsUsed = frame['I3Geometry'].omgeo
+
+        maxradius = 0.0
+        for dom in self.domsUsed.keys() :
+            pos = self.domsUsed[dom].position
+            radius = np.sqrt(pos.x**2.0+pos.y**2.0+pos.z**2.0)
+            maxradius = max(maxradius,radius)
+
+        self.vertexRad += maxradius 
+
+        self.PushFrame(frame)
 
     # A function that determines whether a frame passes the cut or not. The
     # function checks whether a threshold number of DOMs passed given a 
@@ -57,9 +72,9 @@ class LineFitReco(icetray.I3ConditionalModule):
             if len(mcpeMap[dom]) >= self.hitThresh:
                 domCount += 1
         
-            if domCount >= self.domThresh:
-                return True
-    
+        if domCount >= self.domThresh:
+            return True
+        #print("too few doms")
         return False
 
 
@@ -84,7 +99,6 @@ class LineFitReco(icetray.I3ConditionalModule):
         if not frame.Has(self.input):
             raise ValueError("Frame does not contain " + self.input)
         mcpeMap = frame[self.input]
-        geoMap = frame['I3Geometry'].omgeo 
         data = []
         for omkey, mcpeList in mcpeMap:
             timeList = [mcpe.time for mcpe in mcpeList]
@@ -94,7 +108,7 @@ class LineFitReco(icetray.I3ConditionalModule):
             time = min(timeList)
             charge = sum(npeList)
             key = omkey #NoPMTKey(omkey)fixed with GCD
-            position = geoMap[key].position
+            position = self.domsUsed[omkey].position
             for i in range(len(timeList)):
                 data.append( (position.x, position.y, position.z, time, charge) )
     
@@ -141,37 +155,51 @@ class LineFitReco(icetray.I3ConditionalModule):
     # speed, and an I3Position object for the particle vertex (position at t=0)  
     def Physics(self,frame):
 
-      #print("in line")
+        #print("in line")
 
-      if not self.passFrame(frame) :
-        self.PushFrame(frame)
-        return
+        if not self.passFrame(frame) :
+            self.PushFrame(frame)
+            return
 
-      datapoints = self.getLinefitDataPoints(frame)
-      x = [data[0] for data in datapoints]
-      y = [data[1] for data in datapoints]
-      z = [data[2] for data in datapoints]
-      t = [data[3] for data in datapoints]
-      charge = [data[4] for data in datapoints]
+        datapoints = self.getLinefitDataPoints(frame)
+        x = [data[0] for data in datapoints]
+        y = [data[1] for data in datapoints]
+        z = [data[2] for data in datapoints]
+        t = [data[3] for data in datapoints]
+        charge = [data[4] for data in datapoints]
 
-      weighted_time = np.sum(np.array(t) * np.array(charge))/np.sum(np.array(charge))
+        weighted_time = np.sum(np.array(t) * np.array(charge))/np.sum(np.array(charge))
 
-      xVelocity, x = self.fitLeastSquaresLine(t, x)
-      yVelocity, y = self.fitLeastSquaresLine(t, y)
-      zVelocity, z = self.fitLeastSquaresLine(t, z)
+        xVelocity, x = self.fitLeastSquaresLine(t, x)
+        yVelocity, y = self.fitLeastSquaresLine(t, y)
+        zVelocity, z = self.fitLeastSquaresLine(t, z)
 
-      direction = dataclasses.I3Direction(xVelocity, yVelocity, zVelocity)
-      speed = np.sqrt(xVelocity**2 + yVelocity**2 + zVelocity**2)
-      vertex = dataclasses.I3Position(x,y,z)
-    
-      linefit = dataclasses.I3Particle()
-      linefit.shape = dataclasses.I3Particle.InfiniteTrack
-      linefit.dir = direction                                                                                                                  
-      linefit.speed = speed
-      linefit.pos = vertex        
-      linefit.time = weighted_time
+        direction = dataclasses.I3Direction(xVelocity, yVelocity, zVelocity)
+        speed = np.sqrt(xVelocity**2 + yVelocity**2 + zVelocity**2)
+        vertex = dataclasses.I3Position(x,y,z)
 
-      frame[self.output] = linefit
-      self.PushFrame(frame)  
+        #reset vertex to be at set radius, same as track fitter.
+
+        radius_0 = vertex.x**2.0+vertex.y**2.0+vertex.z**2.0
+        b = (vertex.x*direction.x+vertex.y*direction.y+vertex.z*direction.z)
+        c = radius_0-self.vertexRad**2.0
+        b2_4ac = b*b-c
+        l = 0.0
+        if b2_4ac > 0.0 :
+            l = -b -np.sqrt(b2_4ac)
+        else :
+            l = -b
+        
+        vertex = dataclasses.I3Position(x+l*direction.x,y+l*direction.y,z+l*direction.z)
+
+        linefit = dataclasses.I3Particle()
+        linefit.shape = dataclasses.I3Particle.InfiniteTrack
+        linefit.dir = direction                                                                                                                  
+        linefit.speed = speed
+        linefit.pos = vertex        
+        linefit.time = weighted_time
+
+        frame[self.output] = linefit
+        self.PushFrame(frame)  
 
 
