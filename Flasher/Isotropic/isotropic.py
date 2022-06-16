@@ -36,13 +36,15 @@ parser.add_option("-s",
 
 parser.add_option("-g", 
                   "--gcd",
+                  type="str",
                   default='$PONESRCDIR/GCD/PONE_10String.i3.gz',
                   dest="GCDFILE",
                   help="Read geometry from GCDFILE (.i3{.gz} format)")
 
 parser.add_option("-a", 
                   "--angular-acceptance", 
-                  default='$PONESRCDIR/Flasher/resources/as.full',
+                  type="str",
+                  default='$I3_BUILD/ice-models/resources/models/angsens/as.h2-50cm',
                   dest="ANGULARACCEPTANCE", 
                   help="Read angular acceptance polynomial coefficients from file.")
 

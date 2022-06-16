@@ -35,20 +35,24 @@ gcd = '/home/users/%s/pone_offline/GCD/PONE_10String.i3.gz' %(user)
 # executable
 script = '/home/users/%s/pone_offline/Flasher/Isotropic/isotropic.py' %(user)
 
+# angular acceptance
+angular = '/home/users/%s/pone_offline/Flasher/resources/as.full' %(user)
+
 # tag
-tag = 'isotropic-test'
+tag = 'isotropic-angular-acc-test'
 
 # specify arguments dictionary as used by [script] with --option
 # example: --numphotons=100 --> {'numphotons' : 100}
 # script must accept --gcd argument (generated automatically)
 # script must accept --outfile argument (generated automatically)
 # use lists; all permutations will be simulated
-args = {'oversize'       : [1.0],
-        'num-events'     : [100],
-        'flasher-key'    : ['1-10', '5-10', '10-10'],
-        'num-photons'    : [int(1e10)],
-        'fwhm'           : [1.00, 5.00, 10.00],
-        'detect-emitter' : [int(True)],
+args = {'oversize'           : [1.0],
+        'num-events'         : [100],
+        'flasher-key'        : ['1-10', '5-10', '10-10'],
+        'num-photons'        : [int(1e10)],
+        'fwhm'               : [5.00],
+        'detect-emitter'     : [int(True)],
+        'angular-acceptance' : [angular]
         #'wavelength' : [405], # not implemented
         #'optical_medium' : [''], # not implemented
        }
