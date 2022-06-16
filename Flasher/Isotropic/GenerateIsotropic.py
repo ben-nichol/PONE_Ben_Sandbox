@@ -92,7 +92,7 @@ class GenerateIsotropic(icetray.I3Module):
 
     	# isotropic in 4pi (full sphere)
         if isotropy:
-            pulse.SetAngularEmissionSigmaPolar( 1800. * I3Units.deg )
+            pulse.SetAngularEmissionSigmaPolar( 180. * I3Units.deg )
             pulse.SetAngularEmissionSigmaAzimuthal( 360. * I3Units.deg )
         
         # isotropic in 2pi (hemisphere)
