@@ -70,8 +70,8 @@ public:
         Uniform405nm = 10,
         Uniform450nm = 11,
         Uniform505nm = 12,
-        Uniform532nm = 13
-        STA01SH5     = 14,
+        Uniform532nm = 13,
+        STA01SH5     = 14
     };
 
     inline FlasherPulseType GetType() const {return flasherPulseType_;}
