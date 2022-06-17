@@ -34,6 +34,7 @@ from icecube.clsim import I3CLSimRandomValueNormalDistribution
 from icecube.clsim import I3CLSimRandomValueFixParameter
 from icecube.clsim import I3CLSimRandomValueConstant
 from icecube.clsim import I3CLSimRandomValueUniform
+from icecube.simclasses import I3CLSimRandomValueApplyFunction
 
 from . import I3CLSimRandomValueIceCubeFlasherTimeProfile
 
@@ -52,7 +53,9 @@ def GetFlasherParameterizationList(spectrumTable):
     spectrumTypesSC = [I3CLSimFlasherPulse.FlasherPulseType.SC1,
                        I3CLSimFlasherPulse.FlasherPulseType.SC2]
     
-    # all flasher types have the same angular smearing profiles (a gaussian
+    spectrumTypesPC = []
+    
+    # all LED flasher types have the same angular smearing profiles (a gaussian
     # with its width set as a runtime parameter [read from I3CLSimFlasherPulse])
     normalDistribution = I3CLSimRandomValueFixParameter(I3CLSimRandomValueNormalDistribution(), 0, 0.) # the mean (parameter #0) is fixed to 0.
     
@@ -62,6 +65,9 @@ def GetFlasherParameterizationList(spectrumTable):
     standardCandlePolarDistribution = I3CLSimRandomValueConstant()
     standardCandleAzimuthalDistribution =  I3CLSimRandomValueUniform(0., float('NaN')) # make the "to" parameter a run-time setting
     
+    # Want it to be uniform in cos(zen)? set the sigmas to +1 and let this sample from -1 to sigma=+1, then run acos.
+    uniformCosDistribution = I3CLSimRandomValueApplyFunction(I3CLSimRandomValueUniform(-1, float('NaN')), 'acos')
+    uniformDistribution = I3CLSimRandomValueUniform(0, float('NaN')) # for Azimuth
     
     # generate the parameterizations
     parameterizations = []
@@ -89,5 +95,9 @@ def GetFlasherParameterizationList(spectrumTable):
                                                                 interpretAngularDistributionsInPolarCoordinates=True)
         parameterization = I3CLSimLightSourceParameterization(converter=theConverter, forFlasherPulseType=flasherSpectrumType)
         parameterizations.append(parameterization)
+        
+    # for P-CAL instruments
+    for flasherSpectrumType in spectrumTypesPC:
+        pass
         
     return parameterizations
