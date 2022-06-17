@@ -36,28 +36,45 @@ import numpy, math
 from os.path import expandvars
 
 def GetIceCubeFlasherSpectrumData(spectrumType):
-    if spectrumType == I3CLSimFlasherPulse.FlasherPulseType.LED340nm:
+    
+    type340nm = [I3CLSimFlasherPulse.FlasherPulseType.LED340nm, I3CLSimFlasherPulse.FlasherPulseType.Uniform340nm]
+    type370nm = [I3CLSimFlasherPulse.FlasherPulseType.LED370nm, I3CLSimFlasherPulse.FlasherPulseType.Uniform370nm]
+    type405nm = [I3CLSimFlasherPulse.FlasherPulseType.LED405nm, I3CLSimFlasherPulse.FlasherPulseType.Uniform405nm]
+    type450nm = [I3CLSimFlasherPulse.FlasherPulseType.LED450nm, I3CLSimFlasherPulse.FlasherPulseType.Uniform450nm]
+    type505nm = [I3CLSimFlasherPulse.FlasherPulseType.LED505nm, I3CLSimFlasherPulse.FlasherPulseType.Uniform505nm]
+    type532nm = [I3CLSimFlasherPulse.FlasherPulseType.LED532nm, I3CLSimFlasherPulse.FlasherPulseType.Uniform532nm]
+    typeSTA01 = [I3CLSimFlasherPulse.FlasherPulseType.STA01SH5]
+    
+    if spectrumType in type340nm:
         data = numpy.loadtxt(expandvars("$I3_BUILD/clsim/resources/flasher_data/flasher_led_340nm_emission_spectrum_cw_measured_20mA_pulseCurrent.txt"), unpack=True)
         #data = numpy.loadtxt(expandvars("$I3_BUILD/clsim/resources/flasher_data/flasher_led_340nm_emission_spectrum_cw_measured_200mA_pulseCurrent.txt"), unpack=True)
         data[0] *= I3Units.nanometer # apply the correct units
         data[1] /= 24.306508         # (20mA pulse)  pre-calculated normalization constant (not really necessary for the generation algorithm)
         #data[1] /= 22.323254        # (200ma pulse) pre-calculated normalization constant (not really necessary for the generation algorithm)
-    elif spectrumType == I3CLSimFlasherPulse.FlasherPulseType.LED370nm:
+    elif spectrumType in type370nm:
         data = numpy.loadtxt(expandvars("$I3_BUILD/clsim/resources/flasher_data/flasher_led_370nm_emission_spectrum_cw_measured.txt"), unpack=True)
         data[0] *= I3Units.nanometer # apply the correct units
         data[1] /= 15.7001863        # pre-calculated normalization constant (not really necessary for the generation algorithm)
-    elif spectrumType == I3CLSimFlasherPulse.FlasherPulseType.LED405nm:
+    elif spectrumType in type405nm:
         data = numpy.loadtxt(expandvars("$I3_BUILD/clsim/resources/flasher_data/flasher_led_405nm_emission_spectrum_datasheet.txt"), unpack=True)
         data[0] *= I3Units.nanometer # apply the correct units
         data[1] /= 8541585.10324     # pre-calculated normalization constant (not really necessary for the generation algorithm)
-    elif spectrumType == I3CLSimFlasherPulse.FlasherPulseType.LED450nm:
+    elif spectrumType in type450nm:
         data = numpy.loadtxt(expandvars("$I3_BUILD/clsim/resources/flasher_data/flasher_led_450nm_emission_spectrum_datasheet.txt"), unpack=True)
         data[0] *= I3Units.nanometer # apply the correct units
         data[1] /= 21.9792812618     # pre-calculated normalization constant (not really necessary for the generation algorithm)
-    elif spectrumType == I3CLSimFlasherPulse.FlasherPulseType.LED505nm:
+    elif spectrumType in type505nm:
         data = numpy.loadtxt(expandvars("$I3_BUILD/clsim/resources/flasher_data/flasher_led_505nm_emission_spectrum_cw_measured.txt"), unpack=True)
         data[0] *= I3Units.nanometer # apply the correct units
         data[1] /= 38.1881           # pre-calculated normalization constant (not really necessary for the generation algorithm)
+    elif spectrumType in type532nm:
+        data = numpy.loadtxt(expandvars("$I3_BUILD/clsim/resources/flasher_data/flasher_led_532nm_emission_spectrum_datasheet.txt"), unpack=True)    
+        data[0] *= I3Units.nanometer # apply the correct units
+        data[1] /= 1.0               # pre-calculated normalization constant (not really necessary for the generation algorithm)
+    elif spectrumType in typeSTA01:
+        data = numpy.loadtxt(expandvars("$I3_BUILD/clsim/resources/flasher_data/flasher_laser_532nm_emission_spectrum_datasheet.txt"), unpack=True)
+        data[0] *= I3Units.nanometer # apply the correct units
+        data[1] /= 1.0               # pre-calculated normalization constant (not really necessary for the generation algorithm)
     else:
         raise RuntimeError("invalid spectrumType")
         

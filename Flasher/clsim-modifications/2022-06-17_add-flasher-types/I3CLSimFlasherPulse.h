@@ -57,14 +57,21 @@ public:
     I3CLSimFlasherPulse();
 
     enum FlasherPulseType {
-        Unknown  = 0,
-        LED340nm = 1,
-        LED370nm = 2,
-        LED405nm = 3,
-        LED450nm = 4,
-        LED505nm = 5,
-        SC1      = 6,
-        SC2      = 7
+        Unknown      = 0,
+        LED340nm     = 1,
+        LED370nm     = 2,
+        LED405nm     = 3,
+        LED450nm     = 4,
+        LED505nm     = 5,
+        SC1          = 6,
+        SC2          = 7,
+        Uniform340nm = 8,
+        Uniform370nm = 9,
+        Uniform405nm = 10,
+        Uniform450nm = 11,
+        Uniform505nm = 12,
+        Uniform532nm = 13
+        STA01SH5     = 14,
     };
 
     inline FlasherPulseType GetType() const {return flasherPulseType_;}

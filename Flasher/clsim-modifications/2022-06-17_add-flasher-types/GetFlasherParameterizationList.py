@@ -53,7 +53,14 @@ def GetFlasherParameterizationList(spectrumTable):
     spectrumTypesSC = [I3CLSimFlasherPulse.FlasherPulseType.SC1,
                        I3CLSimFlasherPulse.FlasherPulseType.SC2]
     
-    spectrumTypesUni = [I3CLSimFlasherPulse.FlasherPulseType.Uniform405nm]
+    spectrumTypesUni = [I3CLSimFlasherPulse.FlasherPulseType.Uniform340nm,
+                        I3CLSimFlasherPulse.FlasherPulseType.Uniform370nm,
+                        I3CLSimFlasherPulse.FlasherPulseType.Uniform405nm,
+                        I3CLSimFlasherPulse.FlasherPulseType.Uniform450nm,
+                        I3CLSimFlasherPulse.FlasherPulseType.Uniform505nm,
+                        I3CLSimFlasherPulse.FlasherPulseType.Uniform532nm]
+    
+    spectrumTypesSTA01 = [I3CLSimFlasherPulse.FlasherPulseType.STA01SH5]
     
     # all LED flasher types have the same angular smearing profiles (a gaussian
     # with its width set as a runtime parameter [read from I3CLSimFlasherPulse])
@@ -72,7 +79,7 @@ def GetFlasherParameterizationList(spectrumTable):
     # generate the parameterizations
     parameterizations = []
     
-    # (for flashers)
+    # for flashers
     for flasherSpectrumType in spectrumTypes:
         theSpectrum = GetIceCubeFlasherSpectrum(spectrumType=flasherSpectrumType)
         theConverter = I3CLSimLightSourceToStepConverterFlasher(flasherSpectrumNoBias=theSpectrum,
@@ -103,6 +110,18 @@ def GetFlasherParameterizationList(spectrumTable):
                                                                 spectrumTable=spectrumTable,
                                                                 angularProfileDistributionPolar=uniformCosDistribution,
                                                                 angularProfileDistributionAzimuthal=uniformDistribution,
+                                                                timeDelayDistribution=__theFlasherTimeDelayDistribution,
+                                                                interpretAngularDistributionsInPolarCoordinates=False)
+        parameterization = I3CLSimLightSourceParameterization(converter=theConverter, forFlasherPulseType=flasherSpectrumType)
+        parameterizations.append(parameterization)
+        
+    # for potential Nd:YAG laser light sources
+    for flasherSpectrumType in spectrumTypesSTA01:
+        theSpectrum = GetIceCubeFlasherSpectrum(spectrumType=flasherSpectrumType)
+        theConverter = I3CLSimLightSourceToStepConverterFlasher(flasherSpectrumNoBias=theSpectrum,
+                                                                spectrumTable=spectrumTable,
+                                                                angularProfileDistributionPolar=normalDistribution,
+                                                                angularProfileDistributionAzimuthal=normalDistribution,
                                                                 timeDelayDistribution=__theFlasherTimeDelayDistribution,
                                                                 interpretAngularDistributionsInPolarCoordinates=False)
         parameterization = I3CLSimLightSourceParameterization(converter=theConverter, forFlasherPulseType=flasherSpectrumType)
