@@ -53,7 +53,7 @@ def GetFlasherParameterizationList(spectrumTable):
     spectrumTypesSC = [I3CLSimFlasherPulse.FlasherPulseType.SC1,
                        I3CLSimFlasherPulse.FlasherPulseType.SC2]
     
-    spectrumTypesPC = []
+    spectrumTypesUni = [I3CLSimFlasherPulse.FlasherPulseType.Uniform405nm]
     
     # all LED flasher types have the same angular smearing profiles (a gaussian
     # with its width set as a runtime parameter [read from I3CLSimFlasherPulse])
@@ -97,7 +97,15 @@ def GetFlasherParameterizationList(spectrumTable):
         parameterizations.append(parameterization)
         
     # for P-CAL instruments
-    for flasherSpectrumType in spectrumTypesPC:
-        pass
+    for flasherSpectrumType in spectrumTypesUni:
+        theSpectrum = GetIceCubeFlasherSpectrum(spectrumType=flasherSpectrumType)
+        theConverter = I3CLSimLightSourceToStepConverterFlasher(flasherSpectrumNoBias=theSpectrum,
+                                                                spectrumTable=spectrumTable,
+                                                                angularProfileDistributionPolar=uniformCosDistribution,
+                                                                angularProfileDistributionAzimuthal=uniformDistribution,
+                                                                timeDelayDistribution=__theFlasherTimeDelayDistribution,
+                                                                interpretAngularDistributionsInPolarCoordinates=False)
+        parameterization = I3CLSimLightSourceParameterization(converter=theConverter, forFlasherPulseType=flasherSpectrumType)
+        parameterizations.append(parameterization)
         
     return parameterizations
