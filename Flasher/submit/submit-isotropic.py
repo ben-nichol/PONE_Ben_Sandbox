@@ -53,7 +53,6 @@ args = {'oversize'           : [1.0],
         'fwhm'               : [5.00],
         'detect-emitter'     : [int(True)],
         'wavelength'         : [405],
-        #'optical_medium' : [''], # not implemented
        }
 
 # permute values
