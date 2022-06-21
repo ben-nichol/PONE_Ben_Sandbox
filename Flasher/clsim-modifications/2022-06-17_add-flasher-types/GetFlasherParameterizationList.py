@@ -34,7 +34,7 @@ from icecube.clsim import I3CLSimRandomValueNormalDistribution
 from icecube.clsim import I3CLSimRandomValueFixParameter
 from icecube.clsim import I3CLSimRandomValueConstant
 from icecube.clsim import I3CLSimRandomValueUniform
-from icecube.simclasses import I3CLSimRandomValueApplyFunction
+from icecube.clsim import I3CLSimRandomValueApplyFunction
 
 from . import I3CLSimRandomValueIceCubeFlasherTimeProfile
 
