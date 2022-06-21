@@ -6,9 +6,9 @@ import numpy as np
 from os.path import join, exists, basename
 
 
-########################################################################
+###############################################################################
 ### EXECUTION PARAMETERS
-########################################################################
+###############################################################################
 # user
 user = os.getenv('USER')
 
@@ -23,9 +23,9 @@ container = '/home/users/%s/pone_offline/env-shell_Container.sh' %(user)
 mem = 8 # GB
 
 
-########################################################################
+###############################################################################
 ### SIMULATION PARAMETERS
-########################################################################
+###############################################################################
 # submit 
 submit = True
 
@@ -36,7 +36,7 @@ gcd = '/home/users/%s/pone_offline/GCD/PONE_10String.i3.gz' %(user)
 script = '/home/users/%s/pone_offline/Flasher/Isotropic/isotropic.py' %(user)
 
 # angular acceptance
-angular = '/home/users/%s/pone_offline/Flasher/resources/as.full' %(user)
+angular = '/home/users/%s/pone_offline/Flasher/resources/as.uniform' %(user)
 
 # tag
 tag = 'isotropic-angular-acc-test'
@@ -52,7 +52,7 @@ args = {'oversize'           : [1.0],
         'num-photons'        : [int(1e10)],
         'fwhm'               : [5.00],
         'detect-emitter'     : [int(True)],
-        #'wavelength' : [405], # not implemented
+        'wavelength'         : [405],
         #'optical_medium' : [''], # not implemented
        }
 
@@ -64,9 +64,9 @@ print('Number of simulations: %i' %(len(iters)))
 print('Permutations: %s' %(iters))
 
 
-########################################################################
+###############################################################################
 ### OUTPUT DIRECTORY GENERATION
-########################################################################
+###############################################################################
 # create time-sensitive string to avoid overwriting
 t_str = datetime.datetime.now().isoformat('_')[:-7].replace(':', '-')
 
@@ -104,13 +104,13 @@ with open(join(out_sub, 'arguments.txt'), 'w') as f:
 np.save(join(out_sub, 'arguments.npy'), args)
 
 
-########################################################################
+###############################################################################
 ### ITERATE PERMUTATIONS
-########################################################################
+###############################################################################
 for i, tup in enumerate(iters):
     
     
-    ####################################################################
+    ###########################################################################
     ### OUT FILE TAGGING
     # create mock copy of the arguments dict for use at this iteration
     args_temp = {}      
@@ -140,7 +140,7 @@ for i, tup in enumerate(iters):
     np.save(join(out_sub, '%s_arguments.npy' %(log_str)), args_temp)
        
     
-    ####################################################################
+    ###########################################################################
     ### GENERATE EXECUTABLE
     
     executable = join(out_sub, '%s_executable.sh' %(log_str))
@@ -173,7 +173,7 @@ for i, tup in enumerate(iters):
         f.write('bash ${CONTAINER} python ${SCRIPT}%s\n' %(python))
         
     
-    ####################################################################
+    ###########################################################################
     ### SUBMIT
     # submit file
     submit_info = 'executable  = {script} \n\
