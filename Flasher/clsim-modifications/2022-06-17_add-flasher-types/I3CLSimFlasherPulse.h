@@ -38,7 +38,8 @@
 
 #define I3CLSIMFLASHERPULSE_H_I3CLSimFlasherPulse_FlasherPulseType \
     (Unknown)(LED340nm)(LED370nm)(LED405nm)(LED450nm)(LED505nm)    \
-    (SC1)(SC2)
+    (SC1)(SC2)(Uniform340nm)(Uniform370nm)(Uniform405nm)           \
+    (Uniform450nm)(Uniform505nm)(Uniform532nm)(STA01SH5)
 
 static const unsigned i3clsimflasherpulse_version_ = 0;
 
