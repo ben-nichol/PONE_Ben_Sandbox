@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 # system imports
+from os.path import expandvars
 from optparse import OptionParser
 
 # icetray imports
@@ -26,7 +27,7 @@ parser = OptionParser(usage)
 parser.add_option("-a", 
                   "--angular-acceptance", 
                   type="str",
-                  default='$PONE_SRC/Flasher/resources/as.uniform',
+                  default=expandvars('$PONESRCDIR/Flasher/resources/as.uniform'),
                   dest="ANGULARACCEPTANCE", 
                   help="Read angular acceptance polynomial coefficients from file.")
 
@@ -47,7 +48,7 @@ parser.add_option("-f",
 parser.add_option("-g", 
                   "--gcd",
                   type="str",
-                  default='$PONESRCDIR/GCD/PONE_10String.i3.gz',
+                  default=expandvars('$PONESRCDIR/GCD/PONE_10String.i3.gz'),
                   dest="GCDFILE",
                   help="Read geometry from GCDFILE (.i3{.gz} format).")
 
