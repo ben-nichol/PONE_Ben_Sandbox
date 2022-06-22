@@ -26,7 +26,6 @@
 
 from __future__ import print_function
 
-from icecube import icetray, dataclasses
 from icecube.clsim import I3CLSimLightSourceParameterization
 from icecube.clsim import I3CLSimFlasherPulse, I3CLSimLightSourceToStepConverterFlasher
 from icecube.clsim import GetIceCubeFlasherSpectrum
@@ -48,7 +47,8 @@ def GetFlasherParameterizationList(spectrumTable):
                      I3CLSimFlasherPulse.FlasherPulseType.LED370nm,
                      I3CLSimFlasherPulse.FlasherPulseType.LED405nm,
                      I3CLSimFlasherPulse.FlasherPulseType.LED450nm,
-                     I3CLSimFlasherPulse.FlasherPulseType.LED505nm]
+                     I3CLSimFlasherPulse.FlasherPulseType.LED505nm,
+                     I3CLSimFlasherPulse.FlasherPulseType.LED532nm]
 
     spectrumTypesSC = [I3CLSimFlasherPulse.FlasherPulseType.SC1,
                        I3CLSimFlasherPulse.FlasherPulseType.SC2]

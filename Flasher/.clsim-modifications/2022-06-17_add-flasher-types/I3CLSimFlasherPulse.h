@@ -38,7 +38,7 @@
 
 #define I3CLSIMFLASHERPULSE_H_I3CLSimFlasherPulse_FlasherPulseType \
     (Unknown)(LED340nm)(LED370nm)(LED405nm)(LED450nm)(LED505nm)    \
-    (SC1)(SC2)(Uniform340nm)(Uniform370nm)(Uniform405nm)           \
+    (LED532nm)(SC1)(SC2)(Uniform340nm)(Uniform370nm)(Uniform405nm) \
     (Uniform450nm)(Uniform505nm)(Uniform532nm)(STA01SH5)
 
 static const unsigned i3clsimflasherpulse_version_ = 0;
@@ -64,15 +64,16 @@ public:
         LED405nm     = 3,
         LED450nm     = 4,
         LED505nm     = 5,
-        SC1          = 6,
-        SC2          = 7,
-        Uniform340nm = 8,
-        Uniform370nm = 9,
-        Uniform405nm = 10,
-        Uniform450nm = 11,
-        Uniform505nm = 12,
-        Uniform532nm = 13,
-        STA01SH5     = 14
+        LED532nm     = 6, 
+        SC1          = 7,
+        SC2          = 8,
+        Uniform340nm = 9,
+        Uniform370nm = 10,
+        Uniform405nm = 11,
+        Uniform450nm = 12,
+        Uniform505nm = 13,
+        Uniform532nm = 14,
+        STA01SH5     = 15
     };
 
     inline FlasherPulseType GetType() const {return flasherPulseType_;}
