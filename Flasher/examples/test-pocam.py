@@ -29,12 +29,6 @@ parser.add_option("-n", "--numevents", type="int", default=100,
 
 # parse cmd line args, bail out if anything is not understood
 (options,args) = parser.parse_args()
-if len(args) != 0:
-        crap = "Got undefined options:"
-        for a in args:
-                crap += a
-                crap += " "
-        parser.error(crap)
 
 # geometry
 geometry = dataio.I3File(options.GCDFILE)

@@ -17,14 +17,8 @@ parser.add_option("-r", "--runnumber", type="int", default=1,
 parser.add_option("-n", "--numevents", type="int", default=100,
                   dest="NUMEVENTS", help="The number of events per run")
 
-# parse cmd line args, bail out if anything is not understood
+# parse cmd line args
 (options,args) = parser.parse_args()
-if len(args) != 0:
-        crap = "Got undefined options:"
-        for a in args:
-                crap += a
-                crap += " "
-        parser.error(crap)
 
 # system imports
 import os

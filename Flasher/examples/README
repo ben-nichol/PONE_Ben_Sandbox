@@ -1,0 +1,9 @@
+This directory containts interactive examples of running Flasher simulations using CLSim.
+
+1. Before you start, make sure that you are running on an interactive GPU job with a singularity container and the respective pone_offline environment loaded.
+
+2. We will need to import pone_offline modules in some of these scripts, so make sure to symlink them to this directory first by
+$ ln -s $PONESRCDIR/<directory needed>
+
+3. Then simply run one of the test scripts with
+$ python <test_script.py>
