@@ -4,7 +4,7 @@
 #
 ####################
 
-+SingularityImage = "/data/p-one/icetray_offline_nosand_june20_2022.sif"
++SingularityImage = "/data/p-one/icetray_offline_june22_2022.sif"
 
 request_gpus         = 1
 request_cpus         = 1

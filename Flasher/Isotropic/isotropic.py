@@ -205,7 +205,6 @@ tray.AddModule(GenerateIsotropic.GenerateIsotropic,
                NumberOfPhotons=flasher_photons,
                PulseWidth=flasher_width,
                Seed=options.SEED,
-      	       Isotropy=True,
                FlasherPulseType=flasher_pulse_type,
               )
 
