@@ -6,25 +6,19 @@ from os.path import expandvars
 # use parser options to setup simulation in prompt
 usage = "usage: %prog [options] inputfile"
 parser = OptionParser(usage)
-parser.add_option("-o", "--outfile",default="test-flashers.i3",
+parser.add_option("-o", "--outfile",default="test-data/test-flashers.i3",
                   dest="OUTFILE", help="Write output to OUTFILE (.i3{.gz} format)")
 parser.add_option("-s", "--seed",type="int",default=12344,
                   dest="SEED", help="Initial seed for the random number generator")
-parser.add_option("-g", "--gcd",default=expandvars("$I3_TESTDATA/GCD/GeoCalibDetectorStatus_IC86.55697_corrected_V2.i3.gz"),
+parser.add_option("-g", "--gcd",default=expandvars("$I3_TESTDATA/../GCD/PONE_10String.i3.gz"),
                   dest="GCDFILE", help="Read geometry from GCDFILE (.i3{.gz} format)")
 parser.add_option("-r", "--runnumber", type="int", default=1,
                   dest="RUNNUMBER", help="The run number for this simulation")
 parser.add_option("-n", "--numevents", type="int", default=100,
                   dest="NUMEVENTS", help="The number of events per run")
 
-# parse cmd line args, bail out if anything is not understood
+# parse cmd line args
 (options,args) = parser.parse_args()
-if len(args) != 0:
-        crap = "Got undefined options:"
-        for a in args:
-                crap += a
-                crap += " "
-        parser.error(crap)
 
 # system imports
 import os
@@ -37,7 +31,7 @@ from I3Tray import *
 from icecube import icetray, dataclasses, dataio, phys_services, clsim, sim_services
 
 # pone imports
-import WaterOpticalModel.MakePoneMediumPropertiesConservativeExtendedRange as Medium
+from WaterOpticalModel import MakePoneMediumPropertiesConservativeExtendedRange as Medium
 from Utilities.DOMUtility import DOMProperties
 
 # dom properties instance and derived values
