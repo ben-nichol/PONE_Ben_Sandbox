@@ -49,7 +49,7 @@ class ClusterPulseCleaning(icetray.I3ConditionalModule):
         mcpeMap = frame[self.input]
         clusterMCPEMap = dataclasses.I3RecoPulseSeriesMap()
         if len(mcpeMap.keys()) < 1 :
-            self.PushFrame(frame)
+            #self.PushFrame(frame)
             return
         removed = 10
 
@@ -94,7 +94,7 @@ class ClusterPulseCleaning(icetray.I3ConditionalModule):
                     else :
                         distance_dict[nopmtkey2] = min(distance_dict[nopmtkey2],dom_to_dom)
 
-            if len(distances)< 1 :
+            if len(distances)< 3 :
                 return
 
             mean = statistics.mean(distances)

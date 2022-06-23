@@ -6,6 +6,8 @@ import os
 from icecube.icetray import I3Units, OMKey
 from icecube import icetray, dataclasses, dataio, simclasses
 from icecube import clsim
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 
