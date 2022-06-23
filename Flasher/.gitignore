@@ -5,7 +5,7 @@
 */test-data
 *__pycache__*
 *.ipynb_checkpoints
-.clsim-modifications/
+#.clsim-modifications/
 examples/Utilities
 examples/WaterOpticalModel
 examples/Flasher
