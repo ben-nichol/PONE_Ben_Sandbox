@@ -20,7 +20,7 @@ import argparse
 import math as m
 import random as rand
 from Utilities.RecoUtility import GetPhotonTravelTime
-from Utilities.DOMUtility import NoPMTKey, AddPMTKey
+from Utilities.DOMUtility import NoPMTKey, AddPMTKey, DOMProperties
 from Utilities.OpticalParameters import c, n, ngroup, tau
 
 # Functional that is fed data from InitialGuess for PMT locations and the PDF we wish to use. Uses those locations to build a Pandel Function for a given track
@@ -46,13 +46,12 @@ def LikelihoodFunctor(data,domsUsed,_tau):
             dc,t = GetPhotonTravelTime([geo_doms[dom].position.x,geo_doms[dom].position.y,geo_doms[dom].position.z],[vertex.x,vertex.y,vertex.z])
             p_charge = np.exp(-dc/thistau)/max(dc,0.25)
             for pulse in pulse_series[dom] :
-                charge = 1.0
                 cpandel_out = pdf(pulse.time - t0 - t ,dc)
-                if(type(pulse_series) == 'icecube.dataclasses.I3RecoPulseSeriesMap') :
-                    charge = pulse.charge
+                charge = pulse.charge
                 sum_nloglike -= charge*np.log(cpandel_out*p_charge+dark)
                 sum_nloglike -= charge*min(0.0,pulse.time - t0 - t)
 
+        print(sum_nloglike)
         return sum_nloglike
 
     return likelihoodFunction
@@ -60,9 +59,6 @@ def LikelihoodFunctor(data,domsUsed,_tau):
 def GetVertexTime(pulse_series,geo_doms):                                 
 
     c_n = c/ngroup                                     # light in water
-    ismc = False
-    if(type(pulse_series) == 'icecube.dataclasses.I3RecoPulseSeriesMap') :
-        ismc = True
 	
     totalcharge = 0.0
     vx = 0.0
@@ -71,10 +67,10 @@ def GetVertexTime(pulse_series,geo_doms):
 
     for domkey in pulse_series.keys() :
         for pulse in pulse_series[domkey] :
-	    totalcharge += pulse.charge
-	    vx += geo_doms[domkey].position.x*pulse.charge
-	    vy += geo_doms[domkey].position.y*pulse.charge
-	    vz += geo_doms[domkey].position.z*pulse.charge
+            totalcharge += pulse.charge
+            vx += geo_doms[domkey].position.x*pulse.charge
+            vy += geo_doms[domkey].position.y*pulse.charge
+            vz += geo_doms[domkey].position.z*pulse.charge
 
     if totalcharge < 5.0 :
         return 0.0, dataclasses.I3Position(0.0,0.0,0.0), totalcharge
@@ -83,12 +79,12 @@ def GetVertexTime(pulse_series,geo_doms):
     T0 = 0.0
 
     for domkey in pulse_series.keys() :
-	for pulse in pulse_series[domkey] :
-	    dx = vertex.x - geo_doms[domkey].position.x
-	    dy = vertex.y - geo_doms[domkey].position.y
-	    dz = vertex.z - geo_doms[domkey].position.z
-	    dist = np.sqrt(dx*dx+dy*dy+dz*dz)
-	    T0 += pulse.time - dist/c_n
+        for pulse in pulse_series[domkey] :
+            dx = vertex.x - geo_doms[domkey].position.x
+            dy = vertex.y - geo_doms[domkey].position.y
+            dz = vertex.z - geo_doms[domkey].position.z
+            dist = np.sqrt(dx*dx+dy*dy+dz*dz)
+            T0 += pulse.time - dist/c_n
             
     if totalcharge < 5.0 :
         return T0, vertex, totalcharge
@@ -104,14 +100,18 @@ class CascadeReco(icetray.I3ConditionalModule):
         self.AddParameter("pulseseries","Name of the Merged MCPE tree name","MergedSeriesMap")
         self.AddParameter("output","Track to store fit.","llnfit")
         self.AddParameter("tau","optical attenuation length.",tau)
+        self.AddParameter("domproperties","Dom properties utility object",None)
         self.AddOutBox("OutBox")
 
     def Configure(self):
 
         self.pulseseries = self.GetParameter("pulseseries")
         self.output = self.GetParameter("output")
-
         self.tau = self.GetParameter("tau")
+        if self.GetParameter("domproperties") is None:
+            self.domproperties = DOMProperties()
+        else :
+            self.domproperties = self.GetParameter("domproperties")
 
     # Main function of this file. Structured this way so that it can be easily imported aswell in any other implementation. 
 
@@ -127,6 +127,8 @@ class CascadeReco(icetray.I3ConditionalModule):
             return
 
         data = frame[self.pulseseries]
+
+        print(data)
 
         qFunctor = LikelihoodFunctor(data,self.domsUsed,self.tau)
         T0, vertex, totalcharge = GetVertexTime(data,self.domsUsed)
@@ -158,6 +160,8 @@ class CascadeReco(icetray.I3ConditionalModule):
         recoParticle.speed = c
         recoParticle.pos = q
         recoParticle.time = solution.x[3]
+
+        print(recoParticle)
 
         # include both linefit and improved recos for comparison
         frame[self.output] = recoParticle  

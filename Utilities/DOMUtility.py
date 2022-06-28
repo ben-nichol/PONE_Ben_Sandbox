@@ -339,6 +339,22 @@ class DOMProperties():
         return len(self.PMTacceptance)
 
     def GetPMTScaledAcceptance(self,pmt,theta,phi) :
-        i = min(max(0,int(theta*180./np.pi)),len(self.PMTacceptance[int(pmt)-1]))
-        j = min(max(0,int(phi*180./np.pi)),len(self.PMTacceptance[int(pmt)-1][0]))
-        return self.PMTacceptance[int(pmt)-1][i][j]/self.PMTMaxacceptance[int(pmt)-1]
+        while theta < 0.0 :
+            theta += 2.*np.pi
+        while theta > 2.0*np.pi :
+            theta -= 2.0*np.pi
+        if theta > np.pi :
+            theta = np.pi - (theta - np.pi)
+            phi += np.pi
+        while phi < 0.0 :
+            phi == 2.*np.pi
+        while phi > 2.0*np.pi :
+            phi -= 2.0*np.pi
+
+        i = min(max(0,int(theta*180./np.pi)),len(self.PMTacceptance[int(pmt)-1])-1)
+        j = min(max(0,int(phi*180./np.pi)),len(self.PMTacceptance[int(pmt)-1][0])-1)
+        #print(pmt)
+        #print("theta = "+str(theta)+" "+str(i)+" "+str(len(self.PMTacceptance[int(pmt)-1])))
+        #print("phi = "+str(phi)+" "+str(j)+" "+str(len(self.PMTacceptance[int(pmt)-1][i])))
+
+        return self.PMTacceptance[int(pmt)-1][i][j]/self.maxAngularAcceptance

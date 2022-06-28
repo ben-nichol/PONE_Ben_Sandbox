@@ -48,7 +48,7 @@ Operation:
     the distance of closest approach of the track to the DOM, 
     and the time since track was at vertex to the photon hitting the DOM.
 """
-def GetGeoTime(position,vert,direction) :
+def ComputeGeoTime(position,vert,direction) :
     c = 0.299792458                                 # speed of light 
     n = 1.34
     ngroup = 1.35557                                # 1.33 is the refractive index of water at 20 degrees C
@@ -76,7 +76,15 @@ def GetGeoTime(position,vert,direction) :
     dc = np.sqrt(dc)
     d = dc/np.sin(theta_c)
     t = d/c_n + dotprod/c - ed*c
+    return d,dc,t, theta, phi, emission_point
+
+def GetGeoTime(position,vert,direction) :
+
+    d,dc,t, theta, phi, emission_point = ComputeGeoTime(position,vert,direction)
     return d,dc,t, theta, phi
+
+def GetGeoTimeandEmission(position,vert,direction) :
+    return ComputeGeoTime(position,vert,direction)
 
 """!
 GetPhotonTravelTime(position,vert)
