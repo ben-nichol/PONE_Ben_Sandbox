@@ -1,0 +1,13 @@
+as.*
+    Polynomial expansion of the angular sensitivity curve in increasing degress of cosine(zenith)
+    [:1] normalization constant of angular sensitivity
+    [1:] polynomial expansion coefficients in increasing degree
+    --> as.uniform describes a flat / uniform acceptance in 4pi
+
+*spectrum*.txt
+    Spectrum of described flasher / LED.
+    [:,0] wavelength in nanometer
+    [:,1] normalized emission intensity
+    --> flasher_laser_532nm_emission_spectrum_datasheet.txt describes a typical 532nm LED
+    --> flasher_led_532nm_emission_spectrum_datasheet.txt describes a typical 532nm Nd:YAG laser
+

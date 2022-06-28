@@ -1,0 +1,17 @@
+####################
+#
+# Basic Condor Submission
+#
+####################
+
++SingularityImage = "/data/p-one/icetray_offline_june22_2022_2.sif"
+
+request_gpus         = 1
+request_cpus         = 1
+request_memory       = 8GB
+requirements = HasSingularity
+requirements = CUDADeviceName == "NVIDIA TITAN Xp"
+executable           = /usr/bin/python
+universe             = vanilla
+
+queue
