@@ -424,8 +424,8 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
                         self.MakeRecoPulses(RealPulses,realpulsechargelist,omkey,outputpulsemap_nonoise)
                         self.MakeRecoPulses(pulsetimelist,pulsechargelist,omkey,outputpulsemap,DOMpulsemap)
                     elif len(RealPulses) > 0:
-                        self.MakeRecoPulses(RealPulses,realpulsechargelist,omkey,outputpulsemap_nonoise)
-                        for ipmt in range(self.dom_properties.GetNPMTs()) :
+                        self.MakeRecoPulses(RealPulses,realpulsechargelist,omkey,outputpulsemap_nonoise,DOMpulsemap)
+                        for ipmt in range(1,self.dom_properties.GetNPMTs()+1) :
                                 newomkey = AddPMTKey(omkey,ipmt)
                                 if newomkey in outputpulsemap_nonoise.keys() :
                                     outputpulsemap[newomkey] = outputpulsemap_nonoise[newomkey]
@@ -443,7 +443,7 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
                         for i in range(len(DarkPulses)) :
                             pulsechargelist.append(self.randomService.gaus(self.chargemean,self.chargesigma))
 
-                        self.MakeRecoPulses(DarkPulses,pulsechargelist,omkey,outputpulsemap)
+                        self.MakeRecoPulses(DarkPulses,pulsechargelist,omkey,outputpulsemap,DOMpulsemap)
                 
                 #if omkey in darkhits.keys() or omkey in mcpemap.keys() :
                 #    for ipmt in range(self.dom_properties.GetNPMTs()) :
