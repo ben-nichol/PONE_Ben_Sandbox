@@ -72,7 +72,7 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
 
         # load the DOM properties from their respective configuration files
         self.dom_properties = DOMProperties(**kwargs_DOMProperties)
-
+        self.WroteActiveDOMsToSimFrame = False
     #########################################################################
 
     #split Photon hits into PMTs on the DOMs.
@@ -464,14 +464,21 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
         return outputpulsemap, outputpulsemap_nonoise, DOMpulsemap
 
     def Geometry(self,frame) :
-        self.domsUsed = frame['I3Geometry'].omgeo
+
+        if len(self.dropstrings)> 0 :
+            self.domsUsed = dataclasses.I3OMGeoMap()
+            for omkey in frame['I3Geometry'].omgeo.keys() :
+                if omkey.string in self.dropstrings :
+                    continue
+                self.domsUsed[omkey] = frame['I3Geometry'].omgeo[omkey]          
+        else :
+            self.domsUsed = frame['I3Geometry'].omgeo
+
         domkeylist = []
         self.nstring = 0
         self.nom = 0
         self.npmt = 0
         for omkey in self.domsUsed.keys() :
-            if omkey.string in self.dropstrings :
-                continue
             self.nstring = max(self.nstring,omkey.string)
             self.nom = max(self.nom,omkey.om)
             self.npmt = max(self.npmt,omkey.pmt)
@@ -483,7 +490,21 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
         self.npmt += 1
         self.PushFrame(frame)
     #########################################################################
+
+    def Simulation(self,frame) :
+
+        if len(self.dropstrings)> 0 :
+            frame["SimulatedDOMs"] = self.domsUsed
+
+        self.WroteActiveDOMsToSimFrame = True
+        self.PushFrame(frame)
+
     def DAQ(self,frame) :
+        
+        if not self.WroteActiveDOMsToSimFrame:
+            simframe = icetray.I3Frame('S')
+            self.Simulation(simframe)
+
         photonmap = frame[self.inputmap]
         #print("ndoms = "+str(len(photonmap))) 
         # split photons from DOMs to PMTs-on-DOMs

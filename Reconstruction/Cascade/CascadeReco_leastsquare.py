@@ -13,7 +13,7 @@ import sys
 import argparse
 import math as m
 from Utilities.DOMUtility import AddPMTKey
-from Utilities.OpticalParameters import c, ngroup
+from Utilities.OpticalParameters import c, ngroup, theta_c
 
 # Functional that is fed data from InitialGuess for PMT locations and the PDF we wish to use. Uses those locations to build a Pandel Function for a given track
 def LikelihoodFunctor(data,domsUsed,_minpos):
@@ -37,6 +37,28 @@ def LikelihoodFunctor(data,domsUsed,_minpos):
         return leastsquare
 
     return likelihoodFunction
+
+def DirectionFit(data,domsUsed,_vertex):
+    distance = data
+    geo_doms = domsUsed
+    vertex = _vertex
+    costheta = np.cos(theta_c)
+
+    def likelihoodFunction(theta,phi):
+
+        direction = dataclasses.I3Direction(np.sin(theta)*np.cos(phi),np.sin(theta)*np.sin(phi),np.cos(theta))
+
+        leastsquare = 0.0
+        for dom in distance.keys() :
+            dompos = domsUsed[dom].position
+            vert_to_dom = dataclasses.I3Direction(dompos.x-vertex.x,dompos.y-vertex.y,dompos.z-vertex.z)
+            dot = vert_to_dom.x*direction.x+vert_to_dom.y*direction.y+vert_to_dom.z*direction.z
+            for dist in distance[dom] :
+                leastsquare += dist[1]*(dot-costheta)**2.0
+        return leastsquare
+
+    return likelihoodFunction
+
 
 def GetDistances(pulse_series,geo_doms,mindoms):                                 
 
@@ -181,6 +203,31 @@ class CascadeReco(icetray.I3ConditionalModule):
             direc[0] /= totalcharge_dir
             direc[1] /= totalcharge_dir
             direc[2] /= totalcharge_dir
+
+            seeddir  = dataclasses.I3Direction(direc[0],direc[1],direc[2])
+
+            qFunctor2 = DirectionFit(distance,self.domsUsed,q)
+
+            def func2(theta,phi):
+                return qFunctor2(theta,phi)
+
+            func2.errordef = Minuit.LEAST_SQUARES
+
+            m2 = Minuit(func2,
+                        theta = seeddir.theta,
+                        phi = seeddir.phi
+                        )
+
+            m2.limits["theta"] = (0.0,np.pi)
+            m2.limits["phi"] = (0.0,2.0*np.pi)
+            m2.errors["theta"] = 1.0
+            m2.errors["phi"] = 1.0
+
+            m2.simplex().migrad()
+            res2 = m2.values
+
+            direction = dataclasses.I3Direction(np.sin(res2["theta"]*np.cos(res2["phi"])),np.sin(res2["theta"])*np.sin(res2["phi"]),np.cos(res2["theta"]))
+
             # Record the final result
             recoParticle = dataclasses.I3Particle()
             recoParticle.shape = dataclasses.I3Particle.Cascade
@@ -193,7 +240,7 @@ class CascadeReco(icetray.I3ConditionalModule):
                                             
             recoParticle.speed = c
             recoParticle.pos = q
-            recoParticle.dir = dataclasses.I3Direction(direc[0],direc[1],direc[2])
+            recoParticle.dir = direction
             recoParticle.time = T0 
 
             results.append((recoParticle,m.fval/len(distance)))
@@ -209,7 +256,6 @@ class CascadeReco(icetray.I3ConditionalModule):
                 finalresult = results[i][0]
                 finalval = results[i][1]
                 finalfit = i
-        print(finalfit)
 
         outputpulsemap = dataclasses.I3RecoPulseSeriesMap()
         for dom in data.keys() :

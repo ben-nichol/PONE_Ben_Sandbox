@@ -16,7 +16,7 @@ parser.add_argument("-p", "--npmts",type= int, default = 16, help="PMTs per DOM.
 args = parser.parse_args()
 
 
-outfileName = "PONE_"+str(args.nstring)+"String.i3.gz"
+outfileName = "PONE_"+str(args.nstring)+"String_"+str(int(args.spacing))+"Spacing.i3.gz"
 outfile = dataio.I3File(outfileName, 'w')
 nstrings = args.nstring
 spacing = args.spacing

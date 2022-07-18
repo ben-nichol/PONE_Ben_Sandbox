@@ -196,9 +196,9 @@ class DOMProperties():
             Returns the x,y,z for the PMT direction. 
     """
     def GetPMTDirection(self, pmtid):
-        x = np.sin(PMTDirection[pmtid][0])*np.cos(PMTDirection[pmtid][1])
-        y = np.sin(PMTDirection[pmtid][0])*np.sin(PMTDirection[pmtid][1])
-        z = np.cos(PMTDirection[pmtid][0])
+        x = np.sin(self.PMTDirection[pmtid-1][0])*np.cos(self.PMTDirection[pmtid-1][1])
+        y = np.sin(self.PMTDirection[pmtid-1][0])*np.sin(self.PMTDirection[pmtid-1][1])
+        z = np.cos(self.PMTDirection[pmtid-1][0])
         return x, y, z
 
     """!
