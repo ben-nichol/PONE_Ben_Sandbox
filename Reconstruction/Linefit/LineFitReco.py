@@ -195,6 +195,7 @@ class LineFitReco(icetray.I3ConditionalModule):
         linefit.speed = speed
         linefit.pos = vertex        
         linefit.time = weighted_time
+        linefit.fit_status = dataclasses.I3Particle.FitStatus.OK
 
         frame[self.output] = linefit
         self.PushFrame(frame)  
