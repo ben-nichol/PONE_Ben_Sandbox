@@ -2,17 +2,17 @@ from icecube import dataio, dataclasses, icetray
 from icecube.icetray import OMKey, I3Units
 import numpy as np
 import argparse
-from GCD.GenerateLatticeStructure import generateLaticeSpots
+from GenerateLatticeStructure import generateLaticeSpots
 import gcdHelpers
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-s", "--spacing",type = float, default = 50.0, help="Spacing for strings in cluser.")
-parser.add_argument("-l", "--clusterspacing",type = float, default = 200.0, help="Spacing for strings in cluser.")
+parser.add_argument("-s", "--spacing",type = float, default = 80.0, help="Spacing for strings in cluser.")
+parser.add_argument("-l", "--clusterspacing",type = float, default = 400.0, help="Spacing for strings in cluser.")
 parser.add_argument("-n", "--nstring",type= int, default = 10, help="Number of strings per cluster.")
 parser.add_argument("-c", "--nclusters",type= int, default = 7, help="Number of clusters.")
 parser.add_argument("-d", "--ndoms",type= int, default = 20, help="Doms per string.")
 parser.add_argument("-r", "--domradius",type= int, default = (17.0*2.54*0.01*0.5), help="Radius of dom. Defaults to 17\"")
-parser.add_argument("-p", "--npmts",type= int, default = 13, help="PMTs per DOM.")
+parser.add_argument("-p", "--npmts",type= int, default = 16, help="PMTs per DOM.")
 args = parser.parse_args()
 
 
@@ -58,8 +58,8 @@ def generateGeometry():
         FinalStringx[i] -= mean_x
         FinalStringy[i] -= mean_y
 
-    sp = 800.0/19.0
-    depthlist = [(-400.0+sp*i)*I3Units.meter for i in range(20)]
+    sp = 950.0/19.0
+    depthlist = [(-450.0+sp*i)*I3Units.meter for i in range(20)]
     depth = np.array(depthlist)
 
     for i in range(len(FinalStringx)) :
