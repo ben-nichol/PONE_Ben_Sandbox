@@ -12,50 +12,53 @@ import numpy as np
 import time
 from Utilities.PandelPDFs import cpandel as pdf               # This module is used to store the pdf
 from scipy import optimize as op
-import sys
+import sys,os
 import argparse
 import math as m
 from Utilities.RecoUtility import GetGeoTime
 from Utilities.DOMUtility import NoPMTKey, AddPMTKey, DOMProperties
 from Utilities.OpticalParameters import c, n, ngroup, tau
+import pickle
+from scipy.interpolate import UnivariateSpline
 
 # Functional that is fed data from InitialGuess for PMT locations and the PDF we wish to use. Uses those locations to build a Pandel Function for a given track
-def LikelihoodFunctor(data,domsUsed,_vertexrad,_tau,_minr,_domutil):
+def LikelihoodFunctor(_sigmascale,data,domsUsed,_vertexrad,_tau):
     # turn PMT locations and time hits into numpy arrays for easier numpy algebra
     pulse_series = data
     geo_doms = domsUsed
-
-    tau = _tau                                        # time parameter that has to be fit using simulations or data      
+    sigmascale = _sigmascale
     vertexRad = _vertexrad
-    pdark = 1e-8
-    minr = _minr
-    domutil = _domutil
+    pdark = 1e-14
     # min time index for the first hit PMT
-
+    sigma = 1.40291905
+    lambda_s = 2.02325418e+01
+    rho = 1.47088227e-02
+    tau = _tau
+    inputdict = pickle.load(open(os.getenv('PONESRCDIR')+"/data/PandelNormalization.pkl", 'rb'))
+    normalize = UnivariateSpline(inputdict['dist'], inputdict['normalization'],k=2)
     # uses the prior defined functions to build a likelihood function that when given a track (linefit) will produce a negative loglikelihood value
-    def likelihoodFunction(vtheta, vphi, theta, phi, t0,Energy):
-
+    def likelihoodFunction(x):
+        vtheta, vphi, theta, phi, t0, Energy = x
         vertex = [vertexRad*np.sin(vtheta)*np.cos(vphi),vertexRad*np.sin(vtheta)*np.sin(vphi),vertexRad*np.cos(vtheta)]
         direction = [np.sin(theta)*np.cos(phi),np.sin(theta)*np.sin(phi),np.cos(theta)]
-
         sum_nloglike = 0.0
         for dom in pulse_series.keys() :
             d,dc,t,theta,phi = GetGeoTime([geo_doms[dom].position.x,geo_doms[dom].position.y,geo_doms[dom].position.z],
                                 vertex,
                                 direction)
-            #p_charge = np.exp(-d/tau)*domutil.GetPMTScaledAcceptance(int(dom.pmt),theta,phi)/max(dc,minr)
-            p_charge = np.exp(-d/tau)/max(dc,minr)
+            pcharge = np.exp(-d/tau)/min(1.0,dc)
             for pulse in pulse_series[dom] :
                 charge = 1.0
                 time_r = pulse.time - t0 - t
-                cpandel_out = pdf(time_r ,d)
+                cpandel_out = pdf(time_r ,d,np.sqrt(sigma*sigma+sigmascale*sigmascale),lambda_s,rho)/normalize(min(max(1.0,d),200.))
                 if type(pulse_series) == 'icecube.dataclasses.I3RecoPulseSeriesMap' :
                     charge = pulse.charge
-                #print("pdf = "+str(Energy*cpandel_out*p_charge)+" dark = "+str(pdark))
-                if time_r < 0 :
-                    sum_nloglike -= charge*(np.log(Energy*cpandel_out*p_charge+pdark) + time_r)
-                else :
-                    sum_nloglike -= charge*np.log(Energy*cpandel_out*p_charge+pdark)
+                #print("dist = "+str(d)+" time_r = "+str(time_r)+" cpandel_out = "+str(cpandel_out))
+                sum_nloglike -= charge*(np.log(Energy*cpandel_out+pdark))
+                #if time_r < 0 :
+                #    sum_nloglike -= charge*(np.log(Energy*cpandel_out*pcharge+pdark) + time_r)
+                #else :
+                #    sum_nloglike -= charge*np.log(Energy*cpandel_out*pcharge+pdark)
 
         return sum_nloglike
 
@@ -129,7 +132,7 @@ class TrackReco(icetray.I3ConditionalModule):
         icetray.I3ConditionalModule.__init__(self, context)
 
         self.AddParameter("pulseseries","Name of the Merged MCPE tree name","MergedSeriesMap")
-        self.AddParameter("seedtrack","Track to seed fit","linefit")
+        self.AddParameter("seedtrack","Track to seed fit",["linefit"])
         self.AddParameter("output","Track to store fit.","llnfit")
         self.AddParameter("vertexRad","Radius to put vertex at",200.)
         self.AddParameter("UseMC","Use MC Truth Track to seed",False)
@@ -150,6 +153,7 @@ class TrackReco(icetray.I3ConditionalModule):
         self.tau  = self.GetParameter("tau")
         self.minr = self.GetParameter("minr")
         self.domprop = DOMProperties()
+        self.data = None
 
     # Main function of this file. Structured this way so that it can be easily imported aswell in any other implementation. 
 
@@ -174,56 +178,68 @@ class TrackReco(icetray.I3ConditionalModule):
 
         data = frame[self.pulseseries]
 
-        if not frame.Has(self.seedtrack) :
-            self.PushFrame(frame)
-            return
+        results= []
+        result_nlogl=[]
 
-        linefit = frame[self.seedtrack]
-
-        direction = dataclasses.I3Direction(linefit.dir.x,linefit.dir.y,linefit.dir.z) 
-        p_2 = linefit.pos.x**2.0+linefit.pos.y**2.0+linefit.pos.z**2.0
-        pd = (linefit.pos.x*direction.x+linefit.pos.y*direction.y+linefit.pos.z*direction.z)
-        r_2 = self.vertexRad**2.0
-
-        if p_2 > self.vertexRad :
-            ratio = self.vertexRad/p_2
-            vertex = dataclasses.I3Position(linefit.pos.x*ratio,linefit.pos.y*ratio,linefit.pos.z*ratio)
-        elif pd**2.0-p_2+r_2 > 0.0 :
-            L = -pd - np.sqrt(pd**2.0-p_2+r_2)
-            vertex = dataclasses.I3Position(linefit.pos.x+L*direction.x,linefit.pos.y+L*direction.y,linefit.pos.z+L*direction.z)
+        qFunctor_15 = LikelihoodFunctor(15.0,data,self.domsUsed,self.vertexRad,50.)
+        qFunctor_10 = LikelihoodFunctor(10.0,data,self.domsUsed,self.vertexRad,40.)
+        qFunctor_5 = LikelihoodFunctor(5.0,data,self.domsUsed,self.vertexRad,30.)
+        qFunctor_0 = LikelihoodFunctor(0.0,data,self.domsUsed,self.vertexRad,28.)
         
-        VTheta = vertex.theta
-        VPhi = vertex.phi
+        functionlist = [qFunctor_15,qFunctor_10,qFunctor_5,qFunctor_0]
 
-        T0 = GetVertexTime(vertex,direction,data,self.domsUsed)
+        for seedtrack in self.seedtrack :
+            if not frame.Has(seedtrack) :
+                continue
 
-        qFunctor = LikelihoodFunctor(data,self.domsUsed,self.vertexRad,self.tau,self.minr,self.domprop)
+            linefit = frame[seedtrack]
 
-        # Minimize using scipy
-        def func(x):
-            vtheta, vphi, theta, phi, t0, energy = x
-            return qFunctor(vtheta, vphi, theta, phi, t0,energy)
-        solution = op.minimize(fun=func, 
-                               x0=np.array([VTheta, VPhi, direction.theta, direction.phi, T0,1.0]), 
+            direction = dataclasses.I3Direction(linefit.dir.x,linefit.dir.y,linefit.dir.z) 
+            p_2 = linefit.pos.x**2.0+linefit.pos.y**2.0+linefit.pos.z**2.0
+            pd = (linefit.pos.x*direction.x+linefit.pos.y*direction.y+linefit.pos.z*direction.z)
+            r_2 = self.vertexRad**2.0
+
+            if p_2 > self.vertexRad :
+                ratio = self.vertexRad/p_2
+                vertex = dataclasses.I3Position(linefit.pos.x*ratio,linefit.pos.y*ratio,linefit.pos.z*ratio)
+            elif pd**2.0-p_2+r_2 > 0.0 :
+                L = -pd - np.sqrt(pd**2.0-p_2+r_2)
+                vertex = dataclasses.I3Position(linefit.pos.x+L*direction.x,linefit.pos.y+L*direction.y,linefit.pos.z+L*direction.z)
+        
+            VTheta = vertex.theta
+            VPhi = vertex.phi
+       
+            T0 = linefit.time
+            if self.seedtrack == "linefit" :
+                T0 = GetVertexTime(vertex,direction,data,self.domsUsed)
+
+            solution = None
+            seedvalues = [VTheta, VPhi, direction.theta, direction.phi, T0,1.0]
+            for fitfunc in functionlist :
+                solution = op.minimize(fun=fitfunc, 
+                               x0=np.array([seedvalues]), 
                                method='Nelder-Mead')
+                seedvalues = solution.x
 
-        vx = self.vertexRad*np.sin(solution.x[0])*np.cos(solution.x[1])
-        vy = self.vertexRad*np.sin(solution.x[0])*np.sin(solution.x[1])
-        vz = self.vertexRad*np.cos(solution.x[0])
+            results.append(solution)
+            result_nlogl.append(solution.fun)
+
+
+        min_index = result_nlogl.index(min(result_nlogl))
+        vx = self.vertexRad*np.sin(results[min_index].x[0])*np.cos(results[min_index].x[1])
+        vy = self.vertexRad*np.sin(results[min_index].x[0])*np.sin(results[min_index].x[1])
+        vz = self.vertexRad*np.cos(results[min_index].x[0])
         q = dataclasses.I3Position(vx,vy,vz)
-        phi = solution.x[3] 
-        theta = solution.x[2]
+        phi = results[min_index].x[3] 
+        theta = results[min_index].x[2]
         u = dataclasses.I3Direction(np.sin(theta)*np.cos(phi), np.sin(theta)*np.sin(phi), np.cos(theta))
-        #print("initial = "+str(direction.theta)+","+str(direction.phi)+","+str(VTheta)+","+str(VPhi))
-        #print("final = "+str(theta)+","+str(phi)+","+str(solution.x[0])+","+str(solution.x[1]))
 
         # Record the final result
         recoParticle = dataclasses.I3Particle()
         recoParticle.shape = dataclasses.I3Particle.InfiniteTrack
                 
         # record on particle whether reconstruction was successful
-        #if minimizer.get_fmin()["is_valid"]:
-        if solution.success == True:
+        if results[min_index].success == True:
             recoParticle.fit_status = dataclasses.I3Particle.OK
         else:
             recoParticle.fit_status = dataclasses.I3Particle.InsufficientQuality
@@ -231,13 +247,12 @@ class TrackReco(icetray.I3ConditionalModule):
         recoParticle.dir = u
         recoParticle.speed = c
         recoParticle.pos = q
-        recoParticle.time = solution.x[4]
+        recoParticle.time = results[min_index].x[4]
         #print("Energy = "+str(solution.x[5]))
-
+        self.data = None
         # include both linefit and improved recos for comparison
         frame[self.output] = recoParticle  
-        frame[self.output+"_nloglike"] =  dataclasses.I3Double(solution.fun)
-        frame[self.output+"_seed_llhval"] = dataclasses.I3Double(qFunctor(VTheta, VPhi, direction.theta, direction.phi, T0,solution.x[5]))
-        
+        frame[self.output+"_nloglike"] =  dataclasses.I3Double(results[min_index].fun)
+        frame[self.output+"_seed"] =  dataclasses.I3String(self.seedtrack[min_index])        
         self.PushFrame(frame)    
 

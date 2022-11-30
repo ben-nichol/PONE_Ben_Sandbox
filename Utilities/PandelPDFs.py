@@ -39,8 +39,8 @@ def pandel(t, d, lambda_a = 15., lambda_s = 120., tau = 557E-9):
 #    frac_1 = sp.hyp1f1(0.5*xi,0.5,0.5*eta**2)/sp.gamma(0.5*(xi + 1.))
 #    frac_2 = sp.hyp1f1(0.5*(xi+1),1.5,0.5*eta**2)/sp.gamma(0.5*xi)
 #    return frac*(frac_1 - np.sqrt(2.)*eta*frac_2)
-
-def cpandel(t, d, sigma = 1.1339139328144132, lambda_s = 317.50178764954626, rho = 0.04079084329979382):
+#def cpandel(t, d, sigma = 1.1339139328144132, lambda_s = 317.50178764954626, rho = 0.04079084329979382):
+def cpandel(t, d, sigma, lambda_s, rho):
 
     xi = d/lambda_s                                                             
     scale = 1.0

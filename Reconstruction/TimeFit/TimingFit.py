@@ -4,13 +4,12 @@ import numpy as np
 from iminuit import Minuit
 from icecube import icetray, dataclasses
 from Utilities.DOMUtility import NoPMTKey, AddPMTKey
-
+from Utilities.OpticalParameters import c, GetIndex, GetGroupIndex
 class TimingFit(icetray.I3Module):
 
     def gamma_t_only(module, direct, origin):
-        s = 1e9; GeV = 1; m = 1
-        c = 3e8 * m/s
-        n = 1.4
+        s = 1e9; GeV = 1.0; m = 1.0
+        n = GetIndex(450.)
 
         pos = lambda t: dataclasses.I3Position(origin.x + c*t*direct.x,origin.y + c*t*direct.y,origin.z + c*t*direct.z)
 

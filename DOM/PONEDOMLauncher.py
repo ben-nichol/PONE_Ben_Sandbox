@@ -15,7 +15,7 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
         self.AddParameter("outputmap","Name of the output I3RecoPulseSeriesMap","I3RecoPulseSeriesMap")
         self.AddParameter("outputmap_mcpe","Name of the output I3MCPESeriesMap","I3MCPESeriesMap")
         self.AddParameter("add_noise","Should random noise be added?",True)
-        self.AddParameter("PMT_tts","Transit time spread of PMT",1.0*I3Units.ns)
+        self.AddParameter("PMT_tts","Transit time spread of PMT",3.0*I3Units.ns)
         self.AddParameter("PMT_ts","Transit time of PMT",25.0*I3Units.ns)
         self.AddParameter("chargesigma","Sigma of charge distribution",0.3)
         self.AddParameter("chargemean","Mean of Charge distribution ",1.0)
@@ -35,6 +35,8 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
         self.AddParameter("DOMAcceptanceFile","","")
         self.AddParameter("PMTQEFile","","")
         self.AddParameter("DropStrings","",[])
+        self.AddParameter("NoisePulseSeries","",[])
+        self.AddParameter("NoPureNoiseEvents","",True)
         self.AddOutBox("OutBox")
 
     def Configure(self):
@@ -60,7 +62,8 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
         self.randomService = self.GetParameter("RandomService") 
         self.splitDOMs = self.GetParameter("SplitDoms")
         self.dropstrings = self.GetParameter("DropStrings")
-        
+        self.noisePulseSeries = self.GetParameter("NoisePulseSeries")
+        self.noPureNoiseEvents = self.GetParameter("NoPureNoiseEvents")
         if self.GetParameter("PMTQEFile") != "" :
             GetPMTQETable(self.photonweights,self.GetParameter("PMTQEFile"))
 
@@ -213,6 +216,57 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
 
         return newmcpemap
 
+    def AddEnvironmentNoise(self,darkhits,noisepulses):
+        newmcpemap = {}
+        mergedmap = {}
+        for pulseseries in noisepulses :
+            if type(pulseseries) == type(dataclasses.I3RecoPulseSeries()):
+                for dom in pulseseries.keys() :
+                    nopmtkey = NoPMTKey(dom)
+                    if nopmtkey not in newmcpemap.keys() :
+                        newmcpemap[nopmtkey] = list()
+                    newmcpemap[nopmtkey].extend([(pulseseries[dom][i].time,dom.pmt) for i in range(len(pulseseries[dom]))])
+            elif type(pulseseries) == type(simclasses,I3PhotonSeries()):
+                for dom in noisepulses.keys() :
+                    newmcpemap[nopmtkey(dom)] = list()
+                    for pulse in noisepulses[dom]:
+                        pmtid = self.GetPMT(
+                                            photonDir = [pulse.dir.x,pulse.dir.y,pulse.dir.z],
+                                            wl = pulse.wavelength/I3Units.nanometer,
+                                            weight = pulse.weight
+                                            )
+                        newmcpemap[nopmtkey].append((pulse.time,pmtid))
+            else :
+                print("Invalid noise pulse series")
+        for dom in newmcpemap.keys() :
+            newmcpemap[dom].sort(key=lambda x:x[0])
+         
+        for dom in newmcpemap.keys() :
+            mergedmap[dom] = list()
+            if dom in darkhits.keys():
+                i=0
+                j=0
+                while i<len(darkhits[dom]) and j<len(newmcpemap[dom]) :
+                    if darkhits[dom].time < sortedpulses[j].time :
+                        mergedmap[dom].append(darkhits[dom])
+                        i+=1
+                    else :
+                        mergedmap[dom].append(sortedpulses[j])
+                        j+=1
+                if i<len(darkhits[dom]) :
+                    mergedmap[dom].append(darkhits[dom])
+                    i+=1
+                if j<len(sortedpulses) :
+                    mergedmap[dom].append(sortedpulses[j])
+                    j+=1
+            else :
+                mergedmap[dom] = newmcpemap[dom]
+
+        for dom in darkhits.keys():
+            if dom not in mergedmap.keys():
+                mergedmap[dom]=darkhits[dom]
+        return mergedmap
+
     def CombineOrderedLists(self,list1,list2):
             pulsetimelist = []
             j=0
@@ -241,7 +295,7 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
         for pe in mcpemap:
             time = self.randomService.gaus(pe[0],self.PMT_tts)
             if self.randomService.uniform(0.0,1.0) < self.LPprob :
-                time += self.randomService.gaus(self.PMT_ts,np.sqrt(2.0)*self.PMT_tts)
+                time += self.randomService.gaus(self.PMT_ts*2.0,np.sqrt(2.0)*self.PMT_tts)
             if len(pulsetimelist)<1 or time > pulsetimelist[-1][0] :
                 pulsetimelist.append((time,pe[1]))
             else :
@@ -308,14 +362,14 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
                     mingap = (pulsetimelist[i][0]-pulsetimelist[i-1][0])
                     minindex = i
             #If less than limit, combine pulses
-            while mingap <= 3.0 :
+            while mingap <= self.minTsep :
                 if pulsechargelist[minindex] > pulsechargelist[minindex-1]:
                     pulsechargelist[minindex] += pulsechargelist[minindex-1]
                     pulsechargelist[minindex-1] = 0.0
                 else:
                     pulsechargelist[minindex-1] += pulsechargelist[minindex]
                     pulsechargelist[minindex] = 0.0
-                mingap = 4.0
+                mingap = self.minTsep+1.0
                 minindex = -1
                 #reestablish new min gap
                 for i in range(1,len(pulsetimelist)) :
@@ -506,11 +560,16 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
             self.Simulation(simframe)
 
         photonmap = frame[self.inputmap]
+        noisepulses = [frame[noisepulsename] for noisepulsename in self.noisePulseSeries if frame.Has(noisepulsename)]
+        lennoisepulses = sum([len(noisepulses[i]) for i in range(len(noisepulses))])
         #print("ndoms = "+str(len(photonmap))) 
         # split photons from DOMs to PMTs-on-DOMs
         # and apply weights
-        if len(photonmap) < 1 :
+        if (len(photonmap) < 1) and self.noPureNoiseEvents :
             return
+        if len(photonmap) < 1 and lennoisepulses < 1 :
+            return
+
         photonmap_on_pmts,frame[self.inputmap+"_pmtsplit"]= self.SplitPMTs(photonmap, self.dropstrings)
         #print(" pmt split pulses = " + str(len(photonmap_on_pmts)))
         # find the minimum and maximum time (with padding)
@@ -521,6 +580,7 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
             # add dark noise
             #print("add noise")
             darkhits = self.AddDarkHits(max_pt,min_pt)
+            darkhits = self.AddEnvironmentNoise(darkhits,noisepulses)
         #print("ndarkhitpmts = " + str(len(darkhits)))
         # Save the MCPEs to the frame
         #frame[self.outputmap_mcpe] = mcpemap

@@ -104,27 +104,28 @@ resampledpulseshape = []
 dt = 0.1
 tmin = -10.0
 time = tmin
-lowbin = 0
-while time <= 50.0 :
-       if time < pulseshape[lowbin][0]:
+lowbin = 1
+timescale = 2.0
+while time <= 50.0*timescale :
+       if time < pulseshape[lowbin][0]*timescale:
               resampledpulseshape.append(0.0)
               time += dt
               continue
-       while lowbin<len(pulseshape)-2 and time > pulseshape[lowbin][0]:
+       while lowbin<len(pulseshape)-1 and time > pulseshape[lowbin][0]*timescale:
               lowbin += 1
-       if time > pulseshape[lowbin][0]:
+       if time > pulseshape[lowbin][0]*timescale:
               resampledpulseshape.append(0.0)
               time += dt
               continue
-       value = pulseshape[lowbin][1] + (pulseshape[lowbin+1][1]-pulseshape[lowbin][1])*((time-pulseshape[lowbin][0])/(pulseshape[lowbin+1][0]-pulseshape[lowbin][0]))
+       value = pulseshape[lowbin-1][1] + (pulseshape[lowbin][1]-pulseshape[lowbin-1][1])*((time-pulseshape[lowbin-1][0]*timescale)/((pulseshape[lowbin][0]-pulseshape[lowbin-1][0])*timescale))
        resampledpulseshape.append(value)
        time += dt
 
-specharge = sum(resampledpulseshape)/30.0
+specharge = abs(sum(resampledpulseshape))/(4.0/dt)
                                                                                 
 def pulsewave(time) :
-       bin = int((time+tmin)/dt)
-       if bin<0 or bin >= len(resampledpulseshape):
+       binnum = int((time-tmin)/dt)
+       if binnum<0 or binnum >= len(resampledpulseshape):
               return 0.0;
-       return resampledpulseshape[bin]
+       return resampledpulseshape[binnum]/specharge
 

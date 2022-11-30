@@ -1,3 +1,4 @@
+from Utilities.OpticalParameters import *
 import numpy as np
 
 """!
@@ -50,8 +51,10 @@ Operation:
 """
 def ComputeGeoTime(position,vert,direction) :
     c = 0.299792458                                 # speed of light 
-    n = 1.34
-    ngroup = 1.35557                                # 1.33 is the refractive index of water at 20 degrees C
+    #n = 1.34
+    #ngroup = 1.35557                                # 1.33 is the refractive index of water at 20 degrees C
+    n = GetIndex()
+    ngroup = GetGroupIndex()
     c_n = c/ngroup                                     # light in water
     theta_c = np.arccos(1./n)
     x = position[0] - vert[0]
@@ -99,8 +102,8 @@ Operation:
 
 def GetPhotonTravelTime(position,vert):
     c = 0.299792458                                 # speed of light 
-    n = 1.34
-    ngroup = 1.35557                                # 1.33 is the refractive index of water at 20 degrees C
+    n = GetIndex()
+    ngroup = GetGroupIndex()
     c_n = c/ngroup                                     # light in water
 
     x = position[0] - vert[0]

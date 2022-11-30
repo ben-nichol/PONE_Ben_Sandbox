@@ -90,6 +90,11 @@ def generateGeometry():
     sp = 950.0/19.0
     depthlist = [(-450.0+sp*i)*I3Units.meter for i in range(20)]
 
+    print(len(stringposx))
+
+    for i in range(len(stringposx)) :
+        print(str(stringposx[i]*spacing)+" , "+str(stringposy[i]*spacing))
+
     for i in range(len(stringposx)) :
         for m in range(domsPerString):
             omGeometry = dataclasses.I3OMGeo()

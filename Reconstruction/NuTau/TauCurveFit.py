@@ -47,6 +47,8 @@ class curveFit(icetray.I3ConditionalModule):
                           "List of DOM numbers to debug",
                           [])
 
+        self.AddParameter("waveformmap","Name of the Waveform map series","")
+
         self.AddOutBox("OutBox")
 
     def Configure(self):
@@ -58,62 +60,70 @@ class curveFit(icetray.I3ConditionalModule):
         self.frames = self.GetParameter("FrameList")
         self.strings = self.GetParameter("StringList")
         self.doms = self.GetParameter("DOMList")
+        self.waveformmapname = self.GetParameter("waveformmap")
 
-        self.frame_counter = 0
+    def Geometry(self,frame):
+        self.nopmtkeys = set()
+        self.domsUsed = frame['I3Geometry'].omgeo
+        self.nstring = 0
+        self.nom = 0
+        self.npmt = 0
+        for omkey in self.domsUsed.keys() :
+            self.nstring = max(self.nstring,omkey.string)
+            self.nom = max(self.nom,omkey.om)
+            self.npmt = max(self.npmt,omkey.pmt)
+            self.nopmtkeys.add(NoPMTKey(omkey))
+        self.nstring += 1
+        self.nom += 1
+        self.npmt += 1
+        self.PushFrame(frame)
+
 
     def DAQ(self, frame):
 
-        debug_mode = False
-
         recoPulseMap = frame[self.input]
+        waveformmapseries = frame[self.waveformmapname] 
 
         biGauss_valuesMap = dataclasses.I3MapKeyVectorDouble()
         doublePeak_valuesMap = dataclasses.I3MapKeyVectorDouble()
         exitStatusMap = dataclasses.I3MapKeyVectorDouble()
 
-        for omkey in recoPulseMap.keys():
+        for omkey in self.nopmtkeys :
+            waveform = dataclasses.I3Waveform()
+            mintime = 10000000.
+            maxtime = 0.
+            binwidth = 4.0
+            for ipmt in range(self.npmt):
+                omkey_wpmt = AddPMT(omkey,ipmt)
+                if omkey_wpmt in waveformmapseries.keys() :
+                    for wave in waveformmapseries[omkey_wpmt]:
+                        mintime = min(mintime,wave.time)
+                        maxtime = max(maxtime,wave.time+wave.binwidth*len(wave.waveform))
+                        binwidth = wave.binwidth
+            wavearray = []
+            for i in range((maxtime-mintime)/binwidth):
+                wavearray.append(0.0)
+            for ipmt in range(self.npmt):
+                omkey_wpmt = AddPMT(omkey,ipmt)
+                if omkey_wpmt in waveformmapseries.keys() :
+                    for wave in waveformmapseries[omkey_wpmt]:
+                        startbin = (wave.time-mintime)/binwidth
+                        for i in range(len(wave.waveform)):
+                            wavearray[startbin+i] += wave.waveform[i]
 
-            # Check if I want to debug this frame
-            if self.frame_counter in self.frames and omkey.string in self.strings and omkey.om in self.doms:
-                print('Frame number - '+ str(self.frame_counter), 'String number - ' + str(omkey.string), 'DOM number - '+ str(omkey.om))
-                debug_mode = True
-            else:
-                debug_mode = False
-
-            recoPulseList = recoPulseMap[omkey]
-            recoPulse_timeList = np.array([recoPulse.time for recoPulse in recoPulseList])
-            recoPulse_chargeList = np.array([recoPulse.charge for recoPulse in recoPulseList])
-
-            '''
-            Removing DOMs with hits less than 200 Hits
-            '''
-            if sum(recoPulse_chargeList) < self.cuts:
+            totalcharge = sum(wavearray)
+            if totalcharge > -100.:
                 exit_status = np.array([0])
                 exitStatusMap.update({omkey: dataclasses.I3VectorDouble(exit_status)})
-                continue
-
-            
 
             '''
             Calculating the mean and removing the tails
             '''
+            
+            mean = sum([wavearray[i]*(i+1)/totalcharge for i in range(len(wavearray))])-1
+            mean_charge = sum([wavearray[i] for i in range(max(0,int(mean-50./binwidth)),max(len(wavearray),int(mean+50./binwidth)))])
 
-            #mean = recoPulse_timeList.mean()
-            mean = sum(recoPulse_timeList*recoPulse_chargeList)/sum(recoPulse_chargeList) #mean is weighted
-            select_time = recoPulse_timeList[(recoPulse_timeList > mean-50) & (recoPulse_timeList < mean+50)]
-            select_charge = recoPulse_chargeList[(recoPulse_timeList > mean-50) & (recoPulse_timeList < mean+50)]
-            #print('SELECT CHARGE', select_charge, select_time, mean, recoPulse_timeList, recoPulse_chargeList)
-
-            if len(select_time) < 10:
-                exit_status = np.array([1])
-                exitStatusMap.update({omkey: dataclasses.I3VectorDouble(exit_status)})
-                continue
-
-            mean_select_time = sum(select_time*select_charge)/sum(select_charge)
-            max_hitTimes = recoPulse_timeList[(recoPulse_timeList > (mean_select_time-100))&(recoPulse_timeList < (mean_select_time+100))]
-            max_charge = recoPulse_chargeList[(recoPulse_timeList > (mean_select_time-100))&(recoPulse_timeList < (mean_select_time+100))]
-
-            if len(max_hitTimes) < 10:
+            if len(mean_charge) > -20:
                 exit_status = np.array([1])
                 exitStatusMap.update({omkey: dataclasses.I3VectorDouble(exit_status)})
                 continue
@@ -126,14 +136,9 @@ class curveFit(icetray.I3ConditionalModule):
             '''
             Histogramming the data from simulation
             '''
-            print('Now Histogramming')
             bins = np.arange(min(timestamps), max(timestamps), 3)
             num, bin_edges = np.histogram(timestamps, bins=bins, weights=max_charge)
             bin_centers = (bin_edges[:-1]+bin_edges[1:])/2
-
-            print(omkey)
-            for i in range(1,len(num)) :
-              print(str(i)+" , "+ str(num[i]) + " , " + str(num[i]-num[i-1]))
 
             num_ampRatio = num/max(num)
 
@@ -202,16 +207,9 @@ class curveFit(icetray.I3ConditionalModule):
 
                     #Single Peak
                     nll = lambda *args: log_likelihood_biGauss(*args)
-                    if debug_mode == True:
-                        print('Bounds on single peak')
-                        #print(tabulate(bnds_biGauss,
-                         #      tablefmt=u'fancy_grid'))
-                        #headers = [["llh","pos1", "wid1", "k1", "amp1"]]
-                        #print(tabulate(headers))
 
                     soln_single = minimize(log_likelihood_expGauss, initial_biGauss,
                                             args=(entries_in_bins, bin_centers, debug_mode),
-                                            #method='TNC',
                                             bounds = bnds_biGauss)
 
                     if soln_single.fun < best_fcn_single:
@@ -245,14 +243,9 @@ class curveFit(icetray.I3ConditionalModule):
 
                     nll = lambda *args: log_likelihood_doublePeak(*args)
                     if debug_mode == True:
-                        print('Bounds on double peak')
-                        # Don't repeat existing stuff
-                        #print(tabulate(bnds_doublePeak,
-                        #        tablefmt=u'fancy_grid'))
 
                     soln_double = minimize(log_likelihood_expDoublePeak, initial_doublePeak,
                                                 args=(entries_in_bins, bin_centers, debug_mode),
-                                                #method='TNC',
                                                 bounds=bnds_doublePeak)
 
                     if soln_double.fun < best_fcn_double:
@@ -287,48 +280,6 @@ class curveFit(icetray.I3ConditionalModule):
             # Define omkey:vector dictionary
             biGauss_valuesMap.update({omkey: dataclasses.I3VectorDouble(biGauss_values)})
             doublePeak_valuesMap.update({omkey: dataclasses.I3VectorDouble(doublePeak_values)})
-
-            print('Print message single peak -', soln_biGauss.message)
-            print('Print message double peak -', soln_doublePeak.message)
-            print('Log Likelihood Value single peak -', soln_biGauss.fun)
-            print('Log Likelihood Value double peak -', soln_doublePeak.fun)
-
-            if debug_mode==True:
-                print('Print message single peak -', soln_biGauss.message)
-                print('Print message double peak -', soln_doublePeak.message)
-                print('Log Likelihood Value single peak -', soln_biGauss.fun)
-                print('Log Likelihood Value double peak -', soln_doublePeak.fun)
-                import matplotlib.pyplot as plt
-                '''
-                (x, y) values for the fit
-                '''
-                #x = bin_centers
-                x = np.linspace(min(bin_centers)-30, max(bin_centers)+30, 1000)
-                #y_biGauss = biGauss(x, vals_single[1], vals_single[2], vals_single[3], vals_single[4])
-                #y_doublePeak = double_peak(x, vals[1], vals[2], vals[3], vals[4],
-                #                           vals[5], vals[6], vals[7], vals[8])
-
-                y_biGauss = expGauss(x, soln_biGauss.x[0],
-                                                soln_biGauss.x[1], soln_biGauss.x[2], soln_biGauss.x[3])
-                y_doublePeak = expDoublePeak(x, soln_doublePeak.x[0],
-                                            soln_doublePeak.x[1],soln_doublePeak.x[2],
-                                            soln_doublePeak.x[3], soln_doublePeak.x[4],
-                                            soln_doublePeak.x[5], soln_doublePeak.x[6],
-                                            soln_doublePeak.x[7])
-
-                plt.figure(figsize=(10,9))
-                _ = plt.hist(timestamps, bins=bins, weights=max_charge, histtype='step', linewidth = 5)
-                plt.plot(bin_centers, entries_in_bins, '*', c='k', label = 'Bins for fit', markersize=12, linewidth=6)
-                plt.plot(x, y_biGauss, '--', c = 'k', label = 'expGauss', linewidth=3)
-                plt.plot(x, y_doublePeak, '--', c = 'r', label = 'double expGauss', linewidth=3)
-                plt.axvline(x=soln_doublePeak.x[0], c='orange', label='Postion of First Gaussian')
-                plt.axvline(x=soln_doublePeak.x[4], c='g', label='Postion of Second Gaussian')
-                plt.axhline(y=soln_doublePeak.x[3], c='orange', label='Amplitude of First Gaussian')
-                plt.axhline(y=soln_doublePeak.x[7], c='g', label='Amplitude of Second gaussian')
-                #plt.axvline(x=peak_time_boundary,c='k')
-                plt.legend()
-                plt.xlabel('Time(ns)', fontsize = 16)
-                plt.title(str(omkey), fontsize=14)
 
         frame[self.output+'_biGauss'] = biGauss_valuesMap
         frame[self.output+ '_doublePeak'] = doublePeak_valuesMap

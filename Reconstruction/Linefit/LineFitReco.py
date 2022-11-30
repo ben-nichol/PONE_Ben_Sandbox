@@ -166,6 +166,9 @@ class LineFitReco(icetray.I3ConditionalModule):
         charge = [data[4] for data in datapoints]
 
         weighted_time = np.sum(np.array(t) * np.array(charge))/np.sum(np.array(charge))
+        weighted_x = np.sum(np.array(x) * np.array(charge))/np.sum(np.array(charge))
+        weighted_y = np.sum(np.array(y) * np.array(charge))/np.sum(np.array(charge))
+        weighted_z = np.sum(np.array(z) * np.array(charge))/np.sum(np.array(charge))
 
         xVelocity, x = self.fitLeastSquaresLine(t, x)
         yVelocity, y = self.fitLeastSquaresLine(t, y)
@@ -188,6 +191,8 @@ class LineFitReco(icetray.I3ConditionalModule):
             l = -b
         
         vertex = dataclasses.I3Position(x+l*direction.x,y+l*direction.y,z+l*direction.z)
+
+        T0 = weighted_time - np.sqrt((vertex.x-weighted_x)**2.0+(vertex.y-weighted_y)**2.0+(vertex.z-weighted_z)**2.0)/0.299
 
         linefit = dataclasses.I3Particle()
         linefit.shape = dataclasses.I3Particle.InfiniteTrack

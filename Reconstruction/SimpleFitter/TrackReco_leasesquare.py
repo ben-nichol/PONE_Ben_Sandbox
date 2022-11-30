@@ -9,7 +9,7 @@ import sys
 import argparse
 import math as m
 from Utilities.DOMUtility import AddPMTKey, DOMProperties
-from Utilities.OpticalParameters import c, ngroup,theta_c
+from Utilities.OpticalParameters import c,GetIndex,GetGroupIndex ,theta_c
 
 
 # Functional that is fed data from InitialGuess for PMT locations and the PDF we wish to use. Uses those locations to build a Pandel Function for a given track
@@ -18,7 +18,7 @@ def MinimizerFunctor(data,domsUsed,_minpos):
     deltaT = data
     geo_doms = domsUsed
     minpos = _minpos
-    c_ngroup = c/ngroup
+    c_ngroup = c/GetGroupIndex()
     sintheta = np.sin(theta_c)
     tantheta = np.tan(theta_c)
 
@@ -165,7 +165,7 @@ class TrackReco_leastsquare(icetray.I3ConditionalModule):
 
             res = m.values
 
-            c_ngroup = c/ngroup
+            c_ngroup = c/GetGroupIndex()
 
             dx = np.sin(res["theta"])*np.cos(res["phi"])
             dy = np.sin(res["theta"])*np.sin(res["phi"])
