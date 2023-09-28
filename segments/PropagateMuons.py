@@ -9,7 +9,7 @@ import icecube.dataclasses
 import icecube.phys_services
 import icecube.sim_services
 import icecube.simclasses
-import icecube.cmc
+#import icecube.cmc
 import icecube.PROPOSAL
 import json
 
@@ -107,14 +107,14 @@ def make_standard_propagators(SplitSubPeVCascades=True,
     """
     from icecube.icetray import I3Units
 
-    cascade_propagator = icecube.cmc.I3CascadeMCService(
-        icecube.phys_services.I3GSLRandomService(1))  # Dummy RNG
-    cascade_propagator.SetEnergyThresholdSimulation(1*I3Units.PeV)
-    if SplitSubPeVCascades:
-        cascade_propagator.SetThresholdSplit(1*I3Units.TeV)
-    else:
-        cascade_propagator.SetThresholdSplit(1*I3Units.PeV)
-    cascade_propagator.SetMaxMuons(MaxMuons)
+#    cascade_propagator = icecube.cmc.I3CascadeMCService(
+#        icecube.phys_services.I3GSLRandomService(1))  # Dummy RNG
+#    cascade_propagator.SetEnergyThresholdSimulation(1*I3Units.PeV)
+#    if SplitSubPeVCascades:
+#        cascade_propagator.SetThresholdSplit(1*I3Units.TeV)
+#    else:
+#        cascade_propagator.SetThresholdSplit(1*I3Units.PeV)
+#    cascade_propagator.SetMaxMuons(MaxMuons)
     muon_propagator = icecube.PROPOSAL.I3PropagatorServicePROPOSAL(
             config_file=PROPOSAL_config_file, slice_tracks=EmitTrackSegments)
     propagator_map =\
@@ -124,10 +124,10 @@ def make_standard_propagators(SplitSubPeVCascades=True,
         key = getattr(icecube.dataclasses.I3Particle.ParticleType, pt)
         propagator_map[key] = muon_propagator
 
-    for pt in "DeltaE", "Brems", "PairProd", "NuclInt", "Hadrons",\
-              "EMinus", "EPlus":
-        key = getattr(icecube.dataclasses.I3Particle.ParticleType, pt)
-        propagator_map[key] = cascade_propagator
+#    for pt in "DeltaE", "Brems", "PairProd", "NuclInt", "Hadrons",\
+#              "EMinus", "EPlus":
+#        key = getattr(icecube.dataclasses.I3Particle.ParticleType, pt)
+#        propagator_map[key] = cascade_propagator
     
     return propagator_map
 

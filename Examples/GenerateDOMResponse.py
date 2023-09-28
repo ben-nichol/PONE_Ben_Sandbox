@@ -6,6 +6,7 @@ from os.path import expandvars
 import numpy as np
 import argparse
 import DOM.PONEDOMLauncher 
+#import PONEDOMLauncher 
 
 parser = argparse.ArgumentParser(description = "Takes I3Photons from step2 of the simulations and generates DOM hits")
 parser.add_argument('-n', '--runNum',  dest = 'runNum', help = "number assigned to this specific run", default = 0 )

@@ -7,7 +7,8 @@ import random
 from icecube import icetray, dataclasses, dataio, simclasses
 from icecube import phys_services, sim_services
 from icecube import clsim
-import WaterOpticalModel.MakePoneMediumPropertiesConservative as Medium
+#import WaterOpticalModel.MakePoneMediumPropertiesConservative as Medium
+import MakePoneMediumPropertiesConservative as Medium
 from Utilities.DOMUtility import GetMaxTotalAcceptance
 
 parser = argparse.ArgumentParser(description = "Takes I3Photons from step2 of the simulations and generates DOM hits")

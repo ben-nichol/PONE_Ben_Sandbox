@@ -10,8 +10,7 @@ from os.path import expandvars
 import os, sys
 from icecube import phys_services
 #from icecube.simprod.modules import Corsika5ComponentGenerator
-from segments.GenerateCosmicRayMuons import GenerateSingleMuons, GenerateNaturalRateMuons
-from segments import GenerateCosmicRayMuons, PropagateMuons
+from segments import PropagateMuons
 #from icecube.simprod import segments
 from Utilities.GeoUtility import get_geo_from_gcd
 
@@ -22,7 +21,7 @@ def printfunc(frame, message = 'test'):
 parser = argparse.ArgumentParser()                                              
 parser.add_argument("-o", "--outfile",type = str,default="./test_output_muonprop.i3",help="")
 parser.add_argument("-r", "--run",type=int,default=0,help="")                                                       
-parser.add_argument("-g", "--gcdfile",default=os.getenv('PONESRCDIR')+"/GCD/PONE_Phase1.i3.gz", help="Readin GCD file")
+parser.add_argument("-g", "--gcdfile",default=os.getenv('PONESRCDIR')+"/GCD/PONE_5String.i3.gz", help="Readin GCD file")
 parser.add_argument("-n", "--nevents",type=int,default=1000,help="Number of events to run.")
 parser.add_argument("-i", "--infile",type = str,default="./test_output.i3",help="")
 

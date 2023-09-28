@@ -3,6 +3,7 @@ from icecube.icetray import I3Units, OMKey, I3Frame
 from icecube.dataclasses import ModuleKey
 import numpy as np
 from Utilities.DOMUtility import NoPMTKey, AddPMTKey, DOMProperties
+#from DOMUtility import NoPMTKey, AddPMTKey, DOMProperties
 
 class SimpleDOMSimulation(icetray.I3ConditionalModule):
     """
