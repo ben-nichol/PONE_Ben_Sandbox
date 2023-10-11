@@ -1,9 +1,6 @@
 Flasher.Helper package
 ====================================
 
-Submodules
-----------
-
 Flasher.Helper.DeleteEmitterHits module
 -----------------------------------------------------
 
@@ -12,10 +9,3 @@ Flasher.Helper.DeleteEmitterHits module
    :undoc-members:
    :show-inheritance:
 
-Module contents
----------------
-
-.. automodule:: Flasher.Helper
-   :members:
-   :undoc-members:
-   :show-inheritance:

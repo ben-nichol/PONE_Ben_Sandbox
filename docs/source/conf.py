@@ -17,7 +17,7 @@ sys.path.insert(0, os.path.abspath('../..'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'pone_offline'
+project = 'PONE offline'
 copyright = '2023, PONE Collaboration'
 author = 'PONE Collaboration'
 

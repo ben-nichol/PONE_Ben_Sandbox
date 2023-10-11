@@ -2,7 +2,7 @@
 
 from os.path import expandvars
 from icecube import icetray, dataclasses, phys_services
-from I3Tray import I3Units
+from icecube.icetray import I3Units, I3Tray
 
 import math
 

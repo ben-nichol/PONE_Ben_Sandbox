@@ -1,8 +1,5 @@
-DOM package
+DOM modules
 =========================
-
-Submodules
-----------
 
 DOM.DOMSimFunctions module
 ----------------------------------------
@@ -68,10 +65,3 @@ DOM.pulseshape module
    :undoc-members:
    :show-inheritance:
 
-Module contents
----------------
-
-.. automodule:: DOM
-   :members:
-   :undoc-members:
-   :show-inheritance:

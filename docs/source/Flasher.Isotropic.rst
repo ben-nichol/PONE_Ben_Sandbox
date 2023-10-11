@@ -10,8 +10,6 @@ Subpackages
    Flasher.Isotropic.Flasher
    Flasher.Isotropic.Utilities
 
-Submodules
-----------
 
 Flasher.Isotropic.GenerateIsotropic module
 --------------------------------------------------------
@@ -29,10 +27,3 @@ Flasher.Isotropic.isotropic module
    :undoc-members:
    :show-inheritance:
 
-Module contents
----------------
-
-.. automodule:: Flasher.Isotropic
-   :members:
-   :undoc-members:
-   :show-inheritance:

@@ -1,8 +1,5 @@
-Flasher package
+Flasher modules
 =============================
-
-Subpackages
------------
 
 .. toctree::
    :maxdepth: 4
@@ -10,10 +7,3 @@ Subpackages
    Flasher.Helper
    Flasher.Isotropic
 
-Module contents
----------------
-
-.. automodule:: Flasher
-   :members:
-   :undoc-members:
-   :show-inheritance:

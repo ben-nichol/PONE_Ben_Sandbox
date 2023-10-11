@@ -1,7 +1,4 @@
-pone_offline
-============
-
-Modules
+Software Modules
 ----------
 .. toctree::
    :maxdepth: 4
