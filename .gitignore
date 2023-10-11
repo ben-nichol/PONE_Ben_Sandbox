@@ -4,3 +4,4 @@ __pycache__/
 workdir/
 docs/build/
 oldversions/
+*.i3
