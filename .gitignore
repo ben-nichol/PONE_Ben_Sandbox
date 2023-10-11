@@ -4,4 +4,6 @@ __pycache__/
 workdir/
 docs/build/
 oldversions/
-*.i3
+*.i3*
+*.h5
+*.lic
