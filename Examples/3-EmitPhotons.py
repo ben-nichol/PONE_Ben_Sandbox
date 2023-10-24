@@ -52,8 +52,8 @@ print("GetMaxAngularAcceptance() =", dom_properties.GetMaxAngularAcceptance())
 print("GetMaxPMTQE()             =", dom_properties.GetMaxPMTQE())
 
 tray.AddSegment(clsim.I3CLSimMakePhotons, 'goCLSIM',
-                UseCPUs=True,
-#                UseGPUs=True,
+#                UseCPUs=True,
+                UseGPUs=True,
                 #UseOnlyDeviceNumber=[1],
                 #OpenCLDeviceList=[0],
                 MCTreeName="I3MCTree",
