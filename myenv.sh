@@ -48,13 +48,13 @@ fi
 _I3_SHELL=$NEW_SHELL
 
 pushd `dirname $0` >/dev/null
-BASEDIR='/app/icetray-public'
+BASEDIR='/usr/local/icetray'
 popd >/dev/null
 
 _I3_SRC=$BASEDIR
 _I3_BUILD=$BASEDIR/build
-_I3_TESTDATA=/app/icetray-public/build/test-data
-_I3_PRODDATA=/app/icetray-public/build/prod-data
+_I3_TESTDATA=/usr/local/icetray/build/test-data
+_I3_PRODDATA=/usr/local/icetray/build/prod-data
 
 _PONE_SRC="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
@@ -73,11 +73,11 @@ then
 fi
 
 _ROOTSYS=''
-_LD_LIBRARY_PATH=/app/icetray-public/build/lib:/app/icetray-public/build/lib/tools::$LD_LIBRARY_PATH
-_DYLD_LIBRARY_PATH=/app/icetray-public/build/lib:/app/icetray-public/build/lib/tools:$DYLD_LIBRARY_PATH
+_LD_LIBRARY_PATH=/usr/local/icetray/build/lib:/usr/local/icetray/build/lib/tools::$LD_LIBRARY_PATH
+_DYLD_LIBRARY_PATH=/usr/local/icetray/build/lib:/usr/local/icetray/build/lib/tools:$DYLD_LIBRARY_PATH
 
-_PYTHONPATH=/app/icetray-public/build/lib:$PYTHONPATH
-_PATH=/app/icetray-public/build/bin:$PATH
+_PYTHONPATH=/usr/local/icetray/build/lib:$PYTHONPATH
+_PATH=/usr/local/icetray/build/bin:$PATH
 
 
 _HIPPO_FOUND=
@@ -149,7 +149,7 @@ if [ -z "$I3_SHELL" ] # a clean, first invocation
 	PONESRCDIR=$_PONE_SRC \
     HDF5_USE_FILE_LOCKING=$_HDF5_USE_FILE_LOCKING \
 	 \
-	$NEW_SHELL --rcfile <(echo 'export PS1="(Apptainer)\e[0;32m[I3T]:\W\$ \e[m ";  export PYTHONPATH=$PYTHONPATH:$(pwd):/app/LeptonInjector/build/')
+	$NEW_SHELL --rcfile <(echo 'export PS1="(Apptainer)\e[0;32m[I3T]:\W\$ \e[m ";  export PYTHONPATH=$PYTHONPATH:$(pwd):/usr/local/LeptonInjector/build/')
 
 else  # not clean, use previous environment
     $NEW_SHELL "$@"

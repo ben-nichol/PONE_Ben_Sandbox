@@ -38,7 +38,7 @@ maxAzimuth  = 180.*deg
 controller  = LI.Controller( the_injector, minE, maxE, gamma, minAzimuth, maxAzimuth, minZenith, maxZenith)  
 
 # specify the output, earth model
-path_to = "/app/LeptonInjector/resources/earthparams/"
+path_to = "/usr/local/LeptonInjector/source/resources/earthparams/"
 controller.SetEarthModel("Planet", path_to)
 controller.NameOutfile("dataio/data_output.h5")
 controller.NameLicFile("dataio/config.lic")
