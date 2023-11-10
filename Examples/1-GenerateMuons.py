@@ -13,7 +13,7 @@ import os
 xs_folder = os.getenv('PONESRCDIR')+"/CrossSectionModels/csms_differential_v1.0"
 
 # Now, we'll make a new injector for muon tracks 
-n_events    = 55000
+n_events    = 50
 diff_xs     = xs_folder + "/dsdxdy_nu_CC_iso.fits"
 total_xs    = xs_folder + "/sigma_nu_CC_iso.fits"
 is_ranged   = True

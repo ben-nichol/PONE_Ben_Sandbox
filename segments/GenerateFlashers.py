@@ -1,6 +1,6 @@
 from os.path import expandvars
 from icecube import icetray, dataclasses
-from I3Tray import I3Units
+from icecube.icetray import I3Tray, I3Units
 
 def GenerateFlashers(frame,
     FlashString=63,
