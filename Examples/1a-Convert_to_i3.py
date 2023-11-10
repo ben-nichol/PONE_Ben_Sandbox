@@ -20,11 +20,17 @@ def make_i3_particle( particle_data ):
     This takes one of the lists/tuples from the hdf5 datatable for a particle.
     It converts it into an I3Particle 
     """
+
     pt = dataclasses.I3Particle()
-    pt.pdg_encoding = int(particle_data[1])
+    if(particle_data[1]==48):
+        pt.pdg_encoding = int(14)
+        pt.length=0
+    else:
+        pt.pdg_encoding = int(particle_data[1])
     pt.pos = dataclasses.I3Position( particle_data[2][0], particle_data[2][1], particle_data[2][2])
     pt.dir = dataclasses.I3Direction(particle_data[3][0], particle_data[3][1])
     pt.energy = particle_data[4]*I3Units.GeV
+    pt.time = 0.0
     return(pt)
 
 def get_prop_dict(props, ranged):
@@ -99,7 +105,7 @@ class li_parser(icetray.I3Module):
         self.PushFrame(frame)
 
 # we really only want to rename the file
-outname = filename.split(".")[0] + ".i3"
+outname = filename.split(".")[0] + "_test.i3"
 
 # prepare a tray, load in a DAQ source, and run our converter module 
 tray = I3Tray()
