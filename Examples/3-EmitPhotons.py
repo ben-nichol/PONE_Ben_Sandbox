@@ -56,15 +56,14 @@ tray.AddSegment(clsim.I3CLSimMakePhotons, 'goCLSIM',
                 UseGPUs=True,
                 #UseOnlyDeviceNumber=[1],
                 #OpenCLDeviceList=[0],
-                MCTreeName="I3MCTree",
+                MCTreeName="I3MCTree_postprop",
                 UseI3PropagatorService=False,
-                #OutputMCTreeName="I3MCTree_clsim",
+                OutputMCTreeName="I3MCTree_clsim",
                 #FlasherInfoVectName="I3FlasherInfo",
                 #FlasherPulseSeriesName="PhotonBomb",
                 #MMCTrackListName="MMCTrackList",
                 PhotonSeriesName=photon_series,
                 MCPESeriesName='',
-                #ParallelEvents=1000,
                 RandomService=randomService,
                 IceModelLocation=Medium.MakePoneMediumProperties(),
                 UnWeightedPhotons=False,
@@ -76,15 +75,15 @@ tray.AddSegment(clsim.I3CLSimMakePhotons, 'goCLSIM',
                 #CrossoverEnergyHadron=float(options.CROSSENERGY),
                 StopDetectedPhotons=True,
                 #UseHoleIceParameterization=False, # Apply it when making hits!
-                #HoleIceParameterization=expandvars("$I3_SRC/ice-models/resources/models/angsens/as.flasher_p1_0.30_p2_-1"),
+                HoleIceParameterization=os.getenv('PONESRCDIR')+"/data/as.full",
                 DoNotParallelize=False,
 		WavelengthAcceptance = dom_properties.GetCLSimQETable( factor=dom_properties.GetMaxAngularAcceptance()*1.05 ),
-                DOMOversizeFactor=1.0, #(17./13.),
+                DOMOversizeFactor=10.0, #(17./13.),
                 UnshadowedFraction=1., #normal in IC79 and older CLSim versions was 0.9, now it is 1.0
                 GCDFile= args.gcdfile, #gcd_file,
                 )
 
-#icetray.logging.I3Logger.global_logger.set_level_for_unit('clsim', icetray.logging.I3LogLevel.LOG_ERROR)
+icetray.logging.I3Logger.global_logger.set_level_for_unit('clsim', icetray.logging.I3LogLevel.LOG_INFO)
 #icetray.logging.I3Logger.global_logger.set_level_for_unit('I3CLSimStepToPhotonConverterOpenCL', icetray.logging.I3LogLevel.LOG_WARN)
 
 #tray.AddModule(PrintMessage,"print",message = "CLSiM Check")
@@ -95,7 +94,7 @@ tray.AddModule("I3Writer","writer",
                Streams = [icetray.I3Frame.DAQ, icetray.I3Frame.Physics, icetray.I3Frame.TrayInfo],
               )
 
-#tray.AddModule("TrashCan","adios")
+tray.AddModule("TrashCan","adios")
 
 tray.Execute()
 tray.Finish()

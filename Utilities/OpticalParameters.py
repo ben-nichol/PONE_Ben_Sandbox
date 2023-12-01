@@ -1,6 +1,6 @@
 import numpy as np 
-from icecube.clsim import I3CLSimFunctionRefIndexQuanFry
-from I3Tray import I3Units
+from icecube.simclasses import I3CLSimFunctionRefIndexQuanFry
+from icecube.icetray import I3Tray,I3Units
 
 c = 0.299792458  # speed of light
 lambda_s = 120.0  # scattering length of light for violet light

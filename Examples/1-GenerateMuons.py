@@ -13,10 +13,10 @@ import os
 xs_folder = os.getenv('PONESRCDIR')+"/CrossSectionModels/csms_differential_v1.0"
 
 # Now, we'll make a new injector for muon tracks 
-n_events    = 50
+n_events    = 4
 diff_xs     = xs_folder + "/dsdxdy_nu_CC_iso.fits"
 total_xs    = xs_folder + "/sigma_nu_CC_iso.fits"
-is_ranged   = True
+is_ranged   = False #default True
 final_1     = LI.Particle.ParticleType.MuMinus
 final_2     = LI.Particle.ParticleType.Hadrons
 the_injector = LI.Injector( n_events , final_1, final_2, diff_xs, total_xs, is_ranged)
@@ -27,7 +27,7 @@ deg = pi/180.
 
 # define some defaults 
 minE        = 1000.     # [GeV]
-maxE        = 100000.   # [GeV]
+maxE        = 10000.   # [GeV]
 gamma       = 2. 
 minZenith   = 80.*deg
 maxZenith   = 180.*deg

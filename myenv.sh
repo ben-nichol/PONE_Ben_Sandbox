@@ -148,8 +148,9 @@ if [ -z "$I3_SHELL" ] # a clean, first invocation
 	I3_SHELL=$_I3_SHELL \
 	PONESRCDIR=$_PONE_SRC \
     HDF5_USE_FILE_LOCKING=$_HDF5_USE_FILE_LOCKING \
+	PYTHONPATH=$PYTHONPATH:/usr/local/LeptonInjector/build\
 	 \
-	$NEW_SHELL --rcfile <(echo 'export PS1="(Apptainer)\e[0;32m[I3T]:\W\$ \e[m ";  export PYTHONPATH=$PYTHONPATH:$(pwd):/usr/local/LeptonInjector/build/')
+	$NEW_SHELL --rcfile <(echo 'export PS1="\e[0;32m[I3T]:\W\$ \e[m ";  export PYTHONPATH=$PYTHONPATH:$(pwd)') "$@"
 
 else  # not clean, use previous environment
     $NEW_SHELL "$@"
