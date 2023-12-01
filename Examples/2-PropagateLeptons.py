@@ -22,7 +22,7 @@ parser.add_argument("-o", "--outfile",type = str,default="dataio/muonprop.i3",he
 parser.add_argument("-r", "--run",type=int,default=0,help="")                                                       
 parser.add_argument("-g", "--gcdfile",default=os.getenv('PONESRCDIR')+"/GCD/PONE_5String.i3.gz", help="Readin GCD file")
 parser.add_argument("-n", "--nevents",type=int,default=1000,help="Number of events to run.")
-parser.add_argument("-i", "--infile",type = str,default="dataio/data_output_test.i3",help="")
+parser.add_argument("-i", "--infile",type = str,default="dataio/data_output.i3",help="")
 
 args = parser.parse_args()
 

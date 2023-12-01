@@ -110,7 +110,7 @@ class li_parser(icetray.I3Module):
         self.PushFrame(frame)
 
 # we really only want to rename the file
-outname = filename.split(".")[0] + "_test.i3"
+outname = filename.split(".")[0] + ".i3"
 
 # prepare a tray, load in a DAQ source, and run our converter module 
 tray = I3Tray()
