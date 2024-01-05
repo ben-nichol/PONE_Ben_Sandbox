@@ -214,8 +214,8 @@ def GetDOMAcceptance(domRadius = 0.2159*I3Units.m): # 17 inch diameter
                                   np.exp( -( glass_width / this_abs_glass ) ) * \
                                   np.exp( -( gel_width / this_abs_gel ) )
         
-        print current_om_eff_area, om_area
-        print pmt_area, pmt_collection_efficiency, q_eff.getValue(wavelength*I3Units.nanometer), np.exp( -( glass_width / this_abs_glass ) ), np.exp( -( gel_width / this_abs_gel ) )
+        print(current_om_eff_area, om_area)
+        print(pmt_area, pmt_collection_efficiency, q_eff.getValue(wavelength*I3Units.nanometer), np.exp( -( glass_width / this_abs_glass ) ), np.exp( -( gel_width / this_abs_gel ) ))
 
         om_eff_area.append(current_om_eff_area)
 
@@ -337,7 +337,7 @@ currentPMTRadius = 5.0/12 *I3Units.ft
 currentDOMRadius = 0.16510*I3Units.m
 currentCoverage = (2 * np.pi * currentPMTRadius**2) / (4 * np.pi * currentDOMRadius**2)
 
-print upgradeCoverage / currentCoverage
+print(upgradeCoverage / currentCoverage)
 
 domAcceptance = GetIceCubeDOMAcceptance(coverageFactor = upgradeCoverage / currentCoverage)
 

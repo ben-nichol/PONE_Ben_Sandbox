@@ -244,7 +244,7 @@ class curveFit(icetray.I3ConditionalModule):
                     nll = lambda *args: log_likelihood_doublePeak(*args)
                     if debug_mode == True:
 
-                    soln_double = minimize(log_likelihood_expDoublePeak, initial_doublePeak,
+                    	soln_double = minimize(log_likelihood_expDoublePeak, initial_doublePeak,
                                                 args=(entries_in_bins, bin_centers, debug_mode),
                                                 bounds=bnds_doublePeak)
 

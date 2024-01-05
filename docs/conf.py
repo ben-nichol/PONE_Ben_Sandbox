@@ -12,8 +12,10 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../'))
+from unittest.mock import Mock
 
+sys.path.insert(0, os.path.abspath('../'))
+os.environ['PONESRCDIR'] = '.'
 
 # -- Project information -----------------------------------------------------
 
@@ -32,7 +34,8 @@ extensions = [
 'sphinx.ext.napoleon'
 ]
 
-autodoc_mock_imports = ['icecube','I3Tray']
+autodoc_mock_imports = ['icecube','I3Tray','I3Constants','I3Units']
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 

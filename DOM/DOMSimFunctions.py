@@ -65,7 +65,7 @@ def selectStartTime(timestamps):
     return randStartTime, noiseWindow
 
 def addHits(timestamps):
-    print "adding Hits"
+    print("adding Hits")
     mDOM_noise = ([])
     startTimeVals = ([])
     for segment in range(0, 24):

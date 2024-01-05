@@ -52,14 +52,14 @@ class addNoise(icetray.I3ConditionalModule):
         medVal = np.mean(mcpeTime)
         #print 'mcpeTime', mcpeTime
         #print 'mean', medVal
-        print 'median calculated'
+        print('median calculated')
 
         mcpeNoiseMap = simclasses.I3MCPESeriesMap()
         for modkey in geoMap.keys():
             #print 'generating noise in DOM'
             noiseList = generateNoiseMCPEList(modkey, medVal, self.timestamps)
             omkey = OMKey(modkey.string, modkey.om, 0)
-            print omkey
+            print(omkey)
             mcpeNoiseMap[omkey] = noiseList
 
         frame[self.noiseSeriesName] = mcpeNoiseMap
