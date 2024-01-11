@@ -10,22 +10,28 @@ import icecube.dataclasses
 import icecube.phys_services
 import icecube.sim_services
 import icecube.simclasses
-#import icecube.cmc
+
+# import icecube.cmc
 import icecube.PROPOSAL
 import json
 
-default_media_definition = os.path.expandvars("$PONESRCDIR/configs/PROPOSAL_config.json")
+default_media_definition = os.path.expandvars(
+    "$PONESRCDIR/configs/PROPOSAL_config.json"
+)
 
 
 @icecube.icetray.traysegment
-def PropagateMuons(tray, name,
-                   RandomService=None,
-                   CylinderRadius=None,
-                   CylinderLength=None,
-                   SaveState=True,
-                   InputMCTreeName="I3MCTree_preMuonProp",
-                   OutputMCTreeName="I3MCTree",
-                   **kwargs):
+def PropagateMuons(
+    tray,
+    name,
+    RandomService=None,
+    CylinderRadius=None,
+    CylinderLength=None,
+    SaveState=True,
+    InputMCTreeName="I3MCTree_preMuonProp",
+    OutputMCTreeName="I3MCTree",
+    **kwargs
+):
     """
     This segment propagates muons through ice with ``PROPOSAL``; it
     simulates lepton decays and energy losses due to ionization,
@@ -52,10 +58,12 @@ def PropagateMuons(tray, name,
     """
     if CylinderRadius is not None:
         icecube.icetray.logging.log_warn(
-            "The CylinderRadius now should be set in the configuration file in the detector configuration")
+            "The CylinderRadius now should be set in the configuration file in the detector configuration"
+        )
     if CylinderLength is not None:
         icecube.icetray.logging.log_warn(
-            "The CylinderLength now should be set in the configuration file in the detector configuration")
+            "The CylinderLength now should be set in the configuration file in the detector configuration"
+        )
     propagators = make_standard_propagators(**kwargs)
 
     # Set up propagators.
@@ -67,16 +75,19 @@ def PropagateMuons(tray, name,
         propagator_map = propagators
 
     if SaveState:
-        rng_state = InputMCTreeName+"_RNGState"
+        rng_state = InputMCTreeName + "_RNGState"
     else:
         rng_state = ""
 
-    tray.AddModule("I3PropagatorModule", name+"_propagator",
-                   PropagatorServices=propagator_map,
-                   RandomService=RandomService,
-                   InputMCTreeName=InputMCTreeName,
-                   OutputMCTreeName=OutputMCTreeName,
-                   RNGStateName=rng_state)
+    tray.AddModule(
+        "I3PropagatorModule",
+        name + "_propagator",
+        PropagatorServices=propagator_map,
+        RandomService=RandomService,
+        InputMCTreeName=InputMCTreeName,
+        OutputMCTreeName=OutputMCTreeName,
+        RNGStateName=rng_state,
+    )
 
     # Add empty MMCTrackList objects for events that have none.
     def add_empty_tracklist(frame):
@@ -84,19 +95,25 @@ def PropagateMuons(tray, name,
             frame["MMCTrackList"] = icecube.simclasses.I3MMCTrackList()
         return True
 
-    tray.AddModule(add_empty_tracklist, name+"_add_empty_tracklist",
-                   Streams=[icecube.icetray.I3Frame.DAQ])
+    tray.AddModule(
+        add_empty_tracklist,
+        name + "_add_empty_tracklist",
+        Streams=[icecube.icetray.I3Frame.DAQ],
+    )
 
     return
 
-def make_standard_propagators(SplitSubPeVCascades=True,
-                              EmitTrackSegments=True,
-                              MaxMuons=10,
-                              PROPOSAL_config_file=default_media_definition):
+
+def make_standard_propagators(
+    SplitSubPeVCascades=True,
+    EmitTrackSegments=True,
+    MaxMuons=10,
+    PROPOSAL_config_file=default_media_definition,
+):
     """
     Set up standard propagators (PROPOSAL for muons and taus, CMC for cascades)
-    
-	:param bool SplitSubPeVCascades:
+
+        :param bool SplitSubPeVCascades:
         Split cascades into segments above 1 TeV. Otherwise, split only above 1 PeV.
     :param bool EmitTrackSegments:
         Emit constant-energy track slices in addition to stochastic losses
@@ -108,27 +125,26 @@ def make_standard_propagators(SplitSubPeVCascades=True,
     """
     from icecube.icetray import I3Units
 
-#    cascade_propagator = icecube.cmc.I3CascadeMCService(
-#        icecube.phys_services.I3GSLRandomService(1))  # Dummy RNG
-#    cascade_propagator.SetEnergyThresholdSimulation(1*I3Units.PeV)
-#    if SplitSubPeVCascades:
-#        cascade_propagator.SetThresholdSplit(1*I3Units.TeV)
-#    else:
-#        cascade_propagator.SetThresholdSplit(1*I3Units.PeV)
-#    cascade_propagator.SetMaxMuons(MaxMuons)
+    #    cascade_propagator = icecube.cmc.I3CascadeMCService(
+    #        icecube.phys_services.I3GSLRandomService(1))  # Dummy RNG
+    #    cascade_propagator.SetEnergyThresholdSimulation(1*I3Units.PeV)
+    #    if SplitSubPeVCascades:
+    #        cascade_propagator.SetThresholdSplit(1*I3Units.TeV)
+    #    else:
+    #        cascade_propagator.SetThresholdSplit(1*I3Units.PeV)
+    #    cascade_propagator.SetMaxMuons(MaxMuons)
     muon_propagator = icecube.PROPOSAL.I3PropagatorServicePROPOSAL(
-            config_file=PROPOSAL_config_file, slice_tracks=EmitTrackSegments)
-    propagator_map =\
-        icecube.sim_services.I3ParticleTypePropagatorServiceMap()
+        config_file=PROPOSAL_config_file, slice_tracks=EmitTrackSegments
+    )
+    propagator_map = icecube.sim_services.I3ParticleTypePropagatorServiceMap()
 
     for pt in "MuMinus", "MuPlus", "TauMinus", "TauPlus":
         key = getattr(icecube.dataclasses.I3Particle.ParticleType, pt)
         propagator_map[key] = muon_propagator
 
-#    for pt in "DeltaE", "Brems", "PairProd", "NuclInt", "Hadrons",\
-#              "EMinus", "EPlus":
-#        key = getattr(icecube.dataclasses.I3Particle.ParticleType, pt)
-#        propagator_map[key] = cascade_propagator
-    
-    return propagator_map
+    #    for pt in "DeltaE", "Brems", "PairProd", "NuclInt", "Hadrons",\
+    #              "EMinus", "EPlus":
+    #        key = getattr(icecube.dataclasses.I3Particle.ParticleType, pt)
+    #        propagator_map[key] = cascade_propagator
 
+    return propagator_map
