@@ -24,7 +24,7 @@ CPU=False
 dom_properties = DOMProperties()
 
 photon_series = "I3Photons"
-#print 'CUDA devices: ', options.DEVICE
+#print('CUDA devices: ', options.DEVICE)
 tray = I3Tray()
 
 # Now fire up the random number generator with that seed

@@ -1,4 +1,5 @@
-"""Tray segments for muon propagation
+"""
+Tray segments for muon propagation
 
 """
 import os
@@ -13,8 +14,7 @@ import icecube.simclasses
 import icecube.PROPOSAL
 import json
 
-default_media_definition = os.path.expandvars(
-    "$PONESRCDIR/configs/PROPOSAL_config.json")
+default_media_definition = os.path.expandvars("$PONESRCDIR/configs/PROPOSAL_config.json")
 
 
 @icecube.icetray.traysegment
@@ -26,8 +26,7 @@ def PropagateMuons(tray, name,
                    InputMCTreeName="I3MCTree_preMuonProp",
                    OutputMCTreeName="I3MCTree",
                    **kwargs):
-    r"""Propagate muons.
-
+    """
     This segment propagates muons through ice with ``PROPOSAL``; it
     simulates lepton decays and energy losses due to ionization,
     bremsstrahlung, photonuclear interactions, and pair production.
@@ -96,7 +95,8 @@ def make_standard_propagators(SplitSubPeVCascades=True,
                               PROPOSAL_config_file=default_media_definition):
     """
     Set up standard propagators (PROPOSAL for muons and taus, CMC for cascades)
-    :param bool SplitSubPeVCascades:
+    
+	:param bool SplitSubPeVCascades:
         Split cascades into segments above 1 TeV. Otherwise, split only above 1 PeV.
     :param bool EmitTrackSegments:
         Emit constant-energy track slices in addition to stochastic losses
@@ -104,6 +104,7 @@ def make_standard_propagators(SplitSubPeVCascades=True,
     :param str PROPOSAL_config_file:
         Path to PROPOSAL config file
     Keyword arguments will be passed to I3PropagatorServicePROPOSAL
+
     """
     from icecube.icetray import I3Units
 

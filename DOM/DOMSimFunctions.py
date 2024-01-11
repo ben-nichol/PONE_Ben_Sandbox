@@ -73,7 +73,7 @@ def addHits(timestamps):
         movingVals = (noiseWindow - startTime)-(72e2/2)
         startTimeVals = np.append(startTimeVals, startTime)
         mDOM_noise = np.append(mDOM_noise, movingVals)
-    #print "mDOM_noise", mDOM_noise
+    #print("mDOM_noise", mDOM_noise)
     return mDOM_noise
 
 def generateNoiseMCPEList(modkey, medVal, timestamps):
@@ -86,10 +86,10 @@ def generateNoiseMCPEList(modkey, medVal, timestamps):
         #mcpe.id = dataclasses.I3ParticleID(photon.particleMajorID, photon.particleMinorID)
         mcpeNoise.npe = 1
         mcpeNoise.time = noiseHit + medVal
-        #print "mcpeNoise.time", mcpeNoise.time
+        #print("mcpeNoise.time", mcpeNoise.time)
         noiseList.append(mcpeNoise)
 
-    #print 'NoiseList', noiseList
+    #print('NoiseList', noiseList)
     return noiseList
 
 '''
