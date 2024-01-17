@@ -10,8 +10,6 @@ Welcome to the PONE offline documentation
 	:maxdepth: 2
 	:caption: Contents:
 
-	modules
-
 Indices and tables
 ==================
 
