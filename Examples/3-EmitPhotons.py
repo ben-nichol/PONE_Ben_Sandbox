@@ -17,8 +17,8 @@ parser.add_argument("-o", "--outfile",default="./clsim.i3", help="Write output t
 parser.add_argument("-x", "--xmlfile", default=None,dest="JSONFILE", help="Write statistics to JSONFILE")
 parser.add_argument("--oversize", default=1, type=float,dest="OVERSIZE", help="DOM oversize factor")
 parser.add_argument("--unweighted-photons", action="store_true",help="Propagate all Cherenkov photons. This is ~13x slower than downsampling first.")
-parser.add_argument("-g", "--gcdfile",default=os.getenv("PONESRCDIR") + "/GCD/PONE_5String.i3.gz")
-#parser.add_argument("-g", "--gcdfile",default="/cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_AVG_55697-57531_PASS2_SPE_withStdNoise.i3.gz")
+#parser.add_argument("-g", "--gcdfile",default=os.getenv("PONESRCDIR") + "/GCD/PONE_5String.i3.gz")
+parser.add_argument("-g", "--gcdfile",default="/cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_AVG_55697-57531_PASS2_SPE_withStdNoise.i3.gz")
 parser.add_argument("--use-cpu",  action="store_true", default=False,dest="USECPU", help="simulate using CPU instead of GPU")
 parser.add_argument("--double-buffering", default=False, action="store_true",help="Interleave kernel execution and i/o")
 parser.add_argument("--icemodel", default=expandvars("$I3_BUILD/ice-models/resources/models/ICEMODEL/spice_lea"),dest="ICEMODEL", help="A clsim ice model file/directory (ice models *will* affect performance metrics, always compare using the same model!)")
@@ -54,12 +54,12 @@ kwargs = {}
 
 tray.AddSegment(clsim.I3CLSimMakeHits, "makeCLSimHits",
     GCDFile = options.gcdfile,
-    DOMRadius=0.21590*icetray.I3Units.m, # 13" diameter 
-    #IceModelLocation=options.ICEMODEL,
-    IceModelLocation=Medium.MakePoneMediumProperties(),
-    WavelengthAcceptance = dom_properties.GetCLSimQETable( factor=dom_properties.GetMaxAngularAcceptance()*1.05 ),
-    MCPESeriesName = "",
-    #MCPESeriesName = "MCPESeriesMap",
+    #DOMRadius=0.21590*icetray.I3Units.m, # 13" diameter, uncomment for pone GCD 
+    IceModelLocation=options.ICEMODEL,
+    #IceModelLocation=Medium.MakePoneMediumProperties(), #pick one icemodel, above is ice, this is water
+    #WavelengthAcceptance = dom_properties.GetCLSimQETable( factor=dom_properties.GetMaxAngularAcceptance()*1.05 ), #fixes some observed errors
+    #MCPESeriesName = "", #fixes some observed errors
+    MCPESeriesName = "MCPESeriesMap",
     
     PhotonSeriesName = photonSeriesName,
     MCTreeName = MCTreeName,
