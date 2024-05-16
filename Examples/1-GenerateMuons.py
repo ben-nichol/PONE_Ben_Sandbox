@@ -4,7 +4,7 @@ from icecube import LeptonInjector
 import os
 import argparse
 
-parser = argparse.ArgumentParser(description = "A scripts to run the neutrino generation simulation step using Neutrino Generator")
+parser = argparse.ArgumentParser(description = "A script to run the neutrino generation simulation step using Neutrino Generator")
 
 parser.add_argument('-emin', '--energyMin', default = 1.0,                                            help="the minimum energy")
 parser.add_argument('-emax', '--energyMax', default = 3.0,                                            help="the maximum energy")
