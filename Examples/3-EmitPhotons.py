@@ -1,121 +1,98 @@
-import argparse
+#!/usr/bin/env python3
+
+
+from icecube import icetray, dataclasses, dataio, phys_services, sim_services, simclasses, clsim
+from icecube.icetray import I3Tray, I3Units
+from argparse import ArgumentParser
 from os.path import expandvars
-import os, sys, random
-import random
-from icecube import icetray, dataclasses, dataio, simclasses
-from icecube import phys_services, sim_services
-from icecube import clsim
-from icecube.icetray import I3Tray
+from Utilities.DOMUtility import DOMProperties
+import os
 import WaterOpticalModel.MakePoneMediumPropertiesConservative as Medium
 
-# import WaterOpticalModel.MakePoneMediumPropertiesSpeculativeExtendedRange as Medium
-from Utilities.DOMUtility import DOMProperties
 
-parser = argparse.ArgumentParser(
-    description="Takes I3Photons from step2 of the simulations and generates DOM hits"
-)
-parser.add_argument(
-    "-i",
-    "--infile",
-    default="dataio/muonprop.i3",
-    help="Write output to OUTFILE (.i3{.gz} format)",
-)
-parser.add_argument(
-    "-o",
-    "--outfile",
-    default="dataio/photonemit.i3",
-    help="Write output to OUTFILE (.i3{.gz} format)",
-)
-parser.add_argument(
-    "-g",
-    "--gcdfile",
-    default=os.getenv("PONESRCDIR") + "/GCD/PONE_5String.i3.gz",
-    help="Readin GCD file",
-)
-args = parser.parse_args()
-count = 0
-CPU = False
+usage = "usage: %prog [options] inputfile"
+parser = ArgumentParser(usage)
+parser.add_argument("-i", "--infile",default="dataio/prop.i3", help="Write output to OUTFILE (.i3{.gz} format)")
+parser.add_argument("-o", "--outfile",default="./clsim.i3", help="Write output to OUTFILE (.i3{.gz} format)")
+parser.add_argument("-x", "--xmlfile", default=None,dest="JSONFILE", help="Write statistics to JSONFILE")
+parser.add_argument("--oversize", default=1, type=float,dest="OVERSIZE", help="DOM oversize factor")
+parser.add_argument("--unweighted-photons", action="store_true",help="Propagate all Cherenkov photons. This is ~13x slower than downsampling first.")
+parser.add_argument("-g", "--gcdfile",default=os.getenv("PONESRCDIR") + "/GCD/PONE_5String.i3.gz")
+#parser.add_argument("-g", "--gcdfile",default="/cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_AVG_55697-57531_PASS2_SPE_withStdNoise.i3.gz")
+parser.add_argument("--use-cpu",  action="store_true", default=False,dest="USECPU", help="simulate using CPU instead of GPU")
+parser.add_argument("--double-buffering", default=False, action="store_true",help="Interleave kernel execution and i/o")
+parser.add_argument("--icemodel", default=expandvars("$I3_BUILD/ice-models/resources/models/ICEMODEL/spice_lea"),dest="ICEMODEL", help="A clsim ice model file/directory (ice models *will* affect performance metrics, always compare using the same model!)")
 
-# load DOM properties
+# parse cmd line args, bail out if anything is not understood
+options = parser.parse_args()
+# icetray.I3Logger.global_logger.set_level(icetray.I3LogLevel.LOG_INFO)
+#icetray.I3Logger.global_logger.set_level(icetray.I3LogLevel.LOG_WARN)
+
 dom_properties = DOMProperties()
 
-photon_series = "I3Photons"
-# print('CUDA devices: ', options.DEVICE)
 tray = I3Tray()
 
-# Now fire up the random number generator with that seed
-# from globals import max_num_files_per_dataset
+# a random number generator
 randomService = phys_services.I3SPRNGRandomService(
-    seed=0, nstreams=int(4e7), streamnum=0
-)
+                seed = int(11234),
+               nstreams = int(4e7),
+                streamnum = int(452))
 
-tray.context["I3RandomService"] = randomService
+tray.context['I3RandomService'] = randomService
 
-outfile = args.outfile
+outfile = options.outfile
+infile = options.infile
 
-infile = args.infile
+tray.AddModule('I3Reader', 'reader',
+            FilenameList = [infile]
+            )
 
-# gcd_file = dataio.I3File(args.gcdfile)
-print(args.gcdfile)
+MCTreeName="I3MCTree_postprop"
+photonSeriesName = "aname"
 
-tray.AddModule("I3Reader", "reader", FilenameList=[infile, args.gcdfile])
+kwargs = {}
 
-print("GetMaxTotalAcceptance()   =", dom_properties.GetMaxTotalAcceptance())
-print("GetMaxAngularAcceptance() =", dom_properties.GetMaxAngularAcceptance())
-print("GetMaxPMTQE()             =", dom_properties.GetMaxPMTQE())
-
-tray.AddSegment(
-    clsim.I3CLSimMakePhotons,
-    "goCLSIM",
-    #                UseCPUs=True,
-    UseGPUs=True,
-    # UseOnlyDeviceNumber=[1],
-    # OpenCLDeviceList=[0],
-    MCTreeName="I3MCTree_postprop",
-    UseI3PropagatorService=False,
-    OutputMCTreeName="I3MCTree_clsim",
-    # FlasherInfoVectName="I3FlasherInfo",
-    # FlasherPulseSeriesName="PhotonBomb",
-    # MMCTrackListName="MMCTrackList",
-    PhotonSeriesName=photon_series,
-    MCPESeriesName="",
-    RandomService=randomService,
+tray.AddSegment(clsim.I3CLSimMakeHits, "makeCLSimHits",
+    GCDFile = options.gcdfile,
+    DOMRadius=0.21590*icetray.I3Units.m, # 13" diameter 
+    #IceModelLocation=options.ICEMODEL,
     IceModelLocation=Medium.MakePoneMediumProperties(),
-    UnWeightedPhotons=False,
-    # UnWeightedPhotonsScalingFactor = None,
-    DOMRadius=(17.0 * 2.54 * 0.01 / 2.0) * icetray.I3Units.m,
-    UseGeant4=False,
+    WavelengthAcceptance = dom_properties.GetCLSimQETable( factor=dom_properties.GetMaxAngularAcceptance()*1.05 ),
+    MCPESeriesName = "",
+    #MCPESeriesName = "MCPESeriesMap",
+    
+    PhotonSeriesName = photonSeriesName,
+    MCTreeName = MCTreeName,
+    RandomService = randomService,
+    DOMEfficiency = 0.95,
+    UseGPUs=not options.USECPU,
+    UseCPUs=options.USECPU,
+    #UseOnlyDeviceNumber=options.DEVICE,
+    #UseCUDA=options.CUDA,
+    EnableDoubleBuffering=options.double_buffering,
+    UseI3PropagatorService=False,
+    DOMOversizeFactor=options.OVERSIZE,
+    UnWeightedPhotons=options.unweighted_photons,
+    #DOMRadius = (17.0*2.54*0.01/2.0)*icetray.I3Units.m,
     CrossoverEnergyEM=None,
     PhotonHistoryEntries=0,
-    # CrossoverEnergyHadron=float(options.CROSSENERGY),
+                #CrossoverEnergyHadron=float(options.CROSSENERGY),
     StopDetectedPhotons=True,
-    # UseHoleIceParameterization=False, # Apply it when making hits!
-    HoleIceParameterization=os.getenv("PONESRCDIR") + "/data/as.full",
+                #UseHoleIceParameterization=False, # Apply it when making hits!
+    HoleIceParameterization=os.getenv('PONESRCDIR')+"/data/as.full",
     DoNotParallelize=False,
-    WavelengthAcceptance=dom_properties.GetCLSimQETable(
-        factor=dom_properties.GetMaxAngularAcceptance() * 1.05
-    ),
-    DOMOversizeFactor=10.0,  # (17./13.),
-    UnshadowedFraction=1.0,  # normal in IC79 and older CLSim versions was 0.9, now it is 1.0
-    GCDFile=args.gcdfile,  # gcd_file,
-)
+    UnshadowedFraction=1., #normal in IC79 and older CLSim versions was 0.9, now it is 1.0
+    )
 
-icetray.logging.I3Logger.global_logger.set_level_for_unit(
-    "clsim", icetray.logging.I3LogLevel.LOG_INFO
-)
-# icetray.logging.I3Logger.global_logger.set_level_for_unit('I3CLSimStepToPhotonConverterOpenCL', icetray.logging.I3LogLevel.LOG_WARN)
+tray.AddModule("I3Writer","writer",
+#               SkipKeys=SkipKeys,
+               Filename =  outfile,
+               Streams = [icetray.I3Frame.TrayInfo, icetray.I3Frame.Simulation, icetray.I3Frame.DAQ],
+              )
 
-# tray.AddModule(PrintMessage,"print",message = "CLSiM Check")
 
-tray.AddModule(
-    "I3Writer",
-    "writer",
-    #               SkipKeys=SkipKeys,
-    Filename=outfile,
-    Streams=[icetray.I3Frame.DAQ, icetray.I3Frame.Physics, icetray.I3Frame.TrayInfo],
-)
-
-tray.AddModule("TrashCan", "adios")
+tray.AddModule("TrashCan","adios")
 
 tray.Execute()
 tray.Finish()
+
