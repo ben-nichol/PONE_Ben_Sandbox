@@ -2,6 +2,7 @@
 DOM Utilities is a collection of functions and variables for the DOMs. 
 """
 import numpy as np
+from scipy.stats import rayleigh
 import os
 from icecube.icetray import I3Units, OMKey
 from icecube import icetray, dataclasses, dataio, simclasses
@@ -18,7 +19,7 @@ def NoPMTKey(domkey):
 
 
 def AddPMTKey(domkey, ipmt):
-    return OMKey(domkey.string, domkey.om, ipmt)
+    return OMKey(domkey.string, domkey.om, int(ipmt))
 
 
 class DOMProperties:
@@ -403,3 +404,97 @@ class DOMProperties:
         # print("phi = "+str(phi)+" "+str(j)+" "+str(len(self.PMTacceptance[int(pmt)-1][i])))
 
         return self.PMTacceptance[int(pmt) - 1][i][j] / self.maxAngularAcceptance
+
+
+
+class Geant4PMTAcceptance:
+    def __init__(self, fname=os.getenv("PONESRCDIR") + "/data/pmt_acc.npz"):
+        data = np.load(fname)
+        self.acc_pmt_grp_1 = data['acc_pmt_grp_1']
+        self.acc_pmt_grp_2 = data['acc_pmt_grp_2']
+        self.wavelengths = data['wavelengths']
+
+        # The Geant4 simulation injects photons on a 30cm sphere, apply naive correction 
+        # to the total acceptance
+
+        self.acc_pmt_grp_1 *= 0.3**2 / (0.2159)**2
+        self.acc_pmt_grp_2 *= 0.3**2 / (0.2159)**2
+
+
+        self.rayleigh_1 = rayleigh(data['sigma_grp_1'])
+        self.rayleigh_2 = rayleigh(data['sigma_grp_1'])
+        self.pmt_positions = data['pmt_coords']
+
+        self.max_angular_acceptance = np.concatenate([self.acc_pmt_grp_1, self.acc_pmt_grp_2])
+
+    def make_clsim_weighting_func(self, binning=3.0 * I3Units.nanometer):
+        wl_min = min(self.wavelengths)
+        wl_max = max(self.wavelengths)
+
+        bins = np.arange(wl_max, wl_min, binning)
+        
+        table = np.interp(bins, self.wavelengths, np.max(np.hstack([self.acc_pmt_grp_1, self.acc_pmt_grp_2]), axis=1))
+        
+        clsim_table = simclasses.I3CLSimFunctionFromTable(wl_min*I3Units.nanometer, binning, table)
+        return clsim_table
+
+       
+    def check_pmt_hit(self, rel_hit_positions, hit_wavelengths, hit_weights):
+
+        pmt_hit_ids = np.zeros(len(rel_hit_positions))
+
+        print(rel_hit_positions)
+        rel_costheta = (np.dot(np.swapaxes(rel_hit_positions[..., np.newaxis], 1, 2), self.pmt_positions[..., np.newaxis]))[:, 0, :, 0]
+        print(rel_costheta.shape)
+
+        pt = np.arccos(np.clip(rel_costheta, -1, 1))
+
+        pdf_eval = np.empty_like(pt)
+
+        group_1_mask = np.asarray([1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0], dtype=bool)
+        group_2_mask = ~group_1_mask
+
+        pdf_eval[:, group_1_mask] = self.rayleigh_1.pdf(pt[:, group_1_mask])
+        pdf_eval[:, group_2_mask] = self.rayleigh_2.pdf(pt[:, group_2_mask])
+
+        sinpt = np.sin(pt)
+
+        non_zero_mask = sinpt != 0
+
+        rel_weight = np.zeros_like(pt)
+        non_zero_mask_ix = np.nonzero(non_zero_mask)
+        rel_weight[non_zero_mask_ix] = pdf_eval[non_zero_mask_ix] / (0.5 * sinpt[non_zero_mask_ix])
+
+        hit_a_pmt_prob = np.zeros_like(pt)
+        hit_a_pmt_prob[:, group_1_mask] = np.interp(hit_wavelengths, self.wavelengths, self.acc_pmt_grp_1)[:, np.newaxis]
+        hit_a_pmt_prob[:, group_2_mask] = np.interp(hit_wavelengths, self.wavelengths, self.acc_pmt_grp_2)[:, np.newaxis]
+
+        # hit_a_pmt_prob is the probability to hit any pmt from a pmt group assuming
+        # a uniform photon flux. Each pmt group contains 8 pmts, so divide by 8 to account for the overcounting.
+        # For a uniform photon flux, `hit_prob` should be total_acc_1 + total_acc_2
+        # Account for clsim weights here
+
+        prob_per_pmt = rel_weight * hit_a_pmt_prob * hit_weights[:, np.newaxis]
+        prob_per_pmt /= 8
+        
+        prob_any_pmt = np.sum(prob_per_pmt, axis=1)
+
+        if np.any(prob_any_pmt > 1):
+            print(prob_any_pmt)
+            raise ValueError("Probability to hit any pmt is greater than 1. Adjust CLSim weights.")
+        
+
+        rng = np.random.default_rng()
+
+        eta = rng.uniform(size=prob_any_pmt.shape)
+        hit_any_pmt = eta < prob_any_pmt
+
+        pmt_hit_ids = np.zeros_like(hit_wavelengths, dtype=int)
+
+        for hit_id in range(len(rel_hit_positions)):
+            if not hit_any_pmt[hit_id]:
+                continue
+
+            pmt_hit_ids[hit_id] = rng.choice(np.arange(1, 17), p=prob_per_pmt[hit_id, :] / prob_any_pmt[hit_id])
+
+        return pmt_hit_ids
