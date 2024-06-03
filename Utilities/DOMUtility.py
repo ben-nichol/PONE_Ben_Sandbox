@@ -408,6 +408,25 @@ class DOMProperties:
 
 
 class Geant4PMTAcceptance:
+    """
+    Class representing the PMT acceptance derived from Geant4 simulations.
+
+    Attributes:
+        acc_pmt_grp_1 (ndarray): Acceptance of PMT group 1.
+        acc_pmt_grp_2 (ndarray): Acceptance of PMT group 2.
+        wavelengths (ndarray): Wavelengths.
+        qe_table (ndarray): Quantum efficiency table.
+        rayleigh_1 (Rayleigh): Rayleigh distribution for PMT group 1.
+        rayleigh_2 (Rayleigh): Rayleigh distribution for PMT group 2.
+        pmt_positions (ndarray): PMT positions.
+
+    Methods:
+        make_clsim_weighting_func(binning): Creates a CLSim weighting function.
+        get_qe(wl): Retrieves the quantum efficiency for a given wavelength.
+        check_pmt_hit(rel_hit_positions, hit_wavelengths, hit_weights, with_qe): Checks if a PMT is hit.
+
+    """
+
     def __init__(self, fname=os.getenv("PONESRCDIR") + "/data/pmt_acc.npz"):
         data = np.load(fname)
         self.acc_pmt_grp_1 = data['acc_pmt_grp_1']
@@ -417,8 +436,6 @@ class Geant4PMTAcceptance:
         qe_file = os.getenv("PONESRCDIR") + "/data/PMTQE.txt"
 
         self.qe_table = np.loadtxt(qe_file, delimiter=",")
-
-        
 
         # The Geant4 simulation injects photons on a 30cm sphere, apply naive correction 
         # to the total acceptance
@@ -431,9 +448,17 @@ class Geant4PMTAcceptance:
         self.rayleigh_2 = rayleigh(data['sigma_grp_1'])
         self.pmt_positions = data['pmt_coords']
 
-        self.max_angular_acceptance = np.concatenate([self.acc_pmt_grp_1, self.acc_pmt_grp_2])
-
     def make_clsim_weighting_func(self, binning=3.0 * I3Units.nanometer):
+        """
+        Creates a CLSim weighting function.
+
+        Args:
+            binning (float): Binning size in nanometers.
+
+        Returns:
+            clsim_table (I3CLSimFunctionFromTable): CLSim weighting function.
+
+        """
         wl_min = min(self.wavelengths)
         wl_max = max(self.wavelengths)
 
@@ -445,11 +470,36 @@ class Geant4PMTAcceptance:
         return clsim_table
     
     def get_qe(self, wl):
+        """
+        Retrieves the quantum efficiency for a given wavelength.
+
+        Args:
+            wl (float): Wavelength.
+
+        Returns:
+            qe (float): Quantum efficiency.
+
+        """
         return np.interp(wl, self.qe_table[:, 0], self.qe_table[:, 1])
 
        
     def check_pmt_hit(self, rel_hit_positions, hit_wavelengths, hit_weights, with_qe=True):
+        """
+        Checks if a PMT is hit.
 
+        Args:
+            rel_hit_positions (ndarray): Relative hit positions.
+            hit_wavelengths (ndarray): Hit wavelengths.
+            hit_weights (ndarray): Hit weights.
+            with_qe (bool): Flag indicating whether to consider quantum efficiency.
+
+        Returns:
+            pmt_hit_ids (ndarray): PMT hit IDs.
+
+        Raises:
+            ValueError: If the probability to hit any PMT is greater than 1.
+
+        """
         pmt_hit_ids = np.zeros(len(rel_hit_positions))
 
         print(rel_hit_positions)
@@ -488,7 +538,6 @@ class Geant4PMTAcceptance:
 
         if with_qe:
             prob_per_pmt *= self.get_qe(hit_wavelengths)[:, np.newaxis]
-
 
         
         prob_any_pmt = np.sum(prob_per_pmt, axis=1)
