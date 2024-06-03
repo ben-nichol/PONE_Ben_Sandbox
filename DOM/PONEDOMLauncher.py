@@ -704,7 +704,7 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
 
 class SimpleDOMSimulationNew(icetray.I3ConditionalModule):
     """
-    Simple Implementation of the PMT response.
+    Drop in replacement of SimpleDOMSimulation that uses Geant4PMTAcceptance. 
     """
 
     def __init__(self, context):
