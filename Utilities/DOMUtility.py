@@ -414,6 +414,12 @@ class Geant4PMTAcceptance:
         self.acc_pmt_grp_2 = data['acc_pmt_grp_2']
         self.wavelengths = data['wavelengths']
 
+        qe_file = os.getenv("PONESRCDIR") + "/data/PMTQE.txt"
+
+        self.qe_table = np.loadtxt(qe_file, delimiter=",")
+
+        
+
         # The Geant4 simulation injects photons on a 30cm sphere, apply naive correction 
         # to the total acceptance
 
@@ -437,9 +443,12 @@ class Geant4PMTAcceptance:
         
         clsim_table = simclasses.I3CLSimFunctionFromTable(wl_min*I3Units.nanometer, binning, table)
         return clsim_table
+    
+    def get_qe(self, wl):
+        return np.interp(wl, self.qe_table[:, 0], self.qe_table[:, 1])
 
        
-    def check_pmt_hit(self, rel_hit_positions, hit_wavelengths, hit_weights):
+    def check_pmt_hit(self, rel_hit_positions, hit_wavelengths, hit_weights, with_qe=True):
 
         pmt_hit_ids = np.zeros(len(rel_hit_positions))
 
@@ -476,6 +485,11 @@ class Geant4PMTAcceptance:
 
         prob_per_pmt = rel_weight * hit_a_pmt_prob * hit_weights[:, np.newaxis]
         prob_per_pmt /= 8
+
+        if with_qe:
+            prob_per_pmt *= self.get_qe(hit_wavelengths)[:, np.newaxis]
+
+
         
         prob_any_pmt = np.sum(prob_per_pmt, axis=1)
 
