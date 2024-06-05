@@ -673,6 +673,7 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
         if len(photonmap) < 1 and lennoisepulses < 1:
             return
 
+        print("Splitting PMTs")
         photonmap_on_pmts, frame[self.inputmap + "_pmtsplit"] = self.SplitPMTs(
             photonmap, self.dropstrings
         )
@@ -704,7 +705,7 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
 
 class SimpleDOMSimulationNew(icetray.I3ConditionalModule):
     """
-    Drop in replacement of SimpleDOMSimulation that uses Geant4PMTAcceptance. 
+    Drop in replacement of SimpleDOMSimulation that uses Geant4PMTAcceptance.
     """
 
     def __init__(self, context):
@@ -814,7 +815,6 @@ class SimpleDOMSimulationNew(icetray.I3ConditionalModule):
             photon_wavelengths = np.empty(n_photons)
             photon_weights = np.empty(n_photons)
 
-            
             for i, photon in enumerate(photonmap[omkey]):
 
                 photon_positions[i] = [photon.pos.x, photon.pos.y, photon.pos.z]
@@ -822,7 +822,9 @@ class SimpleDOMSimulationNew(icetray.I3ConditionalModule):
                 photon_weights[i] = photon.weight
             photon_positions /= self.modgeo[omkey].radius
 
-            pmt_ids = self.pmt_acc.check_pmt_hit(photon_positions, photon_wavelengths, photon_weights)
+            pmt_ids = self.pmt_acc.check_pmt_hit(
+                photon_positions, photon_wavelengths, photon_weights
+            )
 
             for photon, pmtid in zip(photonmap[omkey], pmt_ids):
                 if pmtid == 0:
@@ -839,8 +841,6 @@ class SimpleDOMSimulationNew(icetray.I3ConditionalModule):
         # print("split")
         # print(newphotonmap)
         return newphotonmap, outputpulsemap
-
-    
 
     # Get the min and max pulse times to set time window for dark hits.
     def GetMaxMinTimes(self, mcpemap):
