@@ -67,7 +67,7 @@ infile = options.infile
 tray.AddModule("I3Reader", "reader", FilenameList=[infile])
 
 MCTreeName = "I3MCTree_postprop"
-photonSeriesName = "photons"
+photonSeriesName = "I3Photons"
 
 kwargs = {}
 
@@ -88,8 +88,11 @@ tray.AddSegment(
     HoleIceParameterization=os.getenv("PONESRCDIR") + "/data/as.full",
     DoNotParallelize=False,
     UnshadowedFraction=1.0,  # normal in IC79 and older CLSim versions was 0.9, now it is 1.0
-    UseI3PropagatorService=False
-)
+    UseI3PropagatorService=False,
+    WavelengthAcceptance=dom_properties.GetCLSimQETable(
+                factor=dom_properties.GetMaxAngularAcceptance() * 1.05
+                    ),
+    )
 
 tray.AddModule(
     "I3Writer",
