@@ -475,7 +475,6 @@ class Geant4PMTAcceptance:
             bins,
             self.wavelengths,
             max_acceptance,
-            ,
         )
 
         clsim_table = simclasses.I3CLSimFunctionFromTable(
