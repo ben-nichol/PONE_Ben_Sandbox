@@ -43,8 +43,8 @@ class POM:
         # set pmt geometry
         # ----------------------------------------------------------------------------
         self.MODULE_RADIUS_M      = 0.2159
-        #self.PMT_RADIUS_M         = 0.055 # was 0.0635 before?
-        self.PMT_RADIUS_M = 0.0381
+        self.PMT_RADIUS_M         = 0.055 # was 0.0635 before?
+        #self.PMT_RADIUS_M = 0.0381
 
         PMT_ZENITHS               = [32.5, 65.0, 115.0, 147.5]
         PMT_AZIMUTHS_TOP          = [0.0, 90.0, 180.0, 270.0]
