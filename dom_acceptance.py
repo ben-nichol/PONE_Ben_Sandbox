@@ -10,6 +10,129 @@ import os
 
 dom_properties = DOMUtility.DOMProperties()
 
+
+class POM:
+    '''
+    Class characterizing the P-OM. COPY OF JAKUB's K40 code 
+    '''
+    def __init__(self, data_path):
+        '''
+        Define P-OM properties and geometry
+        '''
+        # ----------------------------------------------------------------------------
+        # set pmt geometry
+        # ----------------------------------------------------------------------------
+        self.MODULE_RADIUS_M      = 0.2159
+        self.PMT_RADIUS_M         = 0.055 # was 0.0635 before?
+
+        PMT_ZENITHS               = [32.5, 65.0, 115.0, 147.5]
+        PMT_AZIMUTHS_TOP          = [0.0, 90.0, 180.0, 270.0]
+        PMT_AZIMUTHS_BOTTOM       = [45.0, 135.0, 225.0, 315.0]
+
+        zenith_list  = np.array(sorted( 4 * PMT_ZENITHS))
+        azimuth_list = (PMT_AZIMUTHS_TOP + PMT_AZIMUTHS_BOTTOM
+                        + PMT_AZIMUTHS_BOTTOM + PMT_AZIMUTHS_TOP)
+        
+        x_coordinates = np.multiply(np.sin(np.deg2rad(zenith_list)), np.cos(np.deg2rad(azimuth_list)))
+        y_coordinates = np.multiply(np.sin(np.deg2rad(zenith_list)), np.sin(np.deg2rad(azimuth_list)))
+        z_coordinates = np.cos(np.deg2rad(zenith_list))
+
+        self.PMT_MATRIX = np.array([x_coordinates, y_coordinates, z_coordinates]).T
+
+
+        # ----------------------------------------------------------------------------
+        # set efficiencies
+        # ----------------------------------------------------------------------------
+
+        self.COLLECTION_EFFICIENCY = 0.9
+        self.TRANSIT_TIME_SPREAD   = np.loadtxt(data_path + 'tts.csv', delimiter=',')
+        self.QUANTUM_EFFICIENCY    = np.loadtxt(data_path + 'qe.csv', delimiter=',')
+        self.TRANSMITTANCE         = np.loadtxt(data_path + 'glass.csv', delimiter=',')
+        self.ANGULAR_ACCEPTANCE_0  = np.loadtxt(data_path + 'aa-0.csv', delimiter=',')
+
+        energy_conversion = const.h * const.c / const.elementary_charge
+        self.QE_FUNCTION = CubicSpline(np.flip(energy_conversion / self.QUANTUM_EFFICIENCY.T[0], axis=0), np.flip(self.QUANTUM_EFFICIENCY.T[1], axis=0), extrapolate=False)
+        self.T_FUNCTION  = CubicSpline(self.TRANSMITTANCE.T[0] * 1e-9, self.TRANSMITTANCE.T[1], extrapolate=False)
+        self.AA_FUNCTION = interp1d(self.ANGULAR_ACCEPTANCE_0.T[0], self.ANGULAR_ACCEPTANCE_0.T[1], bounds_error=False, fill_value=0)
+
+
+
+    def PMTHit(self, photon):
+        '''
+        Function that return a list of PMTs on the
+        P-OM that were hit by a given photon
+        '''
+        photon_position = photon.pos
+
+        # deterine the angle between all the pmt vectors and the photon vector
+        pmt_photon_angles = self.PMT_MATRIX.dot(np.array([photon_position.x,photon_position.y, photon_position.z]) / photon_position.magnitude)
+        
+        # check if the ditance at the module radius between the pmt vector
+        # and the photon vector falls within the PMT size, if so, mark as a hit
+        # return a list of indices that have been 'hit'
+        pmt_vector_distances = self.MODULE_RADIUS_M * np.sin(np.arccos(pmt_photon_angles))
+        pmts_hit            = np.where(np.logical_and(pmt_vector_distances < self.PMT_RADIUS_M, pmt_photon_angles >= 0))[0]
+
+        if len(pmts_hit) == 1:
+            hit_angle    = pmt_photon_angles[pmts_hit]
+            hit_distance = pmt_vector_distances[pmts_hit]
+            return [pmts_hit[0], hit_angle, hit_distance]
+        elif len(pmts_hit) > 1:
+            raise IndexError('two pmts are being hit at the same time!', pmts_hit)
+        else:
+            return [None, None, None]
+    
+
+
+    def CollectionEfficiency(self, photon_list):
+        '''
+        Returns an array of collection efficiencies for
+        a passed array of photons
+        '''
+        return np.ones(len(photon_list)) * self.COLLECTION_EFFICIENCY
+
+
+
+    def TransitTimeSpread(self, photon_list):
+        '''
+        Returns an array of transit time spreads
+        for a passed array of photons
+        '''
+        return np.random.choice(self.TRANSIT_TIME_SPREAD[:,0], len(photon_list), p=self.TRANSIT_TIME_SPREAD[:,1])
+
+
+
+    def QuantumEfficiency(self, photon_list):
+        '''
+        Returns an array of quantum efficiencies for
+        a passed array of photons
+        '''
+        wavelengths  = np.array([p.wavelength for p in photon_list])
+        efficiencies = np.nan_to_num(self.QE_FUNCTION(wavelengths))
+        return efficiencies
+    
+
+
+    def Transmittance(self, photon_list):
+        '''
+        Returns an array of transmittance efficiencies
+        for a passed array of photons
+        '''
+        wavelengths  = np.array([p.wavelength for p in photon_list])
+        efficiencies = np.nan_to_num(self.T_FUNCTION(wavelengths))
+        return efficiencies
+    
+
+    def AngularAcceptanceSimple(self, pmt_info_list):
+        '''
+        Returns an array of angular acceptances
+        for a passed array of pmt information
+        '''
+        distances = np.hstack(pmt_info_list[:, 2])
+        efficiencies = np.nan_to_num(self.AA_FUNCTION(distances))
+        return efficiencies
+
+
 """
 This function is a copy of the GetPMT function from PONEDOMLauncher.py. 
 Just for convenience.
@@ -123,6 +246,8 @@ def compare_acceptance_codes(n=1000000):
 
     accepted = np.sum(pmt_ixs_new > 0)
     print("New code: ", accepted / n)
+
+    pom = POM("/home/hpc/capn/capn100h/repos/k40/simulation/utilities/data")
 
 def plot_acceptance_prob_map():
 
