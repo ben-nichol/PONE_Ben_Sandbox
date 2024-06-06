@@ -7,8 +7,28 @@ import numpy as np
 from scipy.stats import rayleigh
 import matplotlib.pyplot as plt
 import os
-
+import scipy.constants as const
+from scipy.interpolate import CubicSpline, interp1d
+from dataclasses import dataclass
 dom_properties = DOMUtility.DOMProperties()
+
+
+@dataclass
+class Position:
+    x: float
+    y: float
+    z: float
+
+    @property
+    def magnitude(self) -> float:
+        return np.sqrt(self.x**2 + self.y**2 + self.z**2)
+
+@dataclass
+class Photon:
+    pos: Position
+    wavelength: float
+
+
 
 
 class POM:
@@ -23,7 +43,8 @@ class POM:
         # set pmt geometry
         # ----------------------------------------------------------------------------
         self.MODULE_RADIUS_M      = 0.2159
-        self.PMT_RADIUS_M         = 0.055 # was 0.0635 before?
+        #self.PMT_RADIUS_M         = 0.055 # was 0.0635 before?
+        self.PMT_RADIUS_M = 0.0381
 
         PMT_ZENITHS               = [32.5, 65.0, 115.0, 147.5]
         PMT_AZIMUTHS_TOP          = [0.0, 90.0, 180.0, 270.0]
@@ -62,6 +83,7 @@ class POM:
         Function that return a list of PMTs on the
         P-OM that were hit by a given photon
         '''
+
         photon_position = photon.pos
 
         # deterine the angle between all the pmt vectors and the photon vector
@@ -206,12 +228,46 @@ def GetPMT(photonDir, wl, weight):
     return i + 1
 
 
+def k40_acceptance(module, photon_list):
+
+    """Copied from https://github.com/pone-software/k40/blob/cf7804c3d25d6039bcdc06ca89629e0d7cf9c558/simulation/utilities/scripts/EventBuilder.py#L338"""
+
+    number_photons = len(photon_list)
+    pmt_hit_mask = np.zeros(number_photons, dtype=bool)
+    pmt_list     = np.empty((number_photons, 3), dtype=object) #### Need to make n x 3!!!!!!!!!
+
+    for i in np.arange(number_photons):
+        hit_pmt_info = module.PMTHit(photon_list[i])
+
+        if hit_pmt_info[0] is not None:
+            pmt_hit_mask[i] = True
+            pmt_list[i]     = hit_pmt_info
+    
+    filtered_photons = photon_list[pmt_hit_mask]
+    filtered_pmts    = pmt_list[pmt_hit_mask]
+
+    if len(filtered_photons) == 0:
+        return None
+
+    photons   = filtered_photons
+    pmt_infos = np.vstack(filtered_pmts)
+
+    # calculate efficiencies and remove photons with 0 efficency
+    collection_efficiencies    = module.CollectionEfficiency(photons)
+    quantum_efficiencies       = module.QuantumEfficiency(photons)
+    transmittance_efficiencies = module.Transmittance(photons)
+    angular_efficiencies       = module.AngularAcceptanceSimple(pmt_infos)
+    photon_efficiencies        = collection_efficiencies * quantum_efficiencies * transmittance_efficiencies * angular_efficiencies
+
+    return np.sum(photon_efficiencies)
+
+
 def compare_acceptance_codes(n=1000000):
 
     # Generate directions uniformly on a sphere
     cos_zens = np.random.uniform(-1, 1, n)
     azis = np.random.uniform(0, 2 * np.pi, n)
-    # Evaluate at 410nm
+    # Evaluate at 450nm
     wl = 450
 
     pmt_ixs = np.empty_like(cos_zens)
@@ -247,7 +303,20 @@ def compare_acceptance_codes(n=1000000):
     accepted = np.sum(pmt_ixs_new > 0)
     print("New code: ", accepted / n)
 
-    pom = POM("/home/hpc/capn/capn100h/repos/k40/simulation/utilities/data")
+    pom = POM("/home/chaack/repos/k40/simulation/utilities/data/")
+
+    photon_list = []
+
+    for rel_pos in rel_positions:
+        photon = Photon(Position(*rel_pos), wl*1E-9)
+        photon_list.append(photon)
+
+
+
+    accepted = k40_acceptance(pom, np.asarray(photon_list))
+
+    print("K40 code", accepted / n)
+    
 
 def plot_acceptance_prob_map():
 
