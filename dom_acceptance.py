@@ -10,6 +10,7 @@ import os
 import scipy.constants as const
 from scipy.interpolate import CubicSpline, interp1d
 from dataclasses import dataclass
+from icecube import dataclasses, dataio, simclasses, icetray
 dom_properties = DOMUtility.DOMProperties()
 
 
@@ -280,7 +281,7 @@ def compare_acceptance_codes(n=1000000):
             np.sin(azi) * np.sin(theta),
             np.cos(theta),
         ]
-        # Call GetPMT to get the PMT number, 0 means no hit
+        # Call GetPMT to get the PMT number, -1 means no hit
         pmt_ixs[i] = GetPMT(photon_dir, wl, 1)
 
     # Calculate acceptance
@@ -288,6 +289,7 @@ def compare_acceptance_codes(n=1000000):
     print("Old code: ", accepted / n)
 
     pmt_acc = DOMUtility.Geant4PMTAcceptance(os.getenv("PONESRCDIR") + "/data/pmt_acc.npz")
+    pmt_acc.make_clsim_weighting_func()
     rel_positions = np.array(
         [
             [np.sin(np.arccos(cz)) * np.cos(a), np.sin(np.arccos(cz)) * np.sin(a), cz]
@@ -336,6 +338,32 @@ def plot_acceptance_prob_map():
     plt.colorbar(label="Bin Entry")
     plt.savefig("PMTAcceptance_sum.png")
 
+def analyze_k40(file):
+    hdl = dataio.I3File(file)
+    n_hits = 0
+    frames = 0
+    while hdl.more():
+        fr = hdl.pop_frame()
+        
+        if fr.Stop == icetray.I3Frame.DAQ:
+            photons = fr["I3Photon_pmtsplit"]
+            frames += 1
+
+            times = sorted([p.time for _, ps in photons for p in ps])
+            deltas = np.diff(times)
+
+
+            if len(times) == 1:
+                n_hits += 1
+            elif len(times) > 1:
+                print(times, sum(deltas > 20)+1)
+                n_hits += sum(deltas > 20) +1
+    print(frames)
+    print(n_hits / (frames * 1E-5))
+    hdl.close()
+
+
 if __name__ == "__main__":
+    #analyze_k40("clsim-output-1899_daq.i3.gz")
     compare_acceptance_codes()
     # plot_acceptance_prob_map()
