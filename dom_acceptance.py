@@ -289,7 +289,6 @@ def compare_acceptance_codes(n=1000000):
     print("Old code: ", accepted / n)
 
     pmt_acc = DOMUtility.Geant4PMTAcceptance(os.getenv("PONESRCDIR") + "/data/pmt_acc.npz")
-    pmt_acc.make_clsim_weighting_func()
     rel_positions = np.array(
         [
             [np.sin(np.arccos(cz)) * np.cos(a), np.sin(np.arccos(cz)) * np.sin(a), cz]
