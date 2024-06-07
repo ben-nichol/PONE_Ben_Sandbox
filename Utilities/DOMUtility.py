@@ -450,7 +450,7 @@ class Geant4PMTAcceptance:
         self.rayleigh_2 = rayleigh(data["sigma_grp_1"])
         self.pmt_positions = data["pmt_coords"]
 
-    def make_clsim_weighting_func(self, binning=3.0 * I3Units.nanometer, with_qe=True):
+    def make_clsim_weighting_func(self, binning=2.0, with_qe=True):
         """
         Creates a CLSim weighting function.
 
@@ -464,9 +464,8 @@ class Geant4PMTAcceptance:
         wl_min = min(self.wavelengths)
         wl_max = max(self.wavelengths)
 
-        bins = np.arange(wl_max, wl_min, binning)
-
-        max_acceptance = np.max(np.hstack([self.acc_pmt_grp_1, self.acc_pmt_grp_2]), axis=1)
+        bins = np.arange(wl_min, wl_max, binning)
+        max_acceptance = self.acc_pmt_grp_1 + self.acc_pmt_grp_2
 
         if with_qe:
             max_acceptance *= self.get_qe(self.wavelengths)
@@ -476,6 +475,7 @@ class Geant4PMTAcceptance:
             self.wavelengths,
             max_acceptance,
         )
+
 
         clsim_table = simclasses.I3CLSimFunctionFromTable(
             wl_min * I3Units.nanometer, binning, table
