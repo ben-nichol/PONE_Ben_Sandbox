@@ -1,7 +1,9 @@
 """!
 DOM Utilities is a collection of functions and variables for the DOMs. 
 """
+
 import numpy as np
+from scipy.stats import rayleigh
 import os
 from icecube.icetray import I3Units, OMKey
 from icecube import icetray, dataclasses, dataio, simclasses
@@ -18,7 +20,7 @@ def NoPMTKey(domkey):
 
 
 def AddPMTKey(domkey, ipmt):
-    return OMKey(domkey.string, domkey.om, ipmt)
+    return OMKey(domkey.string, domkey.om, int(ipmt))
 
 
 class DOMProperties:
@@ -291,7 +293,7 @@ class DOMProperties:
             table.append(value * factor)
 
         clsim_table = simclasses.I3CLSimFunctionFromTable(self.wlen_min, binning, table)
-        #clsim_table = clsim.I3CLSimFunctionFromTable(self.wlen_min, binning, table)
+        # clsim_table = clsim.I3CLSimFunctionFromTable(self.wlen_min, binning, table)
 
         return clsim_table
 
@@ -311,7 +313,10 @@ class DOMProperties:
                         self.PMTacceptance[n][i][j] / self.maxAngularAcceptance
                     )
 
-            plt.hist2d(x, y, bins=(358, 178), cmap=plt.cm.jet, weights=pmtprobs)
+            plt.hist2d(x, y, bins=(358, 178), cmap=plt.cm.viridis, weights=pmtprobs)
+            plt.xlabel("Phi (rad)")
+            plt.ylabel("Theta (rad)")
+            plt.colorbar(label="Bin Entry")
             plt.savefig(directory + "/PMTAcceptance_" + str(n) + ".png")
 
     def MakeQEPlot(self, directory):
@@ -403,3 +408,181 @@ class DOMProperties:
         # print("phi = "+str(phi)+" "+str(j)+" "+str(len(self.PMTacceptance[int(pmt)-1][i])))
 
         return self.PMTacceptance[int(pmt) - 1][i][j] / self.maxAngularAcceptance
+
+
+class Geant4PMTAcceptance:
+    """
+    Class representing the PMT acceptance derived from Geant4 simulations.
+
+    Attributes:
+        acc_pmt_grp_1 (ndarray): Acceptance of PMT group 1.
+        acc_pmt_grp_2 (ndarray): Acceptance of PMT group 2.
+        wavelengths (ndarray): Wavelengths.
+        qe_table (ndarray): Quantum efficiency table.
+        rayleigh_1 (Rayleigh): Rayleigh distribution for PMT group 1.
+        rayleigh_2 (Rayleigh): Rayleigh distribution for PMT group 2.
+        pmt_positions (ndarray): PMT positions.
+
+    Methods:
+        make_clsim_weighting_func(binning): Creates a CLSim weighting function.
+        get_qe(wl): Retrieves the quantum efficiency for a given wavelength.
+        check_pmt_hit(rel_hit_positions, hit_wavelengths, hit_weights, with_qe): Checks if a PMT is hit.
+
+    """
+
+    def __init__(self, fname=os.getenv("PONESRCDIR") + "/data/pmt_acc.npz"):
+        data = np.load(fname)
+        self.acc_pmt_grp_1 = data["acc_pmt_grp_1"]
+        self.acc_pmt_grp_2 = data["acc_pmt_grp_2"]
+        self.wavelengths = data["wavelengths"]
+
+        qe_file = os.getenv("PONESRCDIR") + "/data/PMTQE.txt"
+
+        self.qe_table = np.loadtxt(qe_file, delimiter=",")
+
+        # The Geant4 simulation injects photons on a 30cm sphere, apply naive correction
+        # to the total acceptance
+
+        self.acc_pmt_grp_1 *= 0.3**2 / (0.2159) ** 2
+        self.acc_pmt_grp_2 *= 0.3**2 / (0.2159) ** 2
+
+        self.rayleigh_1 = rayleigh(data["sigma_grp_1"])
+        self.rayleigh_2 = rayleigh(data["sigma_grp_1"])
+        self.pmt_positions = data["pmt_coords"]
+
+    def make_clsim_weighting_func(self, binning=2.0, with_qe=True, wl_bounds=(290, 800)):
+        """
+        Creates a CLSim weighting function.
+
+        Args:
+            binning (float): Binning size in nanometers.
+
+        Returns:
+            clsim_table (I3CLSimFunctionFromTable): CLSim weighting function.
+
+        """
+
+        bins = np.arange(wl_bounds[0], wl_bounds[1], binning)
+        max_acceptance = self.acc_pmt_grp_1 + self.acc_pmt_grp_2
+
+
+        if with_qe:
+            max_acceptance *= self.get_qe(self.wavelengths)
+
+        table = np.interp(
+            bins,
+            self.wavelengths,
+            max_acceptance,
+            left=0, right=0
+        )
+
+        clsim_table = simclasses.I3CLSimFunctionFromTable(
+            wl_bounds[0] * I3Units.nanometer, binning * I3Units.nanometer, table
+        )
+        return clsim_table
+
+    def get_qe(self, wl):
+        """
+        Retrieves the quantum efficiency for a given wavelength.
+
+        Args:
+            wl (float): Wavelength.
+
+        Returns:
+            qe (float): Quantum efficiency.
+
+        """
+        return np.interp(wl, self.qe_table[:, 0], self.qe_table[:, 1], left=0, right=0)
+
+    def check_pmt_hit(
+        self, rel_hit_positions, hit_wavelengths, hit_weights, with_qe=True
+    ):
+        """
+        Checks if a PMT is hit.
+
+        Args:
+            rel_hit_positions (ndarray): Relative hit positions.
+            hit_wavelengths (ndarray): Hit wavelengths.
+            hit_weights (ndarray): Hit weights.
+            with_qe (bool): Flag indicating whether to consider quantum efficiency.
+
+        Returns:
+            pmt_hit_ids (ndarray): PMT hit IDs.
+
+        Raises:
+            ValueError: If the probability to hit any PMT is greater than 1.
+
+        """
+        pmt_hit_ids = np.zeros(len(rel_hit_positions))
+
+        rel_costheta = (
+            np.dot(
+                np.swapaxes(rel_hit_positions[..., np.newaxis], 1, 2),
+                self.pmt_positions[..., np.newaxis],
+            )
+        )[:, 0, :, 0]
+
+        pt = np.arccos(np.clip(rel_costheta, -1, 1))
+
+        pdf_eval = np.empty_like(pt)
+
+        group_1_mask = np.asarray(
+            [1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0], dtype=bool
+        )
+        group_2_mask = ~group_1_mask
+
+        pdf_eval[:, group_1_mask] = self.rayleigh_1.pdf(pt[:, group_1_mask])
+        pdf_eval[:, group_2_mask] = self.rayleigh_2.pdf(pt[:, group_2_mask])
+
+        sinpt = np.sin(pt)
+
+        non_zero_mask = sinpt != 0
+
+        rel_weight = np.zeros_like(pt)
+        non_zero_mask_ix = np.nonzero(non_zero_mask)
+        rel_weight[non_zero_mask_ix] = pdf_eval[non_zero_mask_ix] / (
+            0.5 * sinpt[non_zero_mask_ix]
+        )
+
+        hit_a_pmt_prob = np.zeros_like(pt)
+        hit_a_pmt_prob[:, group_1_mask] = np.interp(
+            hit_wavelengths, self.wavelengths, self.acc_pmt_grp_1
+        )[:, np.newaxis]
+        hit_a_pmt_prob[:, group_2_mask] = np.interp(
+            hit_wavelengths, self.wavelengths, self.acc_pmt_grp_2
+        )[:, np.newaxis]
+
+        # hit_a_pmt_prob is the probability to hit any pmt from a pmt group assuming
+        # a uniform photon flux. Each pmt group contains 8 pmts, so divide by 8 to account for the overcounting.
+        # For a uniform photon flux, `hit_prob` should be total_acc_1 + total_acc_2
+        # Account for clsim weights here
+
+        prob_per_pmt = rel_weight * hit_a_pmt_prob * hit_weights[:, np.newaxis]
+        prob_per_pmt /= 8
+
+        if with_qe:
+            prob_per_pmt *= self.get_qe(hit_wavelengths)[:, np.newaxis]
+
+        prob_any_pmt = np.sum(prob_per_pmt, axis=1)
+
+        if np.any(prob_any_pmt > 1):
+            raise ValueError(
+                "Probability to hit any pmt is greater than 1. Adjust CLSim weights."
+            )
+
+        rng = np.random.default_rng()
+
+        eta = rng.uniform(size=prob_any_pmt.shape)
+        hit_any_pmt = eta < prob_any_pmt
+
+        pmt_hit_ids = np.zeros_like(hit_wavelengths, dtype=int)
+
+        for hit_id in range(len(rel_hit_positions)):
+            if not hit_any_pmt[hit_id]:
+                continue
+
+            pmt_hit_ids[hit_id] = rng.choice(
+                np.arange(1, 17), p=prob_per_pmt[hit_id, :] / prob_any_pmt[hit_id]
+            )
+
+        return pmt_hit_ids
