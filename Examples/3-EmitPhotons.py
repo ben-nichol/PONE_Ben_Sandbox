@@ -89,6 +89,7 @@ tray.AddSegment(
     DoNotParallelize=False,
     UnshadowedFraction=1.0,  # normal in IC79 and older CLSim versions was 0.9, now it is 1.0
     UseI3PropagatorService=False,
+    UnWeightedPhotons=True,
     WavelengthAcceptance=dom_properties.GetCLSimQETable(
                 factor=dom_properties.GetMaxAngularAcceptance() * 1.05
                     ),
