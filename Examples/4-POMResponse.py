@@ -2,7 +2,7 @@
 
 from os.path import expandvars
 import os, sys, random
-from DOM.PONEDOMLauncher import SimpleDOMSimulation
+from DOM.PONEDOMLauncher import SimpleDOMSimulationNew
 from icecube import icetray, dataclasses, dataio, simclasses
 from icecube import phys_services, sim_services
 from icecube.icetray import I3Tray
@@ -100,7 +100,7 @@ outfile = args.outfile
 tray.AddModule("I3Reader", "reader", FilenameList=[args.gcdfile, infile])
 
 tray.AddModule(
-    SimpleDOMSimulation,
+    SimpleDOMSimulationNew,
     "DOMLauncher",
     inputmap=photon_series,
     outputmap="PMTResponse",
