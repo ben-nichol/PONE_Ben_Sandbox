@@ -450,7 +450,7 @@ class Geant4PMTAcceptance:
         self.rayleigh_2 = rayleigh(data["sigma_grp_1"])
         self.pmt_positions = data["pmt_coords"]
 
-    def make_clsim_weighting_func(self, binning=2.0, with_qe=True):
+    def make_clsim_weighting_func(self, binning=2.0, with_qe=True, wl_bounds=(290, 800)):
         """
         Creates a CLSim weighting function.
 
@@ -461,11 +461,10 @@ class Geant4PMTAcceptance:
             clsim_table (I3CLSimFunctionFromTable): CLSim weighting function.
 
         """
-        wl_min = min(self.wavelengths)
-        wl_max = max(self.wavelengths)
 
-        bins = np.arange(wl_min, wl_max, binning)
+        bins = np.arange(wl_bounds[0], wl_bounds[1], binning)
         max_acceptance = self.acc_pmt_grp_1 + self.acc_pmt_grp_2
+
 
         if with_qe:
             max_acceptance *= self.get_qe(self.wavelengths)
@@ -474,11 +473,11 @@ class Geant4PMTAcceptance:
             bins,
             self.wavelengths,
             max_acceptance,
+            left=0, right=0
         )
 
-
         clsim_table = simclasses.I3CLSimFunctionFromTable(
-            wl_min * I3Units.nanometer, binning, table
+            wl_bounds[0] * I3Units.nanometer, binning * I3Units.nanometer, table
         )
         return clsim_table
 
@@ -493,7 +492,7 @@ class Geant4PMTAcceptance:
             qe (float): Quantum efficiency.
 
         """
-        return np.interp(wl, self.qe_table[:, 0], self.qe_table[:, 1])
+        return np.interp(wl, self.qe_table[:, 0], self.qe_table[:, 1], left=0, right=0)
 
     def check_pmt_hit(
         self, rel_hit_positions, hit_wavelengths, hit_weights, with_qe=True
