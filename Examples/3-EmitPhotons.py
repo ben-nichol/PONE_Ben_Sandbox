@@ -29,29 +29,15 @@ parser.add_argument(
 parser.add_argument(
     "-o",
     "--outfile",
-    default="./clsim.i3",
+    default="dataio/clsim.i3",
     help="Write output to OUTFILE (.i3{.gz} format)",
 )
+parser.add_argument("-g", "--gcdfile",default=os.getenv("PONESRCDIR") + "/GCD/PONE_5String.i3.gz")
 parser.add_argument(
-    "-x",
-    "--xmlfile",
-    default=None,
-    dest="JSONFILE",
-    help="Write statistics to JSONFILE",
-)
-parser.add_argument(
-    "--oversize", default=1, type=float, dest="OVERSIZE", help="DOM oversize factor"
-)
-parser.add_argument(
-    "--unweighted-photons",
-    action="store_true",
-    help="Propagate all Cherenkov photons. This is ~13x slower than downsampling first.",
-)
-# parser.add_argument("-g", "--gcdfile",default=os.getenv("PONESRCDIR") + "/GCD/PONE_5String.i3.gz")
-parser.add_argument(
-    "-g",
-    "--gcdfile",
-    default="/cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_AVG_55697-57531_PASS2_SPE_withStdNoise.i3.gz",
+    "--icemodel",
+    default=expandvars("$I3_BUILD/ice-models/resources/models/ICEMODEL/spice_lea"),
+    dest="ICEMODEL",
+    help="A clsim ice model file/directory (ice models *will* affect performance metrics, always compare using the same model!)",
 )
 parser.add_argument(
     "--use-cpu",
@@ -60,23 +46,9 @@ parser.add_argument(
     dest="USECPU",
     help="simulate using CPU instead of GPU",
 )
-parser.add_argument(
-    "--double-buffering",
-    default=False,
-    action="store_true",
-    help="Interleave kernel execution and i/o",
-)
-parser.add_argument(
-    "--icemodel",
-    default=expandvars("$I3_BUILD/ice-models/resources/models/ICEMODEL/spice_lea"),
-    dest="ICEMODEL",
-    help="A clsim ice model file/directory (ice models *will* affect performance metrics, always compare using the same model!)",
-)
 
 # parse cmd line args, bail out if anything is not understood
 options = parser.parse_args()
-# icetray.I3Logger.global_logger.set_level(icetray.I3LogLevel.LOG_INFO)
-# icetray.I3Logger.global_logger.set_level(icetray.I3LogLevel.LOG_WARN)
 
 dom_properties = DOMProperties()
 
@@ -95,7 +67,7 @@ infile = options.infile
 tray.AddModule("I3Reader", "reader", FilenameList=[infile])
 
 MCTreeName = "I3MCTree_postprop"
-photonSeriesName = "aname"
+photonSeriesName = "I3Photons"
 
 kwargs = {}
 
@@ -103,34 +75,25 @@ tray.AddSegment(
     clsim.I3CLSimMakeHits,
     "makeCLSimHits",
     GCDFile=options.gcdfile,
-    # DOMRadius=0.21590*icetray.I3Units.m, # 13" diameter, uncomment for pone GCD
-    IceModelLocation=options.ICEMODEL,
-    # IceModelLocation=Medium.MakePoneMediumProperties(), #pick one icemodel, above is ice, this is water
-    # WavelengthAcceptance = dom_properties.GetCLSimQETable( factor=dom_properties.GetMaxAngularAcceptance()*1.05 ), #fixes some observed errors
-    # MCPESeriesName = "", #fixes some observed errors
-    MCPESeriesName="MCPESeriesMap",
+    DOMRadius=0.21590*icetray.I3Units.m, #POM dimension, default is icecube specific
+    IceModelLocation=Medium.MakePoneMediumProperties(),
+    MCPESeriesName = "", 
     PhotonSeriesName=photonSeriesName,
     MCTreeName=MCTreeName,
     RandomService=randomService,
     DOMEfficiency=0.95,
     UseGPUs=not options.USECPU,
     UseCPUs=options.USECPU,
-    # UseOnlyDeviceNumber=options.DEVICE,
-    # UseCUDA=options.CUDA,
-    EnableDoubleBuffering=options.double_buffering,
-    UseI3PropagatorService=False,
-    DOMOversizeFactor=options.OVERSIZE,
-    UnWeightedPhotons=options.unweighted_photons,
-    # DOMRadius = (17.0*2.54*0.01/2.0)*icetray.I3Units.m,
-    CrossoverEnergyEM=None,
-    PhotonHistoryEntries=0,
-    # CrossoverEnergyHadron=float(options.CROSSENERGY),
     StopDetectedPhotons=True,
-    # UseHoleIceParameterization=False, # Apply it when making hits!
     HoleIceParameterization=os.getenv("PONESRCDIR") + "/data/as.full",
     DoNotParallelize=False,
     UnshadowedFraction=1.0,  # normal in IC79 and older CLSim versions was 0.9, now it is 1.0
-)
+    UseI3PropagatorService=False,
+    UnWeightedPhotons=True,
+    WavelengthAcceptance=dom_properties.GetCLSimQETable(
+                factor=dom_properties.GetMaxAngularAcceptance() * 1.05
+                    ),
+    )
 
 tray.AddModule(
     "I3Writer",

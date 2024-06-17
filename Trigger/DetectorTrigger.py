@@ -164,7 +164,7 @@ class DetectorTrigger(icetray.I3ConditionalModule):
                         ):
                             for k in range(i - nstart, i + nstart + 1):
                                 self.StringTriggerGroups[-1].append(
-                                    OMKey(l + 1, k + 1, 0)
+                                    OMKey(l + 1, k + 1, 1)
                                 )
         else:
             nstart = int((self.StringNRows - 1) / 2)
@@ -172,7 +172,7 @@ class DetectorTrigger(icetray.I3ConditionalModule):
                 self.StringTriggerGroups.append([])
                 for j in range(1, self.nstrings + 1):
                     for k in range(i - nstart, i + nstart + 1):
-                        self.StringTriggerGroups[-1].append(OMKey(j, k, 0))
+                        self.StringTriggerGroups[-1].append(OMKey(j, k, 1))
 
         self.DOMTriggerGroups = {}
         for i in range(len(self.StringTriggerGroups)):
