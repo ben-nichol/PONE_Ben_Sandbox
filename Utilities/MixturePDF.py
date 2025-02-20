@@ -16,12 +16,7 @@ def gamma_pdf(x, k, theta):
     if x <= 0.0:
         y = 0.0
     else:
-        y = (
-            1.0
-            / (np.exp(loggamma(k)) * theta**k)
-            * x ** (k - 1.0)
-            * np.exp(-x / theta)
-        )
+        y = 1.0 / (np.exp(loggamma(k)) * theta**k) * x ** (k - 1.0) * np.exp(-x / theta)
     return y
 
 

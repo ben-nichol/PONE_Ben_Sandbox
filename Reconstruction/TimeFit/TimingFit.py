@@ -47,9 +47,7 @@ class TimingFit(icetray.I3Module):
         t_gamma = (
             t_close + ((module.z - z_close) * direct.z + (n**2 - 1) / n * d_gamma) / c
         )
-        cos_gamma = (1.0 - direct.z**2) * (
-            module.z - z_close
-        ) / d_gamma + direct.z / n
+        cos_gamma = (1.0 - direct.z**2) * (module.z - z_close) / d_gamma + direct.z / n
 
         return t_gamma
 
