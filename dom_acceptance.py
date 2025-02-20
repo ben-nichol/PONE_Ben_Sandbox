@@ -11,6 +11,7 @@ import scipy.constants as const
 from scipy.interpolate import CubicSpline, interp1d
 from dataclasses import dataclass
 from icecube import dataclasses, dataio, simclasses, icetray
+
 dom_properties = DOMUtility.DOMProperties()
 
 
@@ -24,133 +25,153 @@ class Position:
     def magnitude(self) -> float:
         return np.sqrt(self.x**2 + self.y**2 + self.z**2)
 
+
 @dataclass
 class Photon:
     pos: Position
     wavelength: float
 
 
-
-
 class POM:
-    '''
-    Class characterizing the P-OM. COPY OF JAKUB's K40 code 
-    '''
+    """
+    Class characterizing the P-OM. COPY OF JAKUB's K40 code
+    """
+
     def __init__(self, data_path):
-        '''
+        """
         Define P-OM properties and geometry
-        '''
+        """
         # ----------------------------------------------------------------------------
         # set pmt geometry
         # ----------------------------------------------------------------------------
-        self.MODULE_RADIUS_M      = 0.2159
-        self.PMT_RADIUS_M         = 0.055 # was 0.0635 before?
-        #self.PMT_RADIUS_M = 0.0381
+        self.MODULE_RADIUS_M = 0.2159
+        self.PMT_RADIUS_M = 0.055  # was 0.0635 before?
+        # self.PMT_RADIUS_M = 0.0381
 
-        PMT_ZENITHS               = [32.5, 65.0, 115.0, 147.5]
-        PMT_AZIMUTHS_TOP          = [0.0, 90.0, 180.0, 270.0]
-        PMT_AZIMUTHS_BOTTOM       = [45.0, 135.0, 225.0, 315.0]
+        PMT_ZENITHS = [32.5, 65.0, 115.0, 147.5]
+        PMT_AZIMUTHS_TOP = [0.0, 90.0, 180.0, 270.0]
+        PMT_AZIMUTHS_BOTTOM = [45.0, 135.0, 225.0, 315.0]
 
-        zenith_list  = np.array(sorted( 4 * PMT_ZENITHS))
-        azimuth_list = (PMT_AZIMUTHS_TOP + PMT_AZIMUTHS_BOTTOM
-                        + PMT_AZIMUTHS_BOTTOM + PMT_AZIMUTHS_TOP)
-        
-        x_coordinates = np.multiply(np.sin(np.deg2rad(zenith_list)), np.cos(np.deg2rad(azimuth_list)))
-        y_coordinates = np.multiply(np.sin(np.deg2rad(zenith_list)), np.sin(np.deg2rad(azimuth_list)))
+        zenith_list = np.array(sorted(4 * PMT_ZENITHS))
+        azimuth_list = (
+            PMT_AZIMUTHS_TOP
+            + PMT_AZIMUTHS_BOTTOM
+            + PMT_AZIMUTHS_BOTTOM
+            + PMT_AZIMUTHS_TOP
+        )
+
+        x_coordinates = np.multiply(
+            np.sin(np.deg2rad(zenith_list)), np.cos(np.deg2rad(azimuth_list))
+        )
+        y_coordinates = np.multiply(
+            np.sin(np.deg2rad(zenith_list)), np.sin(np.deg2rad(azimuth_list))
+        )
         z_coordinates = np.cos(np.deg2rad(zenith_list))
 
         self.PMT_MATRIX = np.array([x_coordinates, y_coordinates, z_coordinates]).T
-
 
         # ----------------------------------------------------------------------------
         # set efficiencies
         # ----------------------------------------------------------------------------
 
         self.COLLECTION_EFFICIENCY = 0.9
-        self.TRANSIT_TIME_SPREAD   = np.loadtxt(data_path + 'tts.csv', delimiter=',')
-        self.QUANTUM_EFFICIENCY    = np.loadtxt(data_path + 'qe.csv', delimiter=',')
-        self.TRANSMITTANCE         = np.loadtxt(data_path + 'glass.csv', delimiter=',')
-        self.ANGULAR_ACCEPTANCE_0  = np.loadtxt(data_path + 'aa-0.csv', delimiter=',')
+        self.TRANSIT_TIME_SPREAD = np.loadtxt(data_path + "tts.csv", delimiter=",")
+        self.QUANTUM_EFFICIENCY = np.loadtxt(data_path + "qe.csv", delimiter=",")
+        self.TRANSMITTANCE = np.loadtxt(data_path + "glass.csv", delimiter=",")
+        self.ANGULAR_ACCEPTANCE_0 = np.loadtxt(data_path + "aa-0.csv", delimiter=",")
 
         energy_conversion = const.h * const.c / const.elementary_charge
-        self.QE_FUNCTION = CubicSpline(np.flip(energy_conversion / self.QUANTUM_EFFICIENCY.T[0], axis=0), np.flip(self.QUANTUM_EFFICIENCY.T[1], axis=0), extrapolate=False)
-        self.T_FUNCTION  = CubicSpline(self.TRANSMITTANCE.T[0] * 1e-9, self.TRANSMITTANCE.T[1], extrapolate=False)
-        self.AA_FUNCTION = interp1d(self.ANGULAR_ACCEPTANCE_0.T[0], self.ANGULAR_ACCEPTANCE_0.T[1], bounds_error=False, fill_value=0)
-
-
+        self.QE_FUNCTION = CubicSpline(
+            np.flip(energy_conversion / self.QUANTUM_EFFICIENCY.T[0], axis=0),
+            np.flip(self.QUANTUM_EFFICIENCY.T[1], axis=0),
+            extrapolate=False,
+        )
+        self.T_FUNCTION = CubicSpline(
+            self.TRANSMITTANCE.T[0] * 1e-9, self.TRANSMITTANCE.T[1], extrapolate=False
+        )
+        self.AA_FUNCTION = interp1d(
+            self.ANGULAR_ACCEPTANCE_0.T[0],
+            self.ANGULAR_ACCEPTANCE_0.T[1],
+            bounds_error=False,
+            fill_value=0,
+        )
 
     def PMTHit(self, photon):
-        '''
+        """
         Function that return a list of PMTs on the
         P-OM that were hit by a given photon
-        '''
+        """
 
         photon_position = photon.pos
 
         # deterine the angle between all the pmt vectors and the photon vector
-        pmt_photon_angles = self.PMT_MATRIX.dot(np.array([photon_position.x,photon_position.y, photon_position.z]) / photon_position.magnitude)
-        
+        pmt_photon_angles = self.PMT_MATRIX.dot(
+            np.array([photon_position.x, photon_position.y, photon_position.z])
+            / photon_position.magnitude
+        )
+
         # check if the ditance at the module radius between the pmt vector
         # and the photon vector falls within the PMT size, if so, mark as a hit
         # return a list of indices that have been 'hit'
-        pmt_vector_distances = self.MODULE_RADIUS_M * np.sin(np.arccos(pmt_photon_angles))
-        pmts_hit            = np.where(np.logical_and(pmt_vector_distances < self.PMT_RADIUS_M, pmt_photon_angles >= 0))[0]
+        pmt_vector_distances = self.MODULE_RADIUS_M * np.sin(
+            np.arccos(pmt_photon_angles)
+        )
+        pmts_hit = np.where(
+            np.logical_and(
+                pmt_vector_distances < self.PMT_RADIUS_M, pmt_photon_angles >= 0
+            )
+        )[0]
 
         if len(pmts_hit) == 1:
-            hit_angle    = pmt_photon_angles[pmts_hit]
+            hit_angle = pmt_photon_angles[pmts_hit]
             hit_distance = pmt_vector_distances[pmts_hit]
             return [pmts_hit[0], hit_angle, hit_distance]
         elif len(pmts_hit) > 1:
-            raise IndexError('two pmts are being hit at the same time!', pmts_hit)
+            raise IndexError("two pmts are being hit at the same time!", pmts_hit)
         else:
             return [None, None, None]
-    
-
 
     def CollectionEfficiency(self, photon_list):
-        '''
+        """
         Returns an array of collection efficiencies for
         a passed array of photons
-        '''
+        """
         return np.ones(len(photon_list)) * self.COLLECTION_EFFICIENCY
 
-
-
     def TransitTimeSpread(self, photon_list):
-        '''
+        """
         Returns an array of transit time spreads
         for a passed array of photons
-        '''
-        return np.random.choice(self.TRANSIT_TIME_SPREAD[:,0], len(photon_list), p=self.TRANSIT_TIME_SPREAD[:,1])
-
-
+        """
+        return np.random.choice(
+            self.TRANSIT_TIME_SPREAD[:, 0],
+            len(photon_list),
+            p=self.TRANSIT_TIME_SPREAD[:, 1],
+        )
 
     def QuantumEfficiency(self, photon_list):
-        '''
+        """
         Returns an array of quantum efficiencies for
         a passed array of photons
-        '''
-        wavelengths  = np.array([p.wavelength for p in photon_list])
+        """
+        wavelengths = np.array([p.wavelength for p in photon_list])
         efficiencies = np.nan_to_num(self.QE_FUNCTION(wavelengths))
         return efficiencies
-    
-
 
     def Transmittance(self, photon_list):
-        '''
+        """
         Returns an array of transmittance efficiencies
         for a passed array of photons
-        '''
-        wavelengths  = np.array([p.wavelength for p in photon_list])
+        """
+        wavelengths = np.array([p.wavelength for p in photon_list])
         efficiencies = np.nan_to_num(self.T_FUNCTION(wavelengths))
         return efficiencies
-    
 
     def AngularAcceptanceSimple(self, pmt_info_list):
-        '''
+        """
         Returns an array of angular acceptances
         for a passed array of pmt information
-        '''
+        """
         distances = np.hstack(pmt_info_list[:, 2])
         efficiencies = np.nan_to_num(self.AA_FUNCTION(distances))
         return efficiencies
@@ -160,6 +181,8 @@ class POM:
 This function is a copy of the GetPMT function from PONEDOMLauncher.py. 
 Just for convenience.
 """
+
+
 def GetPMT(photonDir, wl, weight):
     random = np.random.uniform()
 
@@ -230,35 +253,41 @@ def GetPMT(photonDir, wl, weight):
 
 
 def k40_acceptance(module, photon_list):
-
     """Copied from https://github.com/pone-software/k40/blob/cf7804c3d25d6039bcdc06ca89629e0d7cf9c558/simulation/utilities/scripts/EventBuilder.py#L338"""
 
     number_photons = len(photon_list)
     pmt_hit_mask = np.zeros(number_photons, dtype=bool)
-    pmt_list     = np.empty((number_photons, 3), dtype=object) #### Need to make n x 3!!!!!!!!!
+    pmt_list = np.empty(
+        (number_photons, 3), dtype=object
+    )  #### Need to make n x 3!!!!!!!!!
 
     for i in np.arange(number_photons):
         hit_pmt_info = module.PMTHit(photon_list[i])
 
         if hit_pmt_info[0] is not None:
             pmt_hit_mask[i] = True
-            pmt_list[i]     = hit_pmt_info
-    
+            pmt_list[i] = hit_pmt_info
+
     filtered_photons = photon_list[pmt_hit_mask]
-    filtered_pmts    = pmt_list[pmt_hit_mask]
+    filtered_pmts = pmt_list[pmt_hit_mask]
 
     if len(filtered_photons) == 0:
         return None
 
-    photons   = filtered_photons
+    photons = filtered_photons
     pmt_infos = np.vstack(filtered_pmts)
 
     # calculate efficiencies and remove photons with 0 efficency
-    collection_efficiencies    = module.CollectionEfficiency(photons)
-    quantum_efficiencies       = module.QuantumEfficiency(photons)
+    collection_efficiencies = module.CollectionEfficiency(photons)
+    quantum_efficiencies = module.QuantumEfficiency(photons)
     transmittance_efficiencies = module.Transmittance(photons)
-    angular_efficiencies       = module.AngularAcceptanceSimple(pmt_infos)
-    photon_efficiencies        = collection_efficiencies * quantum_efficiencies * transmittance_efficiencies * angular_efficiencies
+    angular_efficiencies = module.AngularAcceptanceSimple(pmt_infos)
+    photon_efficiencies = (
+        collection_efficiencies
+        * quantum_efficiencies
+        * transmittance_efficiencies
+        * angular_efficiencies
+    )
 
     return np.sum(photon_efficiencies)
 
@@ -288,7 +317,9 @@ def compare_acceptance_codes(n=1000000):
     accepted = np.sum(pmt_ixs >= 0)
     print("Old code: ", accepted / n)
 
-    pmt_acc = DOMUtility.Geant4PMTAcceptance(os.getenv("PONESRCDIR") + "/data/pmt_acc.npz")
+    pmt_acc = DOMUtility.Geant4PMTAcceptance(
+        os.getenv("PONESRCDIR") + "/data/pmt_acc.npz"
+    )
     rel_positions = np.array(
         [
             [np.sin(np.arccos(cz)) * np.cos(a), np.sin(np.arccos(cz)) * np.sin(a), cz]
@@ -309,15 +340,13 @@ def compare_acceptance_codes(n=1000000):
     photon_list = []
 
     for rel_pos in rel_positions:
-        photon = Photon(Position(*rel_pos), wl*1E-9)
+        photon = Photon(Position(*rel_pos), wl * 1e-9)
         photon_list.append(photon)
-
-
 
     accepted = k40_acceptance(pom, np.asarray(photon_list))
 
     print("K40 code", accepted / n)
-    
+
 
 def plot_acceptance_prob_map():
 
@@ -337,13 +366,14 @@ def plot_acceptance_prob_map():
     plt.colorbar(label="Bin Entry")
     plt.savefig("PMTAcceptance_sum.png")
 
+
 def analyze_k40(file):
     hdl = dataio.I3File(file)
     n_hits = 0
     frames = 0
     while hdl.more():
         fr = hdl.pop_frame()
-        
+
         if fr.Stop == icetray.I3Frame.DAQ:
             photons = fr["I3Photon_pmtsplit"]
             frames += 1
@@ -351,18 +381,17 @@ def analyze_k40(file):
             times = sorted([p.time for _, ps in photons for p in ps])
             deltas = np.diff(times)
 
-
             if len(times) == 1:
                 n_hits += 1
             elif len(times) > 1:
-                print(times, sum(deltas > 20)+1)
-                n_hits += sum(deltas > 20) +1
+                print(times, sum(deltas > 20) + 1)
+                n_hits += sum(deltas > 20) + 1
     print(frames)
-    print(n_hits / (frames * 1E-5))
+    print(n_hits / (frames * 1e-5))
     hdl.close()
 
 
 if __name__ == "__main__":
-    #analyze_k40("clsim-output-1899_daq.i3.gz")
+    # analyze_k40("clsim-output-1899_daq.i3.gz")
     compare_acceptance_codes()
     # plot_acceptance_prob_map()

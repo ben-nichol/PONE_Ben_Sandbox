@@ -1,6 +1,7 @@
 """
 Tray segments for MuonGun simulations
 """
+
 import math
 
 import icecube.icetray

@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 
-"""
-
-"""
+""" """
 
 from icecube import dataclasses, dataio, icetray, simclasses
 from icecube.icetray import I3Units, I3Frame
