@@ -14,6 +14,7 @@ tilt_coefficients = nn.array(
    [ 9.25370891e-14,-2.64904419e+00, 2.89333720e-03,-1.13182809e-06]])
 
 def tilt_delta_x(v_x, z):
+'''Calculates the horizontal offset due to currents, based on current speed v_x, and height z'''
     v_x = v_x / icetray.I3Units.m * icetray.I3Units.s
     z   = z / icetray.I3Units.m
     dx  = 0
@@ -25,6 +26,8 @@ def tilt_delta_x(v_x, z):
 def createTiltedGeometry(current_speed=0,
                          current_angle=0,
                          string_positions=[[0,0]]):
+'''Takes a current speed, an angle [0, 2pi] of the current, and a list of 2D string positions [[x1,y1],...].
+Returns an I3Geometry with tilted strings.'''
     if not 0 <= current_speed <= 0.2 * icetray.I3Units.m / icetray.I3Units.s:
         print('Current speed outside of range for which fit '
               'was performed. Results will not be reliable.'

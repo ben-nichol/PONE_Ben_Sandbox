@@ -1,9 +1,4 @@
-'''
-The purpose of this library is to illustrate a way
-of integrating a changing detector geometry into
-icetray. Most functions are just placeholders without
-actual functionality.
-'''
+'''The purpose of this library is to illustrate a way of integrating a changing detector geometry into icetray. Most functions are just placeholders without actual functionality.'''
 
 from icecube import icetray, dataclasses, dataio
 from AcousticFrame import geometry
@@ -13,6 +8,7 @@ import inspect
 Acoustic = icetray.I3Frame.Stream('A')
 
 class injectFrame(icetray.I3Module):
+'''Parent module to inject new geometry, calibration and detector status frames into an existing icetray stream. To use this module, define a child that implements an inject(self) function.'''
     def __init__(self, context):
         icetray.I3Module.__init__(self, context)
         self.AddParameter('insertbefore',
@@ -30,6 +26,7 @@ class injectFrame(icetray.I3Module):
             self.ctr += 1
         self.PushFrame(frame)
 class injectCalibrationFrame(injectFrame):
+'''Module to inject new calibration frames into icetray stream.'''
     def Inject(self):
         CFrame = icetray.I3Frame(icetray.I3Frame.Calibration)
         CFrame["I3Calibration"] = dataclasses.I3Calibration()
@@ -42,6 +39,7 @@ class injectCalibrationFrame(injectFrame):
                 domcalmap[omkey] = newdomcal
         self.PushFrame(CFrame)
 class injectDetectorStatusFrame(injectFrame):
+'''Module to inject new detector status frames into icetray stream.'''
     def Inject(self):
         DFrame = icetray.I3Frame(icetray.I3Frame.DetectorStatus)
         DFrame["I3DetectorStatus"] = dataclasses.I3DetectorStatus()
@@ -54,6 +52,7 @@ class injectDetectorStatusFrame(injectFrame):
                 domstatusmap[omkey] = newdomstatus
         self.PushFrame(DFrame)
 class injectAcousticFrame(injectFrame):
+'''Module to inject new acoustic frames into icetray stream. These dummy acoustic frames do not contain any acoustic data, but a tilted geometry that can be copied to a geometry frame. The parameters of this module are inherited from injectFrame and createTiltGeometry.'''
     def __init__(self, context):
         injectFrame.__init__(self, context)
         source_function = geometry.createTiltedGeometry
@@ -69,6 +68,9 @@ class injectAcousticFrame(injectFrame):
         self.PushFrame(AFrame)
 
 class createGeometryFromAcoustic(icetray.I3Module):
+'''Dummy module to illustrate the injection of new geometry frames after each acoustic frame.
+This module just copies geometry data from the existing acoustic frames into new geometry frames.
+In a more realistic scenario, this module would implement triangulation calculations based on acoustic receiver data.'''
     def Process(self):
         frame = self.PopFrame()
         self.PushFrame(frame)
@@ -78,6 +80,8 @@ class createGeometryFromAcoustic(icetray.I3Module):
             self.PushFrame(GFrame)
 
 class interpolateGeometryFromAcoustic(icetray.I3Module):
+'''Dummy module to illustrate geometry interpolations. Once an acoustic frame is received, all arriving frames are stored in a queue until another acoustic frame arrives. Then the queue is emptied while new geometry frames are injected. The geometry in these new geometry frames is a simple linear interpolation in x,y,x of the geometry defined in the acoustic frames.'''
+
     def __init__(self, context):
         icetray.I3Module.__init__(self, context)
         self.initial_AFrame = None
@@ -127,12 +131,7 @@ class interpolateGeometryFromAcoustic(icetray.I3Module):
         self.EmptyQueue()
 
 class CreateSeparateGCD(icetray.I3Module):
-    '''
-    To use this module, define your own module that inherits
-    from this module and defines it's own InsertModule function,
-    where the module to be wrapped is inserted into the wrapper
-    tray.
-    '''
+'''To use this module, define your own module that inherits from this module and defines it's own InsertModule function, where the module to be wrapped is inserted into the wrapper tray.'''
     def __init__(self, context):
         icetray.I3Module.__init__(self, context)
         # empty dummy frames
