@@ -365,9 +365,7 @@ upgradeCoverage = (upgradeNumPMTs * np.pi * upgradePMTRadius**2) / (
 
 currentPMTRadius = 5.0 / 12 * I3Units.ft
 currentDOMRadius = 0.16510 * I3Units.m
-currentCoverage = (2 * np.pi * currentPMTRadius**2) / (
-    4 * np.pi * currentDOMRadius**2
-)
+currentCoverage = (2 * np.pi * currentPMTRadius**2) / (4 * np.pi * currentDOMRadius**2)
 
 print(upgradeCoverage / currentCoverage)
 

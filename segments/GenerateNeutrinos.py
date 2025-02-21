@@ -301,9 +301,9 @@ def SelectNeutrino(
 
     # Store propagators in the context
     if not "I3ParticleTypePropagatorServiceMap" in tray.context:
-        tray.context[
-            "I3ParticleTypePropagatorServiceMap"
-        ] = sim_services.I3ParticleTypePropagatorServiceMap()
+        tray.context["I3ParticleTypePropagatorServiceMap"] = (
+            sim_services.I3ParticleTypePropagatorServiceMap()
+        )
     Propagators = tray.context["I3ParticleTypePropagatorServiceMap"]
 
     # Use NeutrinoPropagator for neutrinos

@@ -152,11 +152,7 @@ class StartStopFit(icetray.I3ConditionalModule):
                     0.0,
                     lrad**2.0
                     - 4.0
-                    * (
-                        linefit.pos.x**2.0
-                        + linefit.pos.x**2.0
-                        - self.MaxDOMRad**2.0
-                    )
+                    * (linefit.pos.x**2.0 + linefit.pos.x**2.0 - self.MaxDOMRad**2.0)
                     * (dir_rad**2.0),
                 )
                 lrad += np.sqrt(sqrt_inside)
