@@ -32,7 +32,9 @@ parser.add_argument(
     default="dataio/clsim.i3",
     help="Write output to OUTFILE (.i3{.gz} format)",
 )
-parser.add_argument("-g", "--gcdfile",default=os.getenv("PONESRCDIR") + "/GCD/PONE_5String.i3.gz")
+parser.add_argument(
+    "-g", "--gcdfile", default=os.getenv("PONESRCDIR") + "/GCD/PONE_5String.i3.gz"
+)
 parser.add_argument(
     "--icemodel",
     default=expandvars("$I3_BUILD/ice-models/resources/models/ICEMODEL/spice_lea"),
@@ -75,9 +77,9 @@ tray.AddSegment(
     clsim.I3CLSimMakeHits,
     "makeCLSimHits",
     GCDFile=options.gcdfile,
-    DOMRadius=0.21590*icetray.I3Units.m, #POM dimension, default is icecube specific
+    DOMRadius=0.21590 * icetray.I3Units.m,  # POM dimension, default is icecube specific
     IceModelLocation=Medium.MakePoneMediumProperties(),
-    MCPESeriesName = "", 
+    MCPESeriesName="",
     PhotonSeriesName=photonSeriesName,
     MCTreeName=MCTreeName,
     RandomService=randomService,
@@ -91,9 +93,9 @@ tray.AddSegment(
     UseI3PropagatorService=False,
     UnWeightedPhotons=True,
     WavelengthAcceptance=dom_properties.GetCLSimQETable(
-                factor=dom_properties.GetMaxAngularAcceptance() * 1.05
-                    ),
-    )
+        factor=dom_properties.GetMaxAngularAcceptance() * 1.05
+    ),
+)
 
 tray.AddModule(
     "I3Writer",

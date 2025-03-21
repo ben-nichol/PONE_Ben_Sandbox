@@ -1,5 +1,5 @@
 """!
-DOM Utilities is a collection of functions and variables for the DOMs. 
+DOM Utilities is a collection of functions and variables for the DOMs.
 """
 
 import numpy as np
@@ -450,7 +450,9 @@ class Geant4PMTAcceptance:
         self.rayleigh_2 = rayleigh(data["sigma_grp_1"])
         self.pmt_positions = data["pmt_coords"]
 
-    def make_clsim_weighting_func(self, binning=2.0, with_qe=True, wl_bounds=(290, 800)):
+    def make_clsim_weighting_func(
+        self, binning=2.0, with_qe=True, wl_bounds=(290, 800)
+    ):
         """
         Creates a CLSim weighting function.
 
@@ -465,16 +467,10 @@ class Geant4PMTAcceptance:
         bins = np.arange(wl_bounds[0], wl_bounds[1], binning)
         max_acceptance = self.acc_pmt_grp_1 + self.acc_pmt_grp_2
 
-
         if with_qe:
             max_acceptance *= self.get_qe(self.wavelengths)
 
-        table = np.interp(
-            bins,
-            self.wavelengths,
-            max_acceptance,
-            left=0, right=0
-        )
+        table = np.interp(bins, self.wavelengths, max_acceptance, left=0, right=0)
 
         clsim_table = simclasses.I3CLSimFunctionFromTable(
             wl_bounds[0] * I3Units.nanometer, binning * I3Units.nanometer, table

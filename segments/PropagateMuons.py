@@ -2,6 +2,7 @@
 Tray segments for muon propagation
 
 """
+
 import os
 
 import icecube

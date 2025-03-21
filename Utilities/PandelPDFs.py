@@ -1,5 +1,5 @@
 """
-A single place to keep all PDFs that have been coded in the process of attempting to create a muon track reconstruction for P-ONE. 
+A single place to keep all PDFs that have been coded in the process of attempting to create a muon track reconstruction for P-ONE.
 
 """
 
@@ -64,9 +64,7 @@ def cpandel(t, d, sigma, lambda_s, rho):
             * sp.hyp1f1(0.5 * (xi + 1.0), 1.5, 0.5 * eta**2)
             / sp.gamma(0.5 * xi)
         )
-        _pdf *= (
-            (rho**xi) * (sigma ** (xi - 1.0)) * np.exp(-(t**2) / (2.0 * sigma**2))
-        )
+        _pdf *= (rho**xi) * (sigma ** (xi - 1.0)) * np.exp(-(t**2) / (2.0 * sigma**2))
         _pdf /= 2.0 ** ((1.0 + xi) / 2.0)
         return _pdf * scale
 
@@ -110,11 +108,7 @@ def cpandel(t, d, sigma, lambda_s, rho):
         beta = 0.5 * ((z / (np.sqrt(1.0 + z**2)) - 1.0))
         N1 = (beta / 12.0) * (20 * beta**2 + 30 * beta + 9.0)
         N2 = ((beta**2) / (288.0)) * (
-            6160 * beta**4
-            + 18480 * beta**3
-            + 19404 * beta**2
-            + 8028 * beta
-            + 945.0
+            6160 * beta**4 + 18480 * beta**3 + 19404 * beta**2 + 8028 * beta + 945.0
         )
         psi = 1.0 + N1 / (2 * xi - 1.0) + N2 / ((2 * xi - 1.0) ** 2)
         _pdf = (
@@ -193,11 +187,7 @@ def log_cpandel(t, d, sigma=10, lambda_s=120.0, rho=0.004):
         beta = 0.5 * ((z / (np.sqrt(1.0 + z**2)) - 1.0))
         N1 = (beta / 12.0) * (20 * beta**2 + 30 * beta + 9.0)
         N2 = ((beta**2) / (288.0)) * (
-            6160 * beta**4
-            + 18480 * beta**3
-            + 19404 * beta**2
-            + 8028 * beta
-            + 945.0
+            6160 * beta**4 + 18480 * beta**3 + 19404 * beta**2 + 8028 * beta + 945.0
         )
         phi = 1.0 - N1 / (2.0 * xi_in - 1.0) + N2 / ((2.0 * xi_in - 1.0) ** 2)
         alpha = (
@@ -221,11 +211,7 @@ def log_cpandel(t, d, sigma=10, lambda_s=120.0, rho=0.004):
         beta = 0.5 * ((z / (np.sqrt(1.0 + z**2)) - 1.0))
         N1 = (beta / 12.0) * (20 * beta**2 + 30 * beta + 9.0)
         N2 = ((beta**2) / (288.0)) * (
-            6160 * beta**4
-            + 18480 * beta**3
-            + 19404 * beta**2
-            + 8028 * beta
-            + 945.0
+            6160 * beta**4 + 18480 * beta**3 + 19404 * beta**2 + 8028 * beta + 945.0
         )
         psi = 1.0 + N1 / (2 * xi_in - 1.0) + N2 / ((2 * xi_in - 1.0) ** 2)
         first = (
