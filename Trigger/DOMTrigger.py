@@ -103,21 +103,21 @@ class DOMTrigger(icetray.I3ConditionalModule):
             if len(DOMPMTCount[omkey]) >= self.SingleDOMCoincidenceN:
                 times = list()
                 coinc = list()
-                pmts = list()
+                pmts  = list()
                 for time in DOMCoincidence_dict[omkey].keys():
                     if (
                         len(DOMCoincidence_dict[omkey][time])
                         < self.SingleDOMCoincidenceN
                     ):
                         continue
-                    times.append(time)
                     coinc.append(len(DOMCoincidence_dict[omkey][time]))
                     for pmt in DOMCoincidence_dict[omkey][time]:
                         pmts.append(int(pmt))
+                        times.append(time)
                 if len(times) > 0:
-                    DOMCoincidence_time[omkey] = times
+                    DOMCoincidence_time[omkey]  = times
                     DOMCoincidence_ncoin[omkey] = coinc
-                    DOMCoincidence_pmts[omkey] = pmts
+                    DOMCoincidence_pmts[omkey]  = pmts
 
                 # print(times)
 

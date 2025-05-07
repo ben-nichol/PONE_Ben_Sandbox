@@ -6,6 +6,10 @@ from Utilities.DOMUtility import NoPMTKey, AddPMTKey, DOMProperties, Geant4PMTAc
 
 # from DOMUtility import NoPMTKey, AddPMTKey, DOMProperties
 
+import sys
+sys.path.append('/home/jakubs/projects/def-mdanning/jakubs/k40/utils')
+from POMModel import POM
+
 
 class SimpleDOMSimulation(icetray.I3ConditionalModule):
     """
@@ -673,7 +677,7 @@ class SimpleDOMSimulation(icetray.I3ConditionalModule):
         if len(photonmap) < 1 and lennoisepulses < 1:
             return
 
-        print("Splitting PMTs")
+        #print("Splitting PMTs")
         photonmap_on_pmts, frame[self.inputmap + "_pmtsplit"] = self.SplitPMTs(
             photonmap, self.dropstrings
         )
@@ -1327,5 +1331,682 @@ class SimpleDOMSimulationNew(icetray.I3ConditionalModule):
         # print(frame['triggerpulsemap'])
         # print("final")
         # print(frame[self.outputmap])
+
+        self.PushFrame(frame)
+
+
+
+class K40DOMSimulation(icetray.I3ConditionalModule):
+    '''
+    Simple implementation of the PMT response.
+
+    This version uses a slightly more detailed POM
+    acceptance model initially used for K40 studies
+    '''
+
+    def __init__(self, context):
+        icetray.I3ConditionalModule.__init__(self, context)
+        self.AddParameter('inputmap',
+                          'Name of the I3Photons from clsim',
+                          'I3Photons')
+        self.AddParameter('outputmap',
+                          'Name of the output I3RecoPulseSeriesMap',
+                          'I3RecoPulseSeriesMap')
+        self.AddParameter('outputmap_mcpe',
+                          'Name of the output I3MCPESeriesMap',
+                          'I3MCPESeriesMap')
+        self.AddParameter('add_noise',
+                          'Should random noise be added?',
+                          True)
+        self.AddParameter('PMT_tts',
+                          'Transit time spread of PMT',
+                          3.0 * I3Units.ns)
+        self.AddParameter('PMT_ts',
+                          'Transit time of PMT',
+                          25.0 * I3Units.ns)
+        self.AddParameter('chargesigma',
+                          'Sigma of charge distribution',
+                          0.3)
+        self.AddParameter('chargemean',
+                          'Mean of Charge distribution',
+                          1.0)
+        self.AddParameter('DNprob',
+                          'Dark Noise rate (pulses per ns)',
+                          0.000001)
+        self.AddParameter('APprob',
+                          'Total AP probability',
+                          0.06)
+        self.AddParameter('APmeantime_1',
+                          'Mean of early time AP distribution',
+                          2000.0 * I3Units.ns)
+        self.AddParameter('APtimesigma_1',
+                          'Sigma of early time AP distribution',
+                          1000.0 * I3Units.ns)
+        self.AddParameter('APmeantime_2',
+                          'Mean of late time AP distribution',
+                          8000.0 * I3Units.ns)
+        self.AddParameter('APtimesigma_2',
+                          'Sigma of late time AP distribution',
+                          2000.0 * I3Units.ns)
+        self.AddParameter('APComponetRatio',
+                          'Fraction of AP in early time component',
+                          0.3)
+        self.AddParameter('LPprob',
+                          'Probability for a late pulse',
+                          0.01)
+        self.AddParameter('minTsep',
+                          ' Minimum time for a separated pulse.',
+                          3.0)
+        self.AddParameter('PEthreshold',
+                          ' Pulse charge threshold',
+                          0.25)
+        self.AddParameter('PEsaturation',
+                          'Saturation threshold for PMT',
+                          100.0)
+        self.AddParameter('RandomService',
+                          'Random Service')
+        self.AddParameter('SplitDoms',
+                          '',
+                          True)
+        self.AddParameter('DOMAcceptanceFile',
+                          '',
+                          '')
+        self.AddParameter('PMTQEFile',
+                          '',
+                          '')
+        self.AddParameter('DropStrings',
+                          '',
+                          [])
+        self.AddParameter('NoisePulseSeries',
+                          '',
+                          [])
+        self.AddParameter('NoPureNoiseEvents',
+                          '',
+                          True)
+        self.AddOutBox('OutBox')
+
+
+    def Configure(self):
+        self.inputmap          = self.GetParameter('inputmap')
+        self.outputmap         = self.GetParameter('outputmap')
+        self.outputmap_mcpe    = self.GetParameter('outputmap_mcpe')
+        self.add_noise         = self.GetParameter('add_noise')
+        self.PMT_tts           = self.GetParameter('PMT_tts')
+        self.PMT_ts            = self.GetParameter('PMT_ts')
+        self.chargesigma       = self.GetParameter('chargesigma')
+        self.chargemean        = self.GetParameter('chargemean')
+        self.DNprob            = self.GetParameter('DNprob')
+        self.APprob            = self.GetParameter('APprob')
+        self.APmeantime_1      = self.GetParameter('APmeantime_1')
+        self.APtimesigma_1     = self.GetParameter('APtimesigma_1')
+        self.APmeantime_2      = self.GetParameter('APmeantime_2')
+        self.APtimesigma_2     = self.GetParameter('APtimesigma_2')
+        self.APComponetRatio   = self.GetParameter('APComponetRatio')
+        self.LPprob            = self.GetParameter('LPprob')
+        self.minTsep           = self.GetParameter('minTsep')
+        self.PEthreshold       = self.GetParameter('PEthreshold')
+        self.PEsaturation      = self.GetParameter('PEsaturation')
+        self.randomService     = self.GetParameter('RandomService')
+        self.splitDOMs         = self.GetParameter('SplitDoms')
+        self.dropstrings       = self.GetParameter('DropStrings')
+        self.noisePulseSeries  = self.GetParameter('NoisePulseSeries')
+        self.noPureNoiseEvents = self.GetParameter('NoPureNoiseEvents')
+
+        if self.GetParameter('PMTQEFile') != '':
+            GetPMTQETable(self.photonweights, self.GetParameter('PMTQEFile'))
+
+        kwargs_DOMProperties = {}
+        if self.GetParameter('DOMAcceptanceFile') != '':
+            kwargs_DOMProperties['PMTAcceptanceFile'] = self.GetParameter(
+                'DOMAcceptanceFile'
+            )
+        if self.GetParameter('PMTQEFile') != '':
+            kwargs_DOMProperties['PMTQEFile'] = self.GetParameter('PMTQEFile')
+
+        # load the DOM properties from their respective configuration files
+        self.dom_properties            = DOMProperties(**kwargs_DOMProperties)
+        self.WroteActiveDOMsToSimFrame = False
+
+
+        # load the updated module acceptance
+        self.module = POM()
+
+
+    def split_pmts(self, photon_map, drop_strings=[]):
+        '''
+        Split photon hits into PMTs on the OMs
+        '''
+        new_photon_map   = {}
+        pulse_series     = dataclasses.I3RecoPulseSeries()
+        output_pulse_map = dataclasses.I3RecoPulseSeriesMap()
+        
+        # make new map with individual PMTs
+        for omkey in photon_map.keys():
+            # ignore this omkey if it is supposed to be dropped
+            if omkey.string in drop_strings:
+                continue
+
+            newomkey                 = NoPMTKey(omkey)
+            new_photon_map[newomkey] = []
+
+            # collect the photons that hit a particular OM
+            photon_list           = np.array(photon_map[omkey])
+            hit_photons, hit_pmts = self.module.apply_acceptance_cut(photon_list)
+
+            # add these hits to the new photon map and add
+            # a reco pulse to the output pulse map
+            for photon, pmt in zip(hit_photons, hit_pmts):
+                new_photon_map[newomkey].append((photon.time, pmt))
+
+                pmtkey = AddPMTKey(newomkey, pmt)
+                if pmtkey not in output_pulse_map.keys():
+                    output_pulse_map[pmtkey] = dataclasses.I3RecoPulseSeries()
+
+                reco_pulse        = dataclasses.I3RecoPulse()
+                reco_pulse.time   = photon.time
+                reco_pulse.charge = 1.0
+                output_pulse_map[pmtkey].append(reco_pulse)
+
+        return new_photon_map, output_pulse_map
+
+
+    def get_dark_noise_time_bounds(self, mcpe_map):
+        '''
+        Get the upper and lower time bounds to set a time
+        window for dark hits
+        '''
+        max_pt = -999999999.0
+        min_pt = 999999999.0
+
+        for omkey in mcpe_map.keys():
+            for pulse in mcpe_map[omkey]: # pulse is a tuple (time, pmt)
+                if max_pt < pulse[0]:
+                    max_pt = pulse[0]
+                if min_pt > pulse[0]:
+                    min_pt = pulse[0]
+
+        max_pt += 10000.0
+        min_pt -= 2000.0
+
+        return max_pt, min_pt
+
+
+    def generate_dark_hits(self, max_pt, min_pt):
+        '''
+        Add dark hits across all OMs (Adds I3MCPEs)
+        '''
+        dark_hit_mcpe_map = {}
+
+        num_pmts = int(self.dom_properties.GetNPMTs())
+        for omkey in self.domkeys:
+            # poisson distribution of dark noise so sample
+            # time between hits from an exponential distribution
+            time_delta = self.randomService.exp(1.0 / (self.DNprob * num_pmts)) + min_pt
+            pmt_index  = 1 + self.randomService.integer(num_pmts)
+
+            first = True
+            while time_delta < max_pt:
+                if first:
+                    dark_hit_mcpe_map[omkey] = []
+                    first = False
+                dark_hit_mcpe_map[omkey].append((time_delta, pmt_index))
+
+                # get the time to the next dark hit
+                # and the next PMT to be hit
+                time_delta += self.randomService.exp(1.0 / (self.DNprob * num_pmts))
+                pmt_index   = 1 + self.randomService.integer(num_pmts)
+
+        return dark_hit_mcpe_map
+
+
+    # def add_environment_noise(self, dark_hits, noise_pulses):
+    #     '''
+    #     Adds environmental noise ??????????????????
+    #     '''
+    #     new_mcpe_map = {}
+    #     merged_map   = {}
+
+    #     for pulse_series in noise_pulses:
+    #         if type(pulse_series) == type(dataclasses.I3RecoPulseSeries()):
+    #             for dom in pulse_series.keys():
+    #                 nopmtkey = NoPMTKey(dom)
+    #                 if nopmtkey not in new_mcpe_map.keys():
+    #                     new_mcpe_map[nopmtkey] = list()
+    #                 new_mcpe_map[nopmtkey].extend(
+    #                     [
+    #                         (pulse_series[dom][i].time, dom.pmt)
+    #                         for i in range(len(pulse_series[dom]))
+    #                     ]
+    #                 )
+    #         elif type(pulse_series) == type(simclasses, dataclasses.I3PhotonSeries()):
+    #             for dom in noise_pulses.keys():
+    #                 new_mcpe_map[nopmtkey(dom)] = list()
+    #                 for pulse in noise_pulses[dom]:
+    #                     pmtid = self.GetPMT(
+    #                         photonDir=[pulse.dir.x, pulse.dir.y, pulse.dir.z],
+    #                         wl=pulse.wavelength / I3Units.nanometer,
+    #                         weight=pulse.weight,
+    #                     )
+    #                     new_mcpe_map[nopmtkey].append((pulse.time, pmtid))
+    #         else:
+    #             print('Invalid noise pulse series')
+    #     for dom in new_mcpe_map.keys():
+    #         new_mcpe_map[dom].sort(key=lambda x: x[0])
+
+    #     for dom in new_mcpe_map.keys():
+    #         merged_map[dom] = list()
+    #         if dom in dark_hits.keys():
+    #             i = 0
+    #             j = 0
+    #             while i < len(dark_hits[dom]) and j < len(new_mcpe_map[dom]):
+    #                 if dark_hits[dom].time < sortedpulses[j].time:
+    #                     merged_map[dom].append(dark_hits[dom])
+    #                     i += 1
+    #                 else:
+    #                     merged_map[dom].append(sortedpulses[j])
+    #                     j += 1
+    #             if i < len(dark_hits[dom]):
+    #                 merged_map[dom].append(dark_hits[dom])
+    #                 i += 1
+    #             if j < len(sortedpulses):
+    #                 merged_map[dom].append(sortedpulses[j])
+    #                 j += 1
+    #         else:
+    #             merged_map[dom] = new_mcpe_map[dom]
+
+    #     for dom in dark_hits.keys():
+    #         if dom not in merged_map.keys():
+    #             merged_map[dom] = dark_hits[dom]
+    #     return merged_map
+
+
+    def combine_ordered_lists(self, list_1, list_2):
+        '''
+        Combines two ordered lists into a single
+        ordered list preserving the order in each list
+        '''
+        pulse_time_list = []
+        j = 0
+        i = 0
+
+        # combine the first entries of the lists
+        # based on comparing their times to eachother
+        # to determine the order
+        while j < len(list_1) and i < len(list_2):
+            if list_1[j][0] <= list_2[i][0]:
+                pulse_time_list.append(list_1[j])
+                j += 1
+            else:
+                pulse_time_list.append(list_2[i])
+                i += 1
+
+        # add the rest of list 1 if needed
+        while j < len(list_1):
+            pulse_time_list.append(list_1[j])
+            j += 1
+
+        # add the rest of list 2 if needed
+        while i < len(list_2):
+            pulse_time_list.append(list_2[i])
+            i += 1
+
+        return pulse_time_list
+
+
+    def apply_pmt_timing_characteristics(self, mcpe_map, late_pulses=True, after_pulses=True):
+        '''
+        Applies transit time and transit time spread
+        to a given mcpe map
+
+        late_pulses and after_pulses are two booleans
+        which toggle including late pulses and afterpulses
+        '''
+        pulse_time_list = []
+        # pulseseries   = dataclasses.I3RecoPulseSeries()
+        # dompulseseries = dataclasses.I3RecoPulseSeries()
+        pulse_out_of_order_time_list = []
+
+        # for every photoelectron shift the time
+        # based on tts and late pulse probability
+        for pe in mcpe_map:
+            # time shifted by tts
+            time = self.randomService.gaus(pe[0], self.PMT_tts)
+
+            # check if the pulse will be a late pulse based
+            # on the late pulse probability
+            if late_pulses:
+                if self.randomService.uniform(0.0, 1.0) < self.LPprob:
+                    time += self.randomService.gaus(self.PMT_ts * 2.0, np.sqrt(2.0) * self.PMT_tts)
+
+            if len(pulse_time_list) < 1 or time > pulse_time_list[-1][0]:
+                pulse_time_list.append((time, pe[1]))
+            else:
+                pulse_out_of_order_time_list.append((time, pe[1]))
+
+        # if there are pulses out of order we need to combine the
+        # two ordered lists into one
+        if len(pulse_out_of_order_time_list) > 0:
+            pulse_out_of_order_time_list.sort(key=lambda x: x[0])
+            pulse_time_list = self.combine_ordered_lists(pulse_time_list.copy(), pulse_out_of_order_time_list)
+
+        # now add afterpulses
+        if after_pulses:
+            for pe in pulse_time_list:
+                pulse_out_of_order_time_list = []
+                if self.randomService.uniform(0.0, 1.0) < self.APprob:
+                    if self.randomService.uniform(0.0, 1.0) < self.APComponetRatio:
+                        time = pe[0] + self.randomService.gaus(self.APmeantime_1, self.APtimesigma_1)
+                    else:
+                        time = pe[0] + self.randomService.gaus(self.APmeantime_2, self.APtimesigma_2)
+                    pulse_out_of_order_time_list.append((time, pe[1]))
+
+            # if there are pulses or afteruplses out of order we need
+            # to combine the two ordered lists into one
+            if len(pulse_out_of_order_time_list) > 0:
+                pulse_out_of_order_time_list.sort(key=lambda x: x[0])
+                pulse_time_list = self.combine_ordered_lists(pulse_time_list.copy(), pulse_out_of_order_time_list)
+
+        return pulse_time_list
+
+
+    def make_reco_pulse(self, pulse_time_list, pulse_charge_list, omkey, output_pulse_map, om_pulse_map=None):
+        '''
+        Populates the output_pulse_map with an I3RecoPulseSeries
+        based on the input pulse times and charges
+        '''
+        min_gap   = 4.0
+        min_index = -1
+
+        if len(pulse_time_list) > 100:
+            leading   = 0
+            following = 1
+            while following < len(pulse_time_list):
+                if (
+                    pulse_time_list[following][0] - pulse_time_list[leading][0]
+                ) < 3.0 and pulse_charge_list[leading] * pulse_charge_list[following] > 0.0:
+                    pulse_charge_list[leading] += pulse_charge_list[following]
+                    pulse_charge_list[following] = 0.0
+                elif pulse_charge_list[following] > 0.0:
+                    leading = following
+                following += 1
+        else:
+            # needs to be better
+            for i in range(1, len(pulse_time_list)):
+                if (
+                    pulse_time_list[i][0] - pulse_time_list[i - 1][0]
+                ) < min_gap and pulse_charge_list[i] * pulse_charge_list[i - 1] > 0.0:
+                    min_gap = pulse_time_list[i][0] - pulse_time_list[i - 1][0]
+                    min_index = i
+            # If less than limit, combine pulses
+            while min_gap <= self.minTsep:
+                if pulse_charge_list[min_index] > pulse_charge_list[min_index - 1]:
+                    pulse_charge_list[min_index] += pulse_charge_list[min_index - 1]
+                    pulse_charge_list[min_index - 1] = 0.0
+                else:
+                    pulse_charge_list[min_index - 1] += pulse_charge_list[min_index]
+                    pulse_charge_list[min_index] = 0.0
+                min_gap = self.minTsep + 1.0
+                min_index = -1
+                # reestablish new min gap
+                for i in range(1, len(pulse_time_list)):
+                    if (
+                        pulse_time_list[i][0] - pulse_time_list[i - 1][0]
+                    ) < min_gap and pulse_charge_list[i] * pulse_charge_list[i - 1] > 0.0:
+                        min_gap = pulse_time_list[i][0] - pulse_time_list[i - 1][0]
+                        min_index = i
+
+        pmt_in_list = []
+        for i in range(len(pulse_time_list)):
+            if pulse_charge_list[-1 - i] < self.PEthreshold:
+                continue
+            if pulse_time_list[i][1] not in pmt_in_list:
+                pmt_in_list.append(pulse_time_list[i][1])
+        pmt_in_list.sort()
+
+        for i in range(len(pmt_in_list)):
+            newomkey = AddPMTKey(omkey, pmt_in_list[i])
+            output_pulse_map[newomkey] = dataclasses.I3RecoPulseSeries()
+
+        for i in range(len(pulse_time_list)):
+            # remove pulses with too low charge.
+            if pulse_charge_list[-1 - i] < self.PEthreshold:
+                continue
+            rpulse = dataclasses.I3RecoPulse()
+            rpulse.time = pulse_time_list[i][0]
+            # saturate pulses with too much charge.
+            if pulse_charge_list[-1 - i] > self.PEsaturation:
+                rpulse.charge = self.PEsaturation
+                rpulse.charge += (pulse_charge_list[-1 - i] - self.PEsaturation) * (
+                    self.PEsaturation / pulse_charge_list[-1 - i]
+                )
+            else:
+                rpulse.charge = pulse_charge_list[-1 - i]
+            rpulse.width = pulse_time_list[i][1]
+            if not (om_pulse_map is None):
+                if omkey not in om_pulse_map.keys():
+                    om_pulse_map[omkey] = dataclasses.I3RecoPulseSeries()
+                om_pulse_map[omkey].append(rpulse)
+            newomkey = AddPMTKey(omkey, pulse_time_list[i][1])
+            output_pulse_map[newomkey].append(rpulse)
+
+
+    def apply_pmt_response(self, mcpe_map, dark_hits):
+        '''
+        Apply the response of the PMT, including combining pulses
+        that are too close together
+        '''
+        output_pulse_map         = dataclasses.I3RecoPulseSeriesMap()
+        output_pulse_map_nonoise = dataclasses.I3RecoPulseSeriesMap()
+        om_pulse_map             = dataclasses.I3RecoPulseSeriesMap()
+        # DOMpulsetimelist = {}
+
+        # self.npmt = 0
+
+        for string_index in range(1, self.nstring + 1):
+            for om_index in range(1, self.nom + 1):
+                omkey = OMKey(string_index, om_index, 0)
+
+                # if there was a real hit at this omkey
+                if omkey in mcpe_map.keys():
+                    real_pulses = self.apply_pmt_timing_characteristics(mcpe_map[omkey])
+
+                    pulse_time_list      = []
+                    real_pulse_time_list = []
+
+                    is_real     = []
+                    dark_pulses = []
+                    if omkey in dark_hits.keys():
+                        dark_pulses = self.apply_pmt_timing_characteristics(dark_hits[omkey], late_pulses=False)
+
+                        # combine the two pulse time lists keeping
+                        # track of which pulse is real and which
+                        # is noise
+                        j = 0
+                        i = 0
+                        while j < len(real_pulses) and i < len(dark_pulses):
+                            if real_pulses[j][0] <= dark_pulses[i][0]:
+                                pulse_time_list.append(real_pulses[j])
+                                is_real.append(1.0)
+                                j += 1
+                            else:
+                                pulse_time_list.append(dark_pulses[i])
+                                is_real.append(0.0)
+                                i += 1
+
+                        while j < len(real_pulses):
+                            pulse_time_list.append(real_pulses[j])
+                            is_real.append(1.0)
+                            j += 1
+
+                        while i < len(dark_pulses):
+                            pulse_time_list.append(dark_pulses[i])
+                            is_real.append(0.0)
+                            i += 1
+
+                    # if there are no dark hits just mark
+                    # every hit as being real
+                    else:
+                        pulse_time_list = real_pulses
+                        for i in range(len(pulse_time_list)):
+                            is_real.append(1.0)
+
+                    pulse_charge_list      = []
+                    real_pulse_charge_list = []
+
+                    # collect the charges associated with
+                    # each pulse time and them to the real
+                    # charge list if they are not from noise
+                    for i in range(len(pulse_time_list)):
+                        charge = self.randomService.gaus(self.chargemean, self.chargesigma)
+                        pulse_charge_list.append(charge)
+                        if is_real[i] > 0.0:
+                            real_pulse_charge_list.append(charge)
+
+                    # turn lists of pulse times and charges into reco pulses
+
+                    # if there are both dark pulses and real pulses
+                    if len(dark_pulses) > 0 and len(real_pulses) > 0:
+                        self.make_reco_pulse(real_pulses, real_pulse_charge_list, omkey,
+                                             output_pulse_map_nonoise)
+                        self.make_reco_pulse(pulse_time_list, pulse_charge_list, omkey,
+                                             output_pulse_map, om_pulse_map)
+                    
+                    # if there are only real pulses
+                    elif len(real_pulses) > 0:
+                        self.make_reco_pulse(real_pulses, real_pulse_charge_list, omkey,
+                                             output_pulse_map_nonoise, om_pulse_map)
+                        
+                        # add this to the regular output noise map as well
+                        for pmt_index in range(0, self.dom_properties.GetNPMTs()):
+                            new_omkey = AddPMTKey(omkey, pmt_index)
+                            if new_omkey in output_pulse_map_nonoise.keys():
+                                output_pulse_map[new_omkey] = output_pulse_map_nonoise[new_omkey]
+                    
+                    # if there are only noise pulses
+                    elif len(dark_pulses) > 0:
+                        self.make_reco_pulse(pulse_time_list, pulse_charge_list, omkey,
+                                             output_pulse_map, om_pulse_map)
+                    else:
+                        continue
+
+                # if there was only a dark hit at this om
+                elif omkey in dark_hits.keys():
+                    # avoid double counting
+                    if omkey in mcpe_map.keys():
+                        continue
+
+                    if len(dark_hits[omkey]) > 0:
+                        dark_pulses = self.apply_pmt_timing_characteristics(dark_hits[omkey], late_pulses=False)
+
+                        # for every dark pulse add a charge
+                        pulse_charge_list = []
+                        for i in range(len(dark_pulses)):
+                            pulse_charge_list.append(self.randomService.gaus(self.chargemean, self.chargesigma))
+
+                        # make reco pulses and add to the output map
+                        self.make_reco_pulse(dark_pulses, pulse_charge_list, omkey,
+                                             output_pulse_map, om_pulse_map)
+
+        return output_pulse_map, output_pulse_map_nonoise, om_pulse_map
+
+
+    def apply_dead_time(self, mcpe_map):
+        '''
+        Removes successive hits on the same PMT
+        based on the PMT dead time
+
+        !!! ignores dark hits for now but these should
+        !!! also be included
+        '''
+        dead_time             = 10.
+        dead_removed_mcpe_map = {}
+
+        for omkey in mcpe_map.keys():
+            dead_removed_mcpe_map[omkey] = []
+
+            last_hit_time = -9999.
+            for pe in mcpe_map[omkey]:
+                if pe[0] - last_hit_time > dead_time:
+                    dead_removed_mcpe_map[omkey].append((pe[0], pe[1]))
+                    last_hit_time = pe[0]
+        
+        return dead_removed_mcpe_map
+
+
+    def Geometry(self, frame):
+        # filter out the strings we want to use based
+        # on dropstrings
+        if len(self.dropstrings) > 0:
+            self.domsUsed = dataclasses.I3OMGeoMap()
+            for omkey in frame['I3Geometry'].omgeo.keys():
+                if omkey.string in self.dropstrings:
+                    continue
+                self.domsUsed[omkey] = frame['I3Geometry'].omgeo[omkey]
+        else:
+            self.domsUsed = frame['I3Geometry'].omgeo
+
+
+        domkeylist   = []
+        self.nstring = 0
+        self.nom     = 0
+        self.npmt    = 0
+
+        for omkey in self.domsUsed.keys():
+            self.nstring = max(self.nstring, omkey.string)
+            self.nom     = max(self.nom, omkey.om)
+            self.npmt    = max(self.npmt, omkey.pmt)
+            domkeylist.append(NoPMTKey(omkey))
+
+        self.domkeys  = set(domkeylist)
+        self.domkeys  = sorted(self.domkeys, key=lambda x: (x.string, x.om, x.pmt))
+        self.nstring += 1
+        self.nom     += 1
+        self.npmt    += 1
+
+        self.PushFrame(frame)
+
+
+    def Simulation(self, frame):
+        if len(self.dropstrings) > 0:
+            frame['SimulatedDOMs'] = self.domsUsed
+
+        self.WroteActiveDOMsToSimFrame = True
+
+        self.PushFrame(frame)
+
+
+    def DAQ(self, frame):
+        if not self.WroteActiveDOMsToSimFrame:
+            simframe = icetray.I3Frame('S')
+            self.Simulation(simframe)
+
+        photon_map   = frame[self.inputmap]
+        noise_pulses = [frame[noisepulsename] for noisepulsename in self.noisePulseSeries if frame.Has(noisepulsename)]
+
+        len_noise_pulses = sum([len(noise_pulses[i]) for i in range(len(noise_pulses))])
+
+        # if there are no photons and no noise or
+        # we don't want noise just skip
+        if (len(photon_map) < 1) and self.noPureNoiseEvents:
+            return
+        if len(photon_map) < 1 and len_noise_pulses < 1:
+            return
+
+        photon_map_on_pmts, frame[self.inputmap + '_pmtsplit'] = self.split_pmts(photon_map, self.dropstrings)
+        
+        dark_hits = {}
+        if self.add_noise:
+            max_pt, min_pt = self.get_dark_noise_time_bounds(photon_map_on_pmts)
+            dark_hits      = self.generate_dark_hits(max_pt, min_pt)
+            dark_hits      = self.add_environment_noise(dark_hits, noise_pulses) # not defined right now (commented out)
+
+        # account for PMT dead time
+        dead_removed_photon_map = self.apply_dead_time(photon_map_on_pmts)
+
+        (output_pulses, output_pulses_nonoise, om_pulses,) = self.apply_pmt_response(dead_removed_photon_map, dark_hits)
+
+        frame[self.outputmap]              = output_pulses
+        frame[self.outputmap + '_nonoise'] = output_pulses_nonoise
+        frame['triggerpulsemap']           = om_pulses
 
         self.PushFrame(frame)

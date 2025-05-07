@@ -9,21 +9,21 @@ import gcdHelpers
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    "-r",
-    "--domradius",
+    '-r',
+    '--domradius',
     type=int,
     default=(17.0 * 2.54 * 0.01 * 0.5),
     help='Radius of dom. Defaults to 17"',
 )
-parser.add_argument("-p", "--npmts", type=int, default=16, help="PMTs per DOM.")
+parser.add_argument('-p', '--npmts', type=int, default=16, help='PMTs per DOM.')
 args = parser.parse_args()
 
 
 outfileName = 'one-om-gcd-origin.i3.gz'
-outfile = dataio.I3File(outfileName, "w")
+outfile = dataio.I3File(outfileName, 'w')
 nstrings = 1
 spacing = 10
-domsPerString = 1
+domsPerString = 3
 
 
 def generateGeometry():
@@ -35,77 +35,12 @@ def generateGeometry():
     area = 4.0 * ((args.domradius) ** 2.0) * np.pi * I3Units.meter2
     geomap = dataclasses.I3OMGeoMap()
 
-    offset = np.pi * (1.0 / 6)
-    anglediff = np.pi * (1.0 / 3)
-    neighbourangles = [
-        offset,
-        anglediff + offset,
-        2.0 * anglediff + offset,
-        3.0 * anglediff + offset,
-        4.0 * anglediff + offset,
-        5.0 * anglediff + offset,
-    ]
 
     stringposx = [0.0]
     stringposy = [0.0]
-    #    stringposx = [0.0]
-    #    stringposy = [0.0]
-    #
-    #    while len(stringposx) < nstrings :
-    #
-    #        minradius = 1000000.0
-    #        minradstring = 0
-    #        minradstringneighbours = 10000
-    #        for i in range(len(stringposx)) :
-    #                nneighbours = 0
-    #                rad = np.sqrt((stringposx[i])**2.0+(stringposy[i])**2.0)
-    #                for j in range(len(stringposx)):
-    #                        if i==j :
-    #                                continue
-    #                        dist = np.sqrt((stringposx[j]-stringposx[i])**2.0+(stringposy[j]-stringposy[i])**2.0)
-    #                        if dist<1.2 :
-    #                                nneighbours += 1
-    #                if nneighbours < len(neighbourangles) and rad <= minradius :
-    #                        if rad < minradius :
-    #                                minradius = rad;
-    #                                minradstring = i
-    #                                minradstringneighbours = nneighbours
-    #                        elif nneighbours < minradstringneighbours :
-    #                                minradius = rad
-    #                                minradstring = i
-    #                                minradstringneighbours = nneighbours
-    #
-    #        maxneighours = 0
-    #        maxneighbourstring = 0
-    #        for j in range(len(neighbourangles)) :
-    #                newposx = stringposx[minradstring]+np.sin(neighbourangles[j])
-    #                newposy = stringposy[minradstring]+np.cos(neighbourangles[j])
-    #
-    #                nneighbours = 0
-    #                overlap = False
-    #                for k in range(len(stringposx)) :
-    #                        dist = np.sqrt((newposx-stringposx[k])**2.0+(newposy-stringposy[k])**2.0)
-    #                        if dist < 0.8 :
-    #                                nneighbours = 0
-    #                                overlap = True
-    #                        if dist<1.2 :
-    #                                nneighbours += 1
-    #                if nneighbours > maxneighours and not overlap:
-    #                        maxneighours = nneighbours
-    #                        maxneighbourstring = j
-    #        stringposx.append(stringposx[minradstring]+np.sin(neighbourangles[maxneighbourstring]))
-    #        stringposy.append(stringposy[minradstring]+np.cos(neighbourangles[maxneighbourstring]))
-    #
-    #    mean_x = sum(stringposx)/len(stringposx)
-    #    mean_y = sum(stringposy)/len(stringposy)
 
-    #sp = 950.0 / 19.0
-    depthlist = [0. * I3Units.meter]
+    depthlist = [0. * I3Units.meter, 250. * I3Units.meter, -250. * I3Units.meter]
 
-    #print(len(stringposx))
-
-    #for i in range(len(stringposx)):
-    #    print(str(stringposx[i] * spacing) + " , " + str(stringposy[i] * spacing))
 
     for i in range(len(stringposx)):
         for m in range(domsPerString):
@@ -139,8 +74,8 @@ dframe = gcdHelpers.generateDFrame(geometry)
 
 geomap = generateGeometry()
 
-gframe["I3Geometry"] = geometry
-gframe["I3OMGeoMap"] = geomap
+gframe['I3Geometry'] = geometry
+gframe['I3OMGeoMap'] = geomap
 modgeomap = dataclasses.I3ModuleGeoMap()
 for dom in geomap.keys():
     mkey = dataclasses.ModuleKey(dom.string, dom.om)
@@ -151,16 +86,16 @@ for dom in geomap.keys():
     module.radius = np.sqrt(geomap[dom].area / (4.0 * np.pi))
     modgeomap[mkey] = module
 
-gframe["I3ModuleGeoMap"] = modgeomap
+gframe['I3ModuleGeoMap'] = modgeomap
 subdetec = dataclasses.I3MapModuleKeyString()
 for dom in geomap.keys():
     mkey = dataclasses.ModuleKey(dom.string, dom.om)
-    subdetec[mkey] = "Upgrade"
+    subdetec[mkey] = 'Upgrade'
 
-gframe["Subdetectors"] = subdetec
+gframe['Subdetectors'] = subdetec
 
-gframe["StartTime"] = gcdHelpers.start_time
-gframe["EndTime"] = gcdHelpers.end_time
+gframe['StartTime'] = gcdHelpers.start_time
+gframe['EndTime'] = gcdHelpers.end_time
 
 outfile.push(gframe)
 outfile.push(cframe)
