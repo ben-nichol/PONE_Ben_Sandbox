@@ -1620,37 +1620,85 @@ class K40DOMSimulation(icetray.I3ConditionalModule):
     #     return merged_map
 
 
-    def combine_ordered_lists(self, list_1, list_2):
+    # def combine_ordered_lists(self, list_1, list_2):
+    #     '''
+    #     Combines two ordered lists into a single
+    #     ordered list preserving the order in each list
+    #     '''
+    #     pulse_time_list = []
+    #     j = 0
+    #     i = 0
+
+    #     # combine the first entries of the lists
+    #     # based on comparing their times to eachother
+    #     # to determine the order
+    #     while j < len(list_1) and i < len(list_2):
+    #         if list_1[j][0] <= list_2[i][0]:
+    #             pulse_time_list.append(list_1[j])
+    #             j += 1
+    #         else:
+    #             pulse_time_list.append(list_2[i])
+    #             i += 1
+
+    #     # add the rest of list 1 if needed
+    #     while j < len(list_1):
+    #         pulse_time_list.append(list_1[j])
+    #         j += 1
+
+    #     # add the rest of list 2 if needed
+    #     while i < len(list_2):
+    #         pulse_time_list.append(list_2[i])
+    #         i += 1
+
+    #     return pulse_time_list
+
+
+    def combine_ordered_lists(self, list_1, order_1, list_2, order_2):
         '''
-        Combines two ordered lists into a single
-        ordered list preserving the order in each list
+        Combines two ALREADY ORDERED lists into a single
+        ordered list preserving the total order. Pass the
+        lists with the objects you want to order along with
+        arrays of what they need to be ordered by.
+
+        Also returns an array of the same size as the final
+        combined list filled with 1s and 2s corresponding
+        to which list each element in the final list came from
         '''
-        pulse_time_list = []
-        j = 0
+        list_1_len = len(list_1)
+        list_2_len = len(list_2)
+
+        combined_list = np.empty(list_1_len + list_2_len, dtype=object)
+        source_list   = np.zeros(list_1_len + list_2_len)
+
         i = 0
+        j = 0
 
         # combine the first entries of the lists
         # based on comparing their times to eachother
         # to determine the order
-        while j < len(list_1) and i < len(list_2):
-            if list_1[j][0] <= list_2[i][0]:
-                pulse_time_list.append(list_1[j])
-                j += 1
-            else:
-                pulse_time_list.append(list_2[i])
+        while i < list_1_len and j < list_2_len:
+            if order_1[i] <= order_2[j]:
+                combined_list[i + j] = list_1[i]
+                source_list[i + j]   = 1
                 i += 1
+            else:
+                combined_list[i + j] = list_2[j]
+                source_list[i + j]   = 2
+                j += 1
 
         # add the rest of list 1 if needed
-        while j < len(list_1):
-            pulse_time_list.append(list_1[j])
-            j += 1
-
-        # add the rest of list 2 if needed
-        while i < len(list_2):
-            pulse_time_list.append(list_2[i])
+        while i < list_1_len:
+            combined_list[i + j] = list_1[i]
+            source_list[i + j]   = 1
             i += 1
 
-        return pulse_time_list
+        # add the rest of list 2 if needed
+        while j < list_2_len:
+            combined_list[i + j] = list_2[j]
+            source_list[i + j]   = 2
+            j += 1
+
+        return combined_list, source_list
 
 
     def apply_pmt_timing_characteristics(self, mcpe_map, late_pulses=True, after_pulses=True):
@@ -1687,7 +1735,14 @@ class K40DOMSimulation(icetray.I3ConditionalModule):
         # two ordered lists into one
         if len(pulse_out_of_order_time_list) > 0:
             pulse_out_of_order_time_list.sort(key=lambda x: x[0])
-            pulse_time_list = self.combine_ordered_lists(pulse_time_list.copy(), pulse_out_of_order_time_list)
+
+            pulse_times              = [pe[0] for pe in pulse_time_list]
+            pulse_out_of_order_times = [pe[0] for pe in pulse_out_of_order_time_list]
+
+            pulse_time_list, _ = self.combine_ordered_lists(list_1  = pulse_time_list.copy(),
+                                                            order_1 = pulse_times,
+                                                            list_2  = pulse_out_of_order_time_list,
+                                                            order_2 = pulse_out_of_order_times)
 
         # now add afterpulses
         if after_pulses:
@@ -1704,7 +1759,14 @@ class K40DOMSimulation(icetray.I3ConditionalModule):
             # to combine the two ordered lists into one
             if len(pulse_out_of_order_time_list) > 0:
                 pulse_out_of_order_time_list.sort(key=lambda x: x[0])
-                pulse_time_list = self.combine_ordered_lists(pulse_time_list.copy(), pulse_out_of_order_time_list)
+
+                pulse_times              = [pe[0] for pe in pulse_time_list]
+                pulse_out_of_order_times = [pe[0] for pe in pulse_out_of_order_time_list]
+
+                pulse_time_list, _ = self.combine_ordered_lists(list_1  = pulse_time_list.copy(),
+                                                                order_1 = pulse_times,
+                                                                list_2  = pulse_out_of_order_time_list,
+                                                                order_2 = pulse_out_of_order_times)
 
         return pulse_time_list
 
@@ -1821,34 +1883,43 @@ class K40DOMSimulation(icetray.I3ConditionalModule):
                         # combine the two pulse time lists keeping
                         # track of which pulse is real and which
                         # is noise
-                        j = 0
-                        i = 0
-                        while j < len(real_pulses) and i < len(dark_pulses):
-                            if real_pulses[j][0] <= dark_pulses[i][0]:
-                                pulse_time_list.append(real_pulses[j])
-                                is_real.append(1.0)
-                                j += 1
-                            else:
-                                pulse_time_list.append(dark_pulses[i])
-                                is_real.append(0.0)
-                                i += 1
+                        pulse_times = [pe[0] for pe in real_pulses]
+                        dark_times  = [pe[0] for pe in dark_pulses]
+                        
+                        pulse_time_list, source = self.combine_ordered_lists(list_1  = real_pulses,
+                                                                             order_1 = pulse_times,
+                                                                             list_2  = dark_pulses,
+                                                                             order_2 = dark_times)
+                        
+                        is_real = np.abs(source - 2)
 
-                        while j < len(real_pulses):
-                            pulse_time_list.append(real_pulses[j])
-                            is_real.append(1.0)
-                            j += 1
+                        # j = 0
+                        # i = 0
+                        # while j < len(real_pulses) and i < len(dark_pulses):
+                        #     if real_pulses[j][0] <= dark_pulses[i][0]:
+                        #         pulse_time_list.append(real_pulses[j])
+                        #         is_real.append(1.0)
+                        #         j += 1
+                        #     else:
+                        #         pulse_time_list.append(dark_pulses[i])
+                        #         is_real.append(0.0)
+                        #         i += 1
 
-                        while i < len(dark_pulses):
-                            pulse_time_list.append(dark_pulses[i])
-                            is_real.append(0.0)
-                            i += 1
+                        # while j < len(real_pulses):
+                        #     pulse_time_list.append(real_pulses[j])
+                        #     is_real.append(1.0)
+                        #     j += 1
+
+                        # while i < len(dark_pulses):
+                        #     pulse_time_list.append(dark_pulses[i])
+                        #     is_real.append(0.0)
+                        #     i += 1
 
                     # if there are no dark hits just mark
                     # every hit as being real
                     else:
                         pulse_time_list = real_pulses
-                        for i in range(len(pulse_time_list)):
-                            is_real.append(1.0)
+                        is_real         = np.ones(len(pulse_time_list))
 
                     pulse_charge_list      = []
                     real_pulse_charge_list = []
