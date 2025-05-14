@@ -1423,6 +1423,9 @@ class K40DOMSimulation(icetray.I3ConditionalModule):
         self.AddParameter('NoPureNoiseEvents',
                           '',
                           True)
+        self.AddParameter('drop_empty',
+                          'Bool to determine if empty frames should be removed from the i3 file',
+                          False)
         self.AddOutBox('OutBox')
 
 
@@ -1451,6 +1454,7 @@ class K40DOMSimulation(icetray.I3ConditionalModule):
         self.dropstrings       = self.GetParameter('DropStrings')
         self.noisePulseSeries  = self.GetParameter('NoisePulseSeries')
         self.noPureNoiseEvents = self.GetParameter('NoPureNoiseEvents')
+        self.drop_empty        = self.GetParameter('drop_empty')
 
         if self.GetParameter('PMTQEFile') != '':
             GetPMTQETable(self.photonweights, self.GetParameter('PMTQEFile'))
@@ -1472,91 +1476,114 @@ class K40DOMSimulation(icetray.I3ConditionalModule):
         self.module = POM()
 
 
-    def split_pmts(self, photon_map, drop_strings=[]):
+    # def split_pmts(self, photon_map, drop_strings=[]):
+    #     '''
+    #     Split photon hits into PMTs on the OMs
+    #     '''
+    #     new_photon_map   = {}
+    #     pulse_series     = dataclasses.I3RecoPulseSeries()
+    #     output_pulse_map = dataclasses.I3RecoPulseSeriesMap()
+        
+    #     # make new map with individual PMTs
+    #     for omkey in photon_map.keys():
+    #         # ignore this omkey if it is supposed to be dropped
+    #         if omkey.string in drop_strings:
+    #             continue
+
+    #         newomkey                 = NoPMTKey(omkey)
+    #         new_photon_map[newomkey] = []
+
+    #         # collect the photons that hit a particular OM
+    #         photon_list           = np.array(photon_map[omkey])
+    #         hit_photons, hit_pmts = self.module.apply_acceptance_cut(photon_list)
+
+    #         # add these hits to the new photon map and add
+    #         # a reco pulse to the output pulse map
+    #         for photon, pmt in zip(hit_photons, hit_pmts):
+    #             new_photon_map[newomkey].append((photon.time, pmt))
+
+    #             pmtkey = AddPMTKey(newomkey, pmt)
+    #             if pmtkey not in output_pulse_map.keys():
+    #                 output_pulse_map[pmtkey] = dataclasses.I3RecoPulseSeries()
+
+    #             reco_pulse        = dataclasses.I3RecoPulse()
+    #             reco_pulse.time   = photon.time
+    #             reco_pulse.charge = 1.0
+    #             output_pulse_map[pmtkey].append(reco_pulse)
+
+    #     return new_photon_map, output_pulse_map
+    
+
+    def get_mcpe_map(self, pulse_map, drop_strings=[]):
         '''
-        Split photon hits into PMTs on the OMs
+        Read a split pmt pulse map from the frame and
+        return an OM wide mcpe map of hit times and PMTs
         '''
-        new_photon_map   = {}
-        pulse_series     = dataclasses.I3RecoPulseSeries()
-        output_pulse_map = dataclasses.I3RecoPulseSeriesMap()
+        mcpe_map = {}
         
         # make new map with individual PMTs
-        for omkey in photon_map.keys():
+        for pmtkey in pulse_map.keys():
             # ignore this omkey if it is supposed to be dropped
-            if omkey.string in drop_strings:
+            if pmtkey.string in drop_strings:
                 continue
 
-            newomkey                 = NoPMTKey(omkey)
-            new_photon_map[newomkey] = []
+            omkey = NoPMTKey(ModuleKey(pmtkey.string, pmtkey.om))
+            if omkey not in mcpe_map.keys():
+                mcpe_map[omkey] = []
 
-            # collect the photons that hit a particular OM
-            photon_list           = np.array(photon_map[omkey])
-            hit_photons, hit_pmts = self.module.apply_acceptance_cut(photon_list)
+            for pulse in pulse_map[pmtkey]:
+                mcpe_map[omkey].append((pulse.time, pmtkey.pmt)) # mcpe map entries are tuples (time, pmt)
 
-            # add these hits to the new photon map and add
-            # a reco pulse to the output pulse map
-            for photon, pmt in zip(hit_photons, hit_pmts):
-                new_photon_map[newomkey].append((photon.time, pmt))
-
-                pmtkey = AddPMTKey(newomkey, pmt)
-                if pmtkey not in output_pulse_map.keys():
-                    output_pulse_map[pmtkey] = dataclasses.I3RecoPulseSeries()
-
-                reco_pulse        = dataclasses.I3RecoPulse()
-                reco_pulse.time   = photon.time
-                reco_pulse.charge = 1.0
-                output_pulse_map[pmtkey].append(reco_pulse)
-
-        return new_photon_map, output_pulse_map
+        return mcpe_map
 
 
-    def get_dark_noise_time_bounds(self, mcpe_map):
-        '''
-        Get the upper and lower time bounds to set a time
-        window for dark hits
-        '''
-        max_pt = -999999999.0
-        min_pt = 999999999.0
+    # def get_dark_noise_time_bounds(self, mcpe_map):
+    #     '''
+    #     Get the upper and lower time bounds to set a time
+    #     window for dark hits
+    #     '''
+    #     max_pt = -999999999.0
+    #     min_pt = 999999999.0
 
-        for omkey in mcpe_map.keys():
-            for pulse in mcpe_map[omkey]: # pulse is a tuple (time, pmt)
-                if max_pt < pulse[0]:
-                    max_pt = pulse[0]
-                if min_pt > pulse[0]:
-                    min_pt = pulse[0]
+    #     for omkey in mcpe_map.keys():
+    #         for pulse in mcpe_map[omkey]: # pulse is a tuple (time, pmt)
+    #             if max_pt < pulse[0]:
+    #                 max_pt = pulse[0]
+    #             if min_pt > pulse[0]:
+    #                 min_pt = pulse[0]
 
-        max_pt += 10000.0
-        min_pt -= 2000.0
+    #     max_pt += 10000.0
+    #     min_pt -= 2000.0
 
-        return max_pt, min_pt
+    #     return max_pt, min_pt
 
 
-    def generate_dark_hits(self, max_pt, min_pt):
-        '''
-        Add dark hits across all OMs (Adds I3MCPEs)
-        '''
-        dark_hit_mcpe_map = {}
+    # def generate_dark_hits(self, max_pt, min_pt):
+    #     '''
+    #     Add dark hits across all OMs (Adds I3MCPEs)
+    #     '''
+    #     dark_hit_mcpe_map = {}
 
-        num_pmts = int(self.dom_properties.GetNPMTs())
-        for omkey in self.domkeys:
-            # poisson distribution of dark noise so sample
-            # time between hits from an exponential distribution
-            time_delta = self.randomService.exp(1.0 / (self.DNprob * num_pmts)) + min_pt
-            pmt_index  = 1 + self.randomService.integer(num_pmts)
+    #     num_pmts = int(self.dom_properties.GetNPMTs())
+    #     for omkey in self.domkeys:
+    #         # poisson distribution of dark noise so sample
+    #         # time between hits from an exponential distribution
+    #         time_delta = self.randomService.exp(1.0 / (self.DNprob * num_pmts)) + min_pt
+    #         pmt_index  = 1 + self.randomService.integer(num_pmts)
 
-            first = True
-            while time_delta < max_pt:
-                if first:
-                    dark_hit_mcpe_map[omkey] = []
-                    first = False
-                dark_hit_mcpe_map[omkey].append((time_delta, pmt_index))
+    #         first = True
+    #         while time_delta < max_pt:
+    #             if first:
+    #                 dark_hit_mcpe_map[omkey] = []
+    #                 first = False
+    #             dark_hit_mcpe_map[omkey].append((time_delta, pmt_index))
 
-                # get the time to the next dark hit
-                # and the next PMT to be hit
-                time_delta += self.randomService.exp(1.0 / (self.DNprob * num_pmts))
-                pmt_index   = 1 + self.randomService.integer(num_pmts)
+    #             # get the time to the next dark hit
+    #             # and the next PMT to be hit
+    #             time_delta += self.randomService.exp(1.0 / (self.DNprob * num_pmts))
+    #             pmt_index   = 1 + self.randomService.integer(num_pmts)
 
-        return dark_hit_mcpe_map
+    #     return dark_hit_mcpe_map
 
 
     # def add_environment_noise(self, dark_hits, noise_pulses):
@@ -2050,29 +2077,30 @@ class K40DOMSimulation(icetray.I3ConditionalModule):
         if not self.WroteActiveDOMsToSimFrame:
             simframe = icetray.I3Frame('S')
             self.Simulation(simframe)
+        
+        simulation_pulse_map = frame[self.inputmap]
+        noise_pulse_maps     = [frame[noisepulsename] for noisepulsename in self.noisePulseSeries if frame.Has(noisepulsename)]
 
-        photon_map   = frame[self.inputmap]
-        noise_pulses = [frame[noisepulsename] for noisepulsename in self.noisePulseSeries if frame.Has(noisepulsename)]
+        # if there are no pulses or noise
+        # just drop the frame
+        if self.drop_empty:
+            if (len(simulation_pulse_map) < 1) and self.noPureNoiseEvents:
+                return
+            
+            len_noise_pulses = sum([len(noise_pulse_maps[i]) for i in range(len(noise_pulse_maps))])
+            if len(simulation_pulse_map) < 1 and len_noise_pulses < 1:
+                return
 
-        len_noise_pulses = sum([len(noise_pulses[i]) for i in range(len(noise_pulses))])
-
-        # if there are no photons and no noise or
-        # we don't want noise just skip
-        if (len(photon_map) < 1) and self.noPureNoiseEvents:
-            return
-        if len(photon_map) < 1 and len_noise_pulses < 1:
-            return
-
-        photon_map_on_pmts, frame[self.inputmap + '_pmtsplit'] = self.split_pmts(photon_map, self.dropstrings)
+        simulation_mcpe_map = self.get_mcpe_map(simulation_pulse_map, self.dropstrings)
         
         dark_hits = {}
         if self.add_noise:
-            max_pt, min_pt = self.get_dark_noise_time_bounds(photon_map_on_pmts)
+            max_pt, min_pt = self.get_dark_noise_time_bounds(simulation_mcpe_map)
             dark_hits      = self.generate_dark_hits(max_pt, min_pt)
-            dark_hits      = self.add_environment_noise(dark_hits, noise_pulses) # not defined right now (commented out)
+            #dark_hits      = self.add_environment_noise(dark_hits, noise_pulses) # not defined right now (commented out)
 
         # account for PMT dead time
-        dead_removed_photon_map = self.apply_dead_time(photon_map_on_pmts)
+        dead_removed_photon_map = self.apply_dead_time(simulation_mcpe_map)
 
         (output_pulses, output_pulses_nonoise, om_pulses,) = self.apply_pmt_response(dead_removed_photon_map, dark_hits)
 
