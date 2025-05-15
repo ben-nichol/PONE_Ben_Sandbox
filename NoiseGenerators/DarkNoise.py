@@ -19,9 +19,12 @@ class DarkNoise(icetray.I3ConditionalModule):
 
     def __init__(self, context):
         icetray.I3ConditionalModule.__init__(self, context)
-        self.AddParameter('split_photons',
-                          'Name of the I3Photons after SplitPMTs applied acceptance cuts',
+        self.AddParameter('input_map',
+                          'Name of the i3phtons after module acceptance is applied',
                           'I3Photons_pmtsplit')
+        self.AddParameter('dark_name',
+                          'Name for the tree of dark hits in the i3 file',
+                          'DarkHits')
         self.AddParameter('dark_rate',
                           'Dark Noise rate (pulses per ns)',
                           0.000001)
@@ -51,7 +54,8 @@ class DarkNoise(icetray.I3ConditionalModule):
 
 
     def Configure(self):
-        self.split_photons      = self.GetParameter('split_photons')
+        self.input_map          = self.GetParameter('input_map')
+        self.dark_name          = self.GetParameter('dark_name')
         self.dark_rate          = self.GetParameter('dark_rate')
         self.random_service     = self.GetParameter('random_service')
         self.drop_strings       = self.GetParameter('drop_strings')
@@ -178,12 +182,11 @@ class DarkNoise(icetray.I3ConditionalModule):
             lower_time_limit = self.manual_time_bounds[0]
             upper_time_limit = self.manual_time_bounds[1]
         else:
-            pulse_map = frame[self.split_photons]
+            pulse_map = frame[self.input_map]
             mcpe_map  = self.get_mcpe_map(pulse_map, self.drop_strings, self.drop_oms)
 
             lower_time_limit, upper_time_limit = self.get_noise_time_bounds(mcpe_map)
         
-        # dark_hits = self.generate_dark_hits(lower_time_limit, upper_time_limit)
-        frame['DarkHits'] = self.generate_dark_hits(lower_time_limit, upper_time_limit)
+        frame[self.dark_name] = self.generate_dark_hits(lower_time_limit, upper_time_limit)
 
         self.PushFrame(frame)

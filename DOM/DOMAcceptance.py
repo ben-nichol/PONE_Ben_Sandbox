@@ -10,7 +10,7 @@ from POMModel import POM
 
 
 
-class SplitPMTs(icetray.I3ConditionalModule):
+class DOMAcceptance(icetray.I3ConditionalModule):
     '''
     Icetray module that separates I3Photons from CLSim into
     their respective PMTs and applies a POM acceptance cut.
@@ -22,6 +22,9 @@ class SplitPMTs(icetray.I3ConditionalModule):
         self.AddParameter('input_map',
                           'Name of the I3Photons from clsim',
                           'I3Photons')
+        self.AddParameter('output_map',
+                          'Name of output pulse series',
+                          'Accepted_PulseMap')
         self.AddParameter('random_service',
                           'I3RandomService')
         self.AddParameter('drop_strings',
@@ -34,6 +37,7 @@ class SplitPMTs(icetray.I3ConditionalModule):
 
     def Configure(self):
         self.input_map      = self.GetParameter('input_map')
+        self.output_map     = self.GetParameter('output_map')
         self.random_service = self.GetParameter('random_service')
         self.drop_strings   = self.GetParameter('drop_strings')
         self.drop_empty     = self.GetParameter('drop_empty')
@@ -76,13 +80,13 @@ class SplitPMTs(icetray.I3ConditionalModule):
 
 
     def DAQ(self, frame):
-        photon_map   = frame[self.input_map]
+        photon_map = frame[self.input_map]
 
         # if there are no photons and no noise or
         # we don't want noise just skip
         if (len(photon_map) < 1) and self.drop_empty:
             return
 
-        frame[self.input_map + '_pmtsplit'] = self.split_pmts(photon_map, self.drop_strings)
+        frame[self.output_map] = self.split_pmts(photon_map, self.drop_strings)
 
         self.PushFrame(frame)
