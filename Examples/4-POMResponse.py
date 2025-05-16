@@ -153,7 +153,7 @@ tray.AddModule(DOMSimulation,
 tray.AddModule(
     DOMTrigger,
     "DOMTrigger",
-    inputmap="PMTResponse",
+    inputmap="PMT_Response",
 )
 
 tray.AddModule(
@@ -162,10 +162,10 @@ tray.AddModule(
     output="_3PMT_2DOM",
     DOMPMTCoinc=3,
     FullDetectorCoincidenceN=args.nDOMs,
-    CutOnTrigger=True,
+    CutOnTrigger=False,
     EventLength=10000,
     TriggerTime=2000,
-    PulseSeriesIn="PMTResponse",
+    PulseSeriesIn="PMT_Response",
     PulseSeriesOut="EventPulseSeries",
 )
 
