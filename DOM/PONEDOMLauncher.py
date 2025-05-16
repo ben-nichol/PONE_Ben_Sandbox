@@ -4,11 +4,8 @@ from icecube import icetray, dataclasses, dataio, simclasses
 from icecube.icetray import I3Units, OMKey, I3Frame
 from icecube.dataclasses import ModuleKey
 
-from Utilities.DOMUtility import NoPMTKey, AddPMTKey, DOMProperties, Geant4PMTAcceptance
-
-import sys
-sys.path.append('/home/jakubs/projects/def-mdanning/jakubs/k40/utils')
-from POMModel import POM
+from Utilities.DOMUtility import NoPMTKey, AddPMTKey
+from Utilities.POMModel import POM
 
 
 

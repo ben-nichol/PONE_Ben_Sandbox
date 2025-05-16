@@ -6,12 +6,9 @@ from icecube.icetray import I3Units, OMKey, I3Frame
 from icecube.dataclasses import ModuleKey
 
 from Utilities.DOMUtility import NoPMTKey, AddPMTKey
+from Utilities.POMModel import POM
 from NoiseGenerators.NoiseUtility import get_noise_time_bounds, get_mcpe_map
 from NoiseGenerators.K40Characterization import K40Characterization
-
-import sys
-sys.path.append('/home/jakubs/projects/def-mdanning/jakubs/k40/utils')
-from POMModel import POM
 
 
 

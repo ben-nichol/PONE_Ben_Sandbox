@@ -1,12 +1,11 @@
+import numpy as np
+
 from icecube import icetray, dataclasses, dataio, simclasses
 from icecube.icetray import I3Units, OMKey, I3Frame
 from icecube.dataclasses import ModuleKey
-import numpy as np
-from Utilities.DOMUtility import NoPMTKey, AddPMTKey
 
-import sys
-sys.path.append('/home/jakubs/projects/def-mdanning/jakubs/k40/utils')
-from POMModel import POM
+from Utilities.DOMUtility import NoPMTKey, AddPMTKey
+from Utilities.POMModel import POM
 
 
 

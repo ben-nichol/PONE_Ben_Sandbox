@@ -1,12 +1,21 @@
 #!/bin/sh
 
-from os.path import expandvars
-import os, sys, random
-from DOM.PONEDOMLauncher import SimpleDOMSimulationNew
-from icecube import icetray, dataclasses, dataio, simclasses
-from icecube import phys_services, sim_services
-from icecube.icetray import I3Tray
 import argparse
+import os, sys, random
+from os.path import expandvars
+
+from DOM.DOMAcceptance import DOMAcceptance
+from DOM.PONEDOMLauncher import DOMSimulation
+
+from Trigger.DOMTrigger import DOMTrigger
+
+from NoiseGenerators.DarkNoise import DarkNoise
+from NoiseGenerators.K40Noise import K40Noise
+
+from icecube.icetray import I3Tray
+from icecube import phys_services, sim_services
+from icecube import icetray, dataclasses, dataio, simclasses
+
 from PulseCleaning.CausalHits import CausalPulseCleaning
 from Trigger.DOMTrigger import DOMTrigger
 from Trigger.DetectorTrigger import DetectorTrigger
@@ -99,17 +108,47 @@ outfile = args.outfile
 
 tray.AddModule("I3Reader", "reader", FilenameList=[args.gcdfile, infile])
 
-tray.AddModule(
-    SimpleDOMSimulationNew,
-    "DOMLauncher",
-    inputmap=photon_series,
-    outputmap="PMTResponse",
-    RandomService=randomService,
-    minTsep=args.pulsesep,
-    SplitDoms=True,
-    dropstrings=dropstrings,
-    add_noise=True,
-)
+tray.AddModule(DOMAcceptance,
+               'DOMAcceptance',
+               input_map      = photon_series,
+               output_map     = 'Accepted_PulseMap',
+               random_service = randomService
+               )
+
+
+tray.AddModule(DarkNoise,
+               'AddDarkNoise',
+               input_map      = 'Accepted_PulseMap',
+               output_map     = 'Noise_Dark',
+               random_service = randomService,
+               drop_oms       = [2, 3],
+               gcd_file       = '/home/jakubs/projects/def-mdanning/jakubs/pone_offline/GCD/one-om-gcd-origin.i3.gz'
+               )
+
+
+tray.AddModule(K40Noise,
+               'AddK40Noise',
+               input_map             = 'Accepted_PulseMap',
+               output_map            = 'Noise_K40',
+               characterization_file = '/home/jakubs/projects/def-mdanning/jakubs/k40/analysis/noise/k40-characterization.pkl',
+               random_service        = randomService,
+               drop_oms              = [2, 3],
+               gcd_file              = '/home/jakubs/projects/def-mdanning/jakubs/pone_offline/GCD/one-om-gcd-origin.i3.gz'
+               )
+
+
+tray.AddModule(DOMSimulation,
+               'DOMLauncher',
+               input_map      = 'Accepted_PulseMap',
+               output_map     = 'PMT_Response',
+               random_service = randomService,
+               min_time_sep   = args.pulsesep,
+               split_doms     = True,
+               use_dark       = True,
+               dark_map       = 'Noise_Dark',
+               use_k40        = True,
+               k40_map        = 'Noise_K40'
+              )
 
 tray.AddModule(
     DOMTrigger,

@@ -7,10 +7,6 @@ from icecube.dataclasses import ModuleKey
 from Utilities.DOMUtility import NoPMTKey, AddPMTKey
 from NoiseGenerators.NoiseUtility import get_noise_time_bounds, get_mcpe_map
 
-import sys
-sys.path.append('/home/jakubs/projects/def-mdanning/jakubs/k40/utils')
-from POMModel import POM
-
 
 
 class DarkNoise(icetray.I3ConditionalModule):
