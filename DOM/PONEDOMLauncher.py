@@ -1,7 +1,9 @@
+import numpy as np
+
 from icecube import icetray, dataclasses, dataio, simclasses
 from icecube.icetray import I3Units, OMKey, I3Frame
 from icecube.dataclasses import ModuleKey
-import numpy as np
+
 from Utilities.DOMUtility import NoPMTKey, AddPMTKey, DOMProperties, Geant4PMTAcceptance
 
 import sys
@@ -559,9 +561,8 @@ class DOMSimulation(icetray.I3ConditionalModule):
 
 
     def DAQ(self, frame):
-
-        print(f'FRAME # {self.DEBUG_FRAME}')
-        self.DEBUG_FRAME += 1
+        # print(f'FRAME # {self.DEBUG_FRAME}')
+        # self.DEBUG_FRAME += 1
 
         if not self.WroteActiveDOMsToSimFrame:
             simframe = icetray.I3Frame('S')

@@ -1,8 +1,11 @@
+import numpy as np
+
 from icecube import icetray, dataclasses, dataio, simclasses
 from icecube.icetray import I3Units, OMKey, I3Frame
 from icecube.dataclasses import ModuleKey
-import numpy as np
+
 from Utilities.DOMUtility import NoPMTKey, AddPMTKey
+from NoiseGenerators.NoiseUtility import get_noise_time_bounds, get_mcpe_map
 
 import sys
 sys.path.append('/home/jakubs/projects/def-mdanning/jakubs/k40/utils')
@@ -12,9 +15,8 @@ from POMModel import POM
 
 class DarkNoise(icetray.I3ConditionalModule):
     '''
-    Icetray module that separates I3Photons from CLSim into
-    their respective PMTs and applies a POM acceptance cut.
-    Writes the surviving photons back into the frame as I3RecoPulses
+    Icetray module that create a pulse map for
+    dark noise
     '''
 
     def __init__(self, context):
@@ -22,7 +24,7 @@ class DarkNoise(icetray.I3ConditionalModule):
         self.AddParameter('input_map',
                           'Name of the i3phtons after module acceptance is applied',
                           'I3Photons_pmtsplit')
-        self.AddParameter('dark_name',
+        self.AddParameter('output_map',
                           'Name for the tree of dark hits in the i3 file',
                           'DarkHits')
         self.AddParameter('dark_rate',
@@ -36,9 +38,6 @@ class DarkNoise(icetray.I3ConditionalModule):
         self.AddParameter('drop_oms',
                           'List of om indices to ignore',
                           [])
-        self.AddParameter('drop_empty',
-                          'Bool to determine if empty frames should be removed from the i3 file',
-                          False)
         self.AddParameter('use_manual_noise_bounds',
                           'Bool to determine whether to use manual time bounds or calculate them per frame',
                           False)
@@ -55,12 +54,11 @@ class DarkNoise(icetray.I3ConditionalModule):
 
     def Configure(self):
         self.input_map          = self.GetParameter('input_map')
-        self.dark_name          = self.GetParameter('dark_name')
+        self.output_map         = self.GetParameter('output_map')
         self.dark_rate          = self.GetParameter('dark_rate')
         self.random_service     = self.GetParameter('random_service')
         self.drop_strings       = self.GetParameter('drop_strings')
         self.drop_oms           = self.GetParameter('drop_oms')
-        self.drop_empty         = self.GetParameter('drop_empty')
         self.use_manual_bounds  = self.GetParameter('use_manual_noise_bounds')
         self.manual_time_bounds = self.GetParameter('manual_noise_bounds')
         self.noise_padding      = self.GetParameter('noise_padding')
@@ -77,57 +75,6 @@ class DarkNoise(icetray.I3ConditionalModule):
             self.omkeys_to_use = None
         
         self.num_pmts = 16
-    
-
-    def get_mcpe_map(self, pulse_map, drop_strings=[], drop_oms=[]):
-        '''
-        Read a split pmt pulse map from the frame and
-        return an OM wide mcpe map of hit times and PMTs
-        '''
-        mcpe_map = {}
-        
-        # make new map with individual PMTs
-        for pmtkey in pulse_map.keys():
-            # ignore this omkey if it is supposed to be dropped
-            if pmtkey.string in drop_strings:
-                continue
-            if pmtkey.om in drop_oms:
-                continue
-
-            omkey = NoPMTKey(ModuleKey(pmtkey.string, pmtkey.om))
-            if omkey not in mcpe_map.keys():
-                mcpe_map[omkey] = []
-
-            for pulse in pulse_map[pmtkey]:
-                mcpe_map[omkey].append((pulse.time, pmtkey.pmt)) # mcpe map entries are tuples (time, pmt)
-
-        return mcpe_map
-    
-
-    def get_noise_time_bounds(self, mcpe_map):
-        '''
-        Get the upper and lower time bounds to set a time
-        window for dark hit generation.
-        
-        NOTE: If the mcpe map is empty, this will return a
-        lower bound that is larger than the upper bound and
-        so the generate_dark_hits method will return an empty
-        pulse map
-        '''
-        lower_bound = 999999999.0
-        upper_bound = -999999999.0
-
-        for omkey in mcpe_map.keys():
-            for pulse in mcpe_map[omkey]: # pulse is a tuple (time, pmt)
-                if upper_bound < pulse[0]:
-                    upper_bound = pulse[0]
-                if lower_bound > pulse[0]:
-                    lower_bound = pulse[0]
-
-        lower_bound -= self.noise_padding[0]
-        upper_bound += self.noise_padding[1]
-
-        return lower_bound, upper_bound
 
 
     def generate_dark_hits(self, lower_bound, upper_bound):
@@ -183,10 +130,10 @@ class DarkNoise(icetray.I3ConditionalModule):
             upper_time_limit = self.manual_time_bounds[1]
         else:
             pulse_map = frame[self.input_map]
-            mcpe_map  = self.get_mcpe_map(pulse_map, self.drop_strings, self.drop_oms)
+            mcpe_map  = get_mcpe_map(pulse_map, self.drop_strings, self.drop_oms)
 
-            lower_time_limit, upper_time_limit = self.get_noise_time_bounds(mcpe_map)
+            lower_time_limit, upper_time_limit = get_noise_time_bounds(mcpe_map, self.noise_padding[0], self.noise_padding[1])
         
-        frame[self.dark_name] = self.generate_dark_hits(lower_time_limit, upper_time_limit)
+        frame[self.output_map] = self.generate_dark_hits(lower_time_limit, upper_time_limit)
 
         self.PushFrame(frame)
