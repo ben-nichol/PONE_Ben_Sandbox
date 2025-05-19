@@ -32,7 +32,8 @@ def get_noise_time_bounds(mcpe_map, noise_time_padding_before, noise_time_paddin
 
 
 
-def get_mcpe_map(pulse_map, drop_strings=[], drop_oms=[]):
+# I don't think this one time orders the mcpe list!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+def get_mcpe_map_old(pulse_map, drop_strings=[], drop_oms=[]):
     '''
     Read a split pmt pulse map from the frame and
     return an OM wide mcpe map of hit times and PMTs
@@ -53,5 +54,46 @@ def get_mcpe_map(pulse_map, drop_strings=[], drop_oms=[]):
 
         for pulse in pulse_map[pmtkey]:
             mcpe_map[omkey].append((pulse.time, pmtkey.pmt)) # mcpe map entries are tuples (time, pmt)
+
+    return mcpe_map
+
+
+def get_mcpe_map(pulse_map, drop_strings=[], drop_oms=[]):
+    '''
+    Read a split pmt pulse map from the frame and
+    return an OM wide mcpe map of hit times and PMTs
+    '''
+    mcpe_map = {}
+
+    om_times = {}
+    om_pmts  = {}
+    
+    # extract from all individual pmt pulse maps
+    for pmtkey in pulse_map.keys():
+        # ignore this omkey if it is supposed to be dropped
+        if pmtkey.string in drop_strings:
+            continue
+        if pmtkey.om in drop_oms:
+            continue
+
+        omkey = NoPMTKey(ModuleKey(pmtkey.string, pmtkey.om))
+        if omkey not in om_times.keys():
+            om_times[omkey] = []
+        if omkey not in om_pmts.keys():
+            om_pmts[omkey] = []
+
+        for pulse in pulse_map[pmtkey]:
+            om_times[omkey].append(pulse.time)
+            om_pmts[omkey].append(pmtkey.pmt)
+
+    # sorted_om_times = {}
+    # sorted_om_pmts  = {}
+    for omkey in om_times.keys():
+        # sorted_om_times, sorted_om_pmts = zip(*sorted(zip(om_times[omkey], om_pmts[omkey])))
+        sorted_om_mcpes = sorted(zip(om_times[omkey], om_pmts[omkey]))
+        mcpe_map[omkey] = sorted_om_mcpes
+        # for mcpe in sorted_om_mcpes:
+        #     mcpe_map[omkey].append(mcpe) # mcpe map entries are tuples (time, pmt)
+
 
     return mcpe_map

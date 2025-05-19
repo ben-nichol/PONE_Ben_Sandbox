@@ -72,11 +72,10 @@ class K40Noise(icetray.I3ConditionalModule):
             gcd_file.close()
         else:
             self.omkeys_to_use = None
-        
-        self.num_pmts = 16
 
         # load the updated module acceptance
-        self.module = POM()
+        self.module   = POM()
+        self.num_pmts = len(self.module.PMT_MATRIX)
 
         self.DEBUG_FRAME = 0
 
@@ -226,7 +225,7 @@ class K40Noise(icetray.I3ConditionalModule):
 
             num_single   = np.sum(single_indices)
             single_times = coincidence_times[single_indices]
-            single_pmts  = np.array([self.random_service.integer(16) for i in range(num_single)])
+            single_pmts  = np.array([self.random_service.integer(self.num_pmts) for i in range(num_single)])
 
             num_multi = np.sum(multi_indices)
 
@@ -255,6 +254,7 @@ class K40Noise(icetray.I3ConditionalModule):
                 pulse        = dataclasses.I3RecoPulse()
                 pulse.time   = times[i]
                 pulse.charge = 1.0
+                pulse.width  = int(pmt) # width seems to be a proxy for PMT number in the current DOMTrigger
 
                 k40_pulse_map[OMKey(omkey.string, omkey.om, int(pmt))].append(pulse)
             

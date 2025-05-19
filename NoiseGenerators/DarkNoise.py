@@ -4,6 +4,7 @@ from icecube import icetray, dataclasses, dataio, simclasses
 from icecube.icetray import I3Units, OMKey, I3Frame
 from icecube.dataclasses import ModuleKey
 
+from Utilities.POMModel import POM
 from Utilities.DOMUtility import NoPMTKey, AddPMTKey
 from NoiseGenerators.NoiseUtility import get_noise_time_bounds, get_mcpe_map
 
@@ -70,7 +71,8 @@ class DarkNoise(icetray.I3ConditionalModule):
         else:
             self.omkeys_to_use = None
         
-        self.num_pmts = 16
+        self.module   = POM()
+        self.num_pmts = len(self.module.PMT_MATRIX)
 
 
     def generate_dark_hits(self, lower_bound, upper_bound):
@@ -88,7 +90,7 @@ class DarkNoise(icetray.I3ConditionalModule):
             if omkey.om in self.drop_oms:
                 continue
 
-            for pmt_index in np.arange(self.num_pmts):
+            for pmt_index in range(self.num_pmts):
                 pmtkey = AddPMTKey(omkey, pmt_index)
 
                 # poisson distribution of dark noise so sample
@@ -104,6 +106,7 @@ class DarkNoise(icetray.I3ConditionalModule):
                     pulse        = dataclasses.I3RecoPulse()
                     pulse.time   = time_delta
                     pulse.charge = 1.0
+                    pulse.width  = pmt_index # width seems to be a proxy for PMT number in the current DOMTrigger
                     dark_pulse_map[pmtkey].append(pulse)
 
                     # get the time to the next dark hit
