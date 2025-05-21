@@ -121,8 +121,7 @@ tray.AddModule(DarkNoise,
                input_map      = 'Accepted_PulseMap',
                output_map     = 'Noise_Dark',
                random_service = randomService,
-               drop_oms       = [2, 3],
-               gcd_file       = os.getenv('PONESRCDIR') + '/GCD/one-om-gcd-origin.i3.gz'
+               gcd_file       = args.gcdfile
                )
 
 
@@ -130,10 +129,8 @@ tray.AddModule(K40Noise,
                'AddK40Noise',
                input_map             = 'Accepted_PulseMap',
                output_map            = 'Noise_K40',
-               characterization_file = os.getenv('PONESRCDIR') + '/NoiseGenerators/k40-characterization.pkl',
                random_service        = randomService,
-               drop_oms              = [2, 3],
-               gcd_file              = os.getenv('PONESRCDIR') + '/GCD/one-om-gcd-origin.i3.gz'
+               gcd_file              = args.gcdfile
                )
 
 
@@ -153,7 +150,7 @@ tray.AddModule(DOMSimulation,
 tray.AddModule(
     DOMTrigger,
     "DOMTrigger",
-    inputmap="PMT_Response",
+    trigger_map="triggerpulsemap",
 )
 
 tray.AddModule(

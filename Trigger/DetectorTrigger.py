@@ -232,9 +232,9 @@ class DetectorTrigger(icetray.I3ConditionalModule):
     def DAQ(self, frame):
         # print("Detecctor Trigger Start")
 
-        DOMCoincidence_time = frame["DOMTrigger_time" + self.input]
-        DOMCoincidence_ncoin = frame["DOMTrigger_ncoin" + self.input]
-        DOMCoincidence_pmts = frame["DOMTrigger_pmts" + self.input]
+        DOMCoincidence_time = frame["DOMTrigger_Time" + self.input]
+        DOMCoincidence_ncoin = frame["DOMTrigger_NCoin" + self.input]
+        DOMCoincidence_pmts = frame["DOMTrigger_PMTs" + self.input]
 
         stringTriggerTime = dataclasses.I3VectorDouble()
         detectorTriggerTime = dataclasses.I3VectorDouble()

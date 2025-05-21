@@ -443,8 +443,10 @@ class DOMSimulation(icetray.I3ConditionalModule):
             # if the omkey is in one of the maps no need to go through the whole merge
             if omkey not in mcpe_map_1.keys():
                 merged_map[omkey] = mcpe_map_2[omkey]
+                continue
             if omkey not in mcpe_map_2.keys():
                 merged_map[omkey] = mcpe_map_1[omkey]
+                continue
             
             times_1 = [pe[0] for pe in mcpe_map_1[omkey]]
             times_2 = [pe[0] for pe in mcpe_map_2[omkey]]

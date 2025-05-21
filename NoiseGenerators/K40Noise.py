@@ -1,5 +1,5 @@
+import os
 import numpy as np
-import _pickle as pickle
 
 from icecube import icetray, dataclasses, dataio, simclasses
 from icecube.icetray import I3Units, OMKey, I3Frame
@@ -27,8 +27,8 @@ class K40Noise(icetray.I3ConditionalModule):
                           'Name for the tree of k40 hits in the i3 file',
                           'K40Hits')
         self.AddParameter('characterization_file',
-                          'Path to the k40 characterization .pkl file',
-                          None)
+                          'Path to the k40 characterization hdf5 file',
+                          os.getenv('PONESRCDIR') + '/NoiseGenerators/k40-characterization.hdf5')
         self.AddParameter('random_service',
                           'I3RandomService')
         self.AddParameter('drop_strings',
@@ -278,9 +278,8 @@ class K40Noise(icetray.I3ConditionalModule):
     def DAQ(self, frame):
         # print(f'FRAME # {self.DEBUG_FRAME}')
         # self.DEBUG_FRAME += 1
-        # read k40 characterization
-        with open(self.characterization_file, 'rb') as f:
-            characterization = pickle.load(f)
+        # load k40 characterization
+        characterization = K40Characterization(self.characterization_file)
 
         # determine noise generation time bounds
         if self.use_manual_bounds:
