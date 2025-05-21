@@ -139,29 +139,7 @@ class DOMSimulation(icetray.I3ConditionalModule):
         self.num_pmts = len(self.module.PMT_MATRIX)
 
         self.DEBUG_FRAME = 0
-    
 
-    # def get_mcpe_map(self, pulse_map, drop_strings=[]):
-    #     '''
-    #     Read a split pmt pulse map from the frame and
-    #     return an OM wide mcpe map of hit times and PMTs
-    #     '''
-    #     mcpe_map = {}
-        
-    #     # make new map with individual PMTs
-    #     for pmtkey in pulse_map.keys():
-    #         # ignore this omkey if it is supposed to be dropped
-    #         if pmtkey.string in drop_strings:
-    #             continue
-
-    #         omkey = NoPMTKey(ModuleKey(pmtkey.string, pmtkey.om))
-    #         if omkey not in mcpe_map.keys():
-    #             mcpe_map[omkey] = []
-
-    #         for pulse in pulse_map[pmtkey]:
-    #             mcpe_map[omkey].append((pulse.time, pmtkey.pmt)) # mcpe map entries are tuples (time, pmt)
-
-    #     return mcpe_map
 
 
     def combine_ordered_lists(self, list_1, order_1, list_2, order_2):
@@ -368,7 +346,7 @@ class DOMSimulation(icetray.I3ConditionalModule):
         Apply the response of the PMT, including combining pulses
         that are too close together
         '''
-        mcpe_map = self.apply_dead_time(mcpe_map.copy())######################################################################################################################
+        mcpe_map = self.apply_dead_time(mcpe_map.copy())
 
         output_pulse_map = dataclasses.I3RecoPulseSeriesMap()
         om_pulse_map     = dataclasses.I3RecoPulseSeriesMap()
@@ -400,7 +378,6 @@ class DOMSimulation(icetray.I3ConditionalModule):
             dead_removed_mcpe_map[omkey] = []
             last_hit_times = np.ones(self.num_pmts) * -9999.
 
-            # last_hit_time = -9999999.
             for pe in mcpe_map[omkey]:
                 pmt = pe[1]
                 if pe[0] - last_hit_times[pmt] > dead_time_ns:
@@ -510,10 +487,8 @@ class DOMSimulation(icetray.I3ConditionalModule):
             simframe = icetray.I3Frame('S')
             self.Simulation(simframe)
         
-        simulation_pulse_map = frame[self.input_map]##############################################################################################################
-        simulation_mcpe_map  = get_mcpe_map(simulation_pulse_map, self.drop_strings)#################################################################################
-        # simulation_pulse_map = dataclasses.I3RecoPulseSeriesMap()
-        # simulation_mcpe_map  = {}
+        simulation_pulse_map = frame[self.input_map]
+        simulation_mcpe_map  = get_mcpe_map(simulation_pulse_map, self.drop_strings)
 
         length_noise_pulses = 0
         if self.use_dark:
@@ -546,7 +521,7 @@ class DOMSimulation(icetray.I3ConditionalModule):
         
         if self.use_k40:
             for omkey in k40_mcpe_map.keys():
-                k40_mcpe_map[omkey] = self.apply_pmt_timing_characteristics(k40_mcpe_map[omkey].copy())######################################################################
+                k40_mcpe_map[omkey] = self.apply_pmt_timing_characteristics(k40_mcpe_map[omkey].copy())
             noise_mcpe_maps.append(k40_mcpe_map)
 
         noise_mcpe_map = {}
