@@ -161,7 +161,10 @@ class K40Noise(icetray.I3ConditionalModule):
             flipped_azimuths    = generated_pmt_angles[:, 1] - (2 * azimuth_differences)
 
             generated_pmt_angles[:, 1] = flipped_azimuths
-            generated_pmt_angles[:,1][np.where(generated_pmt_angles[:, 1] < 0)[0]] += 360 # for plotting
+            # make sure the angles are within [0, 360) degrees
+            # so we can match with the defined pmt angles
+            generated_pmt_angles[:, 1][np.where(generated_pmt_angles[:, 1] < 0)[0]] += 360
+            generated_pmt_angles[:, 1][np.where(generated_pmt_angles[:, 1] >= 360)[0]] -= 360
 
         # vertical flip
         if vflip:
@@ -170,13 +173,17 @@ class K40Noise(icetray.I3ConditionalModule):
         # rotation
         rotation_angle = 90 * rotation
         generated_pmt_angles[:,1] = generated_pmt_angles[:,1] - rotation_angle
-        generated_pmt_angles[:,1][np.where(generated_pmt_angles[:, 1] < 0)[0]] += 360
+        
+        # make sure the angles are within [0, 360) degrees
+        # so we can match with the defined pmt angles
+        generated_pmt_angles[:, 1][np.where(generated_pmt_angles[:, 1] < 0)[0]] += 360
+        generated_pmt_angles[:, 1][np.where(generated_pmt_angles[:, 1] >= 360)[0]] -= 360
 
         distributed_pmts       = np.zeros(len(generated_pmts), dtype=int)
         distributed_angle_sums = np.sum(generated_pmt_angles, axis=1)
 
         for i, angle_sum in enumerate(distributed_angle_sums):
-            distributed_pmts[i] = np.where(self.module.ANGLE_SUMS == angle_sum)[0]
+            distributed_pmts[i] = np.where(self.module.ANGLE_SUMS == angle_sum)[0][0]
         
         return distributed_pmts
     

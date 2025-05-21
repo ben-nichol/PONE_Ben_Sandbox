@@ -13,6 +13,7 @@ from os.path import dirname, abspath
 from scipy.interpolate import CubicSpline, interp1d
 
 from icecube import phys_services
+from icecube.icetray import I3Units
 
 
 
@@ -33,55 +34,51 @@ class POM:
         # ----------------------------------------------------------------------------
         self.MODULE_RADIUS_M      = 0.2159
         self.PMT_RADIUS_M         = 0.055
-
-        # deifne pmt locations
-        # NOTE this is a different deffinition than 
-        # what is being used pone offline
-        PMT_ZENITHS               = [32.5, 65.0, 115.0, 147.5]
-        PMT_AZIMUTHS_TOP          = [0.0, 90.0, 180.0, 270.0]
-        PMT_AZIMUTHS_BOTTOM       = [45.0, 135.0, 225.0, 315.0]
-
-        zenith_list  = np.array(sorted( 4 * PMT_ZENITHS))
-        azimuth_list = (PMT_AZIMUTHS_TOP + PMT_AZIMUTHS_BOTTOM
-                        + PMT_AZIMUTHS_BOTTOM + PMT_AZIMUTHS_TOP)
-
-        # define the angle representing each PMT
-        self.PMT_ANGLES      = np.vstack((zenith_list, azimuth_list)).T
-        self.PMT_ANGLES[:,0] = self.PMT_ANGLES[:,0] - 90
+        
+        # indices in this array correspond to the
+        # pmt number in the POM frame -1
+        self.PMT_ANGLES = np.array([[57.5, 270.],  # PMT 1
+                                    [57.5, 0.],    # PMT 2
+                                    [57.5, 90.],   # PMT 3
+                                    [57.5, 180.],  # PMT 4
+                                    [25., 225.],   # PMT 5
+                                    [25., 315.],   # PMT 6
+                                    [25., 45.],    # PMT 7
+                                    [25., 135.],   # PMT 8
+                                    [-57.5, 270.], # PMT 9
+                                    [-57.5, 180.], # PMT 10
+                                    [-57.5, 90.],  # PMT 11
+                                    [-57.5, 0.],   # PMT 12
+                                    [-25., 315.],  # PMT 13
+                                    [-25., 225.],  # PMT 14
+                                    [-25., 135.],  # PMT 15
+                                    [-25., 45.]    # PMT 16
+                                    ])
 
         # which PMTs are on top and bottom
-        self.TOP_PMTS      = np.ones(len(self.PMT_ANGLES), dtype = bool)
-        self.TOP_PMTS[0:8] = False
+        self.TOP_PMTS     = np.ones(len(self.PMT_ANGLES), dtype = bool)
+        self.TOP_PMTS[8:] = False
 
-        self.UPPER_RING       = np.ones(len(self.PMT_ANGLES), dtype = bool)
-        self.UPPER_RING[4:12] = False
+        self.UPPER_RING      = np.ones(len(self.PMT_ANGLES), dtype = bool)
+        self.UPPER_RING[4:8] = False
+        self.UPPER_RING[12:] = False
 
         # define home pmts for the k40 characterization
         self.UPPER_HOME_INDEX = 0
         self.LOWER_HOME_INDEX = 4
         self.UPPER_RING_HOME  = self.PMT_ANGLES[self.UPPER_HOME_INDEX]
         self.LOWER_RING_HOME  = self.PMT_ANGLES[self.LOWER_HOME_INDEX]
+
+        # the sum of zenith and azimuth gives a unique pmt identifier.
+        # could also maybe use something like two bit base 8 numbers...
         self.ANGLE_SUMS       = np.sum(self.PMT_ANGLES, axis=1)
 
         # define xyz coordinates for all PMT centres
-        x_coordinates = np.multiply(np.sin(np.deg2rad(zenith_list)), np.cos(np.deg2rad(azimuth_list)))
-        y_coordinates = np.multiply(np.sin(np.deg2rad(zenith_list)), np.sin(np.deg2rad(azimuth_list)))
-        z_coordinates = np.cos(np.deg2rad(zenith_list))
+        x_coordinates = np.multiply(np.sin(np.deg2rad(90. - self.PMT_ANGLES[:, 0])), np.cos(np.deg2rad(self.PMT_ANGLES[:, 1])))
+        y_coordinates = np.multiply(np.sin(np.deg2rad(90. - self.PMT_ANGLES[:, 0])), np.sin(np.deg2rad(self.PMT_ANGLES[:, 1])))
+        z_coordinates = np.cos(np.deg2rad(90. - self.PMT_ANGLES[:, 0]))
 
         self.PMT_MATRIX = np.array([x_coordinates, y_coordinates, z_coordinates]).T
-
-        # conver from k40 numbering to poneoffline numbering
-        # each k40 pmt number is an index in the offline_pmts
-        # array that corresponds to the poneoffline pmt number
-        # self.k40_to_offline_pmts = np.array([5, 6, 7, 8, 2, 3, 4, 1, 9, 12, 11, 10, 13, 16, 15, 14], dtype=int) # k40 -> pone offline conversion just by index
-        self.k40_to_offline_pmts = np.array([2, 1, 4, 3, 5, 8, 7, 6, 9, 12, 11, 10, 14, 13, 16, 15], dtype=int) # k40 -> pone offline conversion just by index
-        self.offline_to_k40_pmts = np.zeros(len(self.k40_to_offline_pmts) + 1, dtype=int) # pone offline -> k40 conversion just by index
-        for i in np.arange(16):
-            self.offline_to_k40_pmts[i+1] = list(self.k40_to_offline_pmts).index(i+1)
-        # the above should come out to this. The first 0 element
-        # is just an offset because the pone offline numbering
-        # starts at 1 not 0
-        #self.offline_to_k40_pmts = np.array([0, 7, 4, 5, 6, 0, 1, 2, 3, 8, 11, 10, 9, 12, 15, 14, 13])
 
         # ----------------------------------------------------------------------------
         # set up efficiencies
@@ -258,6 +255,26 @@ class POM:
         hit_distance_list = np.zeros_like(photon_list, dtype=float)
 
         for i, photon in enumerate(photon_list):
+            # -------------------------------------------------------------
+            # the module definition is rotated 90 degrees (Ti can in the x-y plane)
+            # because it's a nicer symmetry to work with this way. however, this
+            # means we have to rotate each photon 90 degrees around the x axis
+            # to transform it to the coordinate space of the module definition
+
+            # ------ !!!!!! WARNING !!!!!! ------
+            # DIRECTION IS NOT CURRENTLY USED IN ACCEPTANCE SO IT IS NOT ROTATED
+            # BUT AT SOME POINT IT WILL PROBABLY BE INCLUDED. CAN'T SET DIRECTION XYZ
+            # LIKE POSITION BUT NEED TO SET DIRECTION THETA AND PHI INSTEAD
+
+            rotation_matrix   = np.array([[1., 0., 0.], [0., 0., -1.], [0., 1., 0.]])
+            position          = np.array([photon.pos.x, photon.pos.y, photon.pos.z])
+            rotated_position  = np.dot(rotation_matrix, position)
+
+            photon.pos.x = rotated_position[0] * I3Units.m
+            photon.pos.x = rotated_position[1] * I3Units.m
+            photon.pos.x = rotated_position[2] * I3Units.m
+            # -------------------------------------------------------------
+
             pmt, hit_distance, hit_angle = self.get_pmt(photon)
             
             pmt_list[i]          = pmt
