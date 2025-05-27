@@ -35,16 +35,16 @@
 #
 
 from icecube import icetray, dataclasses
-from icecube.clsim import I3CLSimMediumProperties
-from icecube.clsim import I3CLSimRandomValueMixed
-from icecube.clsim import I3CLSimScalarFieldConstant
-from icecube.clsim import I3CLSimVectorTransformConstant
-from icecube.clsim import I3CLSimFunctionFromTable
-from icecube.clsim import I3CLSimRandomValueApplyFunction
-from icecube.clsim import I3CLSimRandomValueInterpolatedDistribution
-from icecube.clsim import I3CLSimRandomValueRayleighScatteringCosAngle
-from icecube.clsim import I3CLSimFunctionRefIndexQuanFry
-from icecube.clsim import I3CLSimFunctionScatLenPartic
+from icecube.simclasses import I3CLSimMediumProperties
+from icecube.simclasses import I3CLSimRandomValueMixed
+from icecube.simclasses import I3CLSimScalarFieldConstant
+from icecube.simclasses import I3CLSimVectorTransformConstant
+from icecube.simclasses import I3CLSimFunctionFromTable
+from icecube.simclasses import I3CLSimRandomValueApplyFunction
+from icecube.simclasses import I3CLSimRandomValueInterpolatedDistribution
+from icecube.simclasses import I3CLSimRandomValueRayleighScatteringCosAngle
+from icecube.simclasses import I3CLSimFunctionRefIndexQuanFry
+from icecube.simclasses import I3CLSimFunctionScatLenPartic
 
 
 
