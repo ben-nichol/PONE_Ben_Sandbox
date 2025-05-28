@@ -55,7 +55,7 @@ class POM:
                                     [-25., 45.]    # PMT 16
                                     ])
 
-        # which PMTs are on top and bottom
+        # which PMTs are on top and bottom (hemisphere A, hemisphere B)
         self.TOP_PMTS     = np.ones(len(self.PMT_ANGLES), dtype = bool)
         self.TOP_PMTS[8:] = False
 
