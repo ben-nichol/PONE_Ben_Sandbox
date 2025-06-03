@@ -1,3 +1,6 @@
+# written by jakub stacho
+# last modified May 30, 2025
+
 import h5py
 import numpy as np
 

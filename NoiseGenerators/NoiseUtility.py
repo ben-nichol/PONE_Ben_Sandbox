@@ -1,3 +1,6 @@
+# written by jakub stacho based on code from thomas mcelroy
+# last modified May 30, 2025
+
 from icecube import icetray, dataclasses, dataio, simclasses
 from icecube.icetray import I3Units, OMKey, I3Frame
 from icecube.dataclasses import ModuleKey

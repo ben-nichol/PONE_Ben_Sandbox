@@ -1,3 +1,6 @@
+# written by jakub stacho based on code from thomas mcelroy
+# last modified May 30, 2025
+
 import numpy as np
 
 from icecube import icetray, dataclasses, dataio, simclasses
