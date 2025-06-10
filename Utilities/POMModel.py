@@ -305,3 +305,86 @@ class POM:
         surviving_photons = photons[sampled_random_numbers <= probabilities]
 
         return [surviving_photons, surviving_pmts]
+    
+
+    def rotate_pmts_home(self, hit_pmts):
+        '''
+        Returns an array of PMTs that have been
+        rotated/vertically flipped to include the
+        home PMT. Used to merge symmetrically
+        identical PMT combinations
+        '''
+        # determine the home pmt we want to use. use the lower
+        # ring home if only lower ring pmts were hit. in any other
+        # case (some number of upper ring pmts were hit), use the
+        # upper ring home
+        home                   = self.LOWER_RING_HOME
+        upper_ring_pmt_indices = np.where(self.UPPER_RING[hit_pmts])[0]
+        if len(upper_ring_pmt_indices != 0):
+            # if we need to use an upper ring pmt as the home pmt,
+            # move it to position 0 in the array because we will
+            # rotate whatever pmt is at position 0 to the home
+            # locaion
+            home              = self.UPPER_RING_HOME
+            first_upper_index = upper_ring_pmt_indices[0]
+
+            hit_pmts[0], hit_pmts[first_upper_index] = hit_pmts[first_upper_index], hit_pmts[0]
+
+
+        hit_pmt_angles = self.PMT_ANGLES[hit_pmts]
+        new_angles     = np.zeros_like(hit_pmt_angles)
+
+
+        new_angles[:, 0] = hit_pmt_angles[:, 0]
+        if not self.TOP_PMTS[hit_pmts[0]]:
+            new_angles[:, 0] *= -1
+        
+        azimuth_difference = hit_pmt_angles[0, 1] - home[1]
+        new_angles[:, 1]    = hit_pmt_angles[:, 1] - azimuth_difference
+
+        # make sure the angles are within [0, 360) degrees
+        # so we can match with the defined pmt angles
+        new_angles[:, 1][np.where(new_angles[:, 1] < 0)[0]] += 360
+        new_angles[:, 1][np.where(new_angles[:, 1] >= 360)[0]] -= 360
+
+        transformed_pmts = np.zeros_like(hit_pmts, dtype=int)
+        new_angle_sums   = np.sum(new_angles, axis=1)
+
+        for i, angle_sum in enumerate(new_angle_sums):
+            transformed_pmts[i] = np.where(self.ANGLE_SUMS == angle_sum)[0][0]
+        
+        return transformed_pmts
+    
+
+    def horizontal_symmetric_pmts(self, hit_pmts):
+        '''
+        Returns an array of PMTs flipped horizontally
+        across the home PMT. Used to further compress
+        symmetrically identical PMT combinations
+        '''
+        hit_pmt_angles = self.PMT_ANGLES[hit_pmts]
+
+        if self.UPPER_HOME_INDEX in hit_pmts:
+            home = self.UPPER_RING_HOME
+        elif self.LOWER_HOME_INDEX in hit_pmts:
+            home = self.LOWER_RING_HOME
+        else:
+            raise Exception(f'No home PMT found in PMT list! (hit_pmts: {hit_pmts})')
+
+        azimuth_differences = hit_pmt_angles[:, 1] - home[1]
+        flipped_azimuths    = hit_pmt_angles[:, 1] - (2 * azimuth_differences)
+
+        hit_pmt_angles[:, 1] = flipped_azimuths
+
+        # make sure the angles are within [0, 360) degrees
+        # so we can match with the defined pmt angles
+        hit_pmt_angles[:, 1][np.where(hit_pmt_angles[:, 1] < 0)[0]] += 360
+        hit_pmt_angles[:, 1][np.where(hit_pmt_angles[:, 1] >= 360)[0]] -= 360
+
+        flipped_pmts       = np.zeros(len(hit_pmts), dtype=int)
+        flipped_angle_sums = np.sum(hit_pmt_angles, axis=1)
+
+        for i, angle_sum in enumerate(flipped_angle_sums):
+            flipped_pmts[i] = np.where(self.ANGLE_SUMS == angle_sum)[0][0]
+        
+        return flipped_pmts
