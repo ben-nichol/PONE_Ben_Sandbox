@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
-'''
+"""
 a few helper functions that will be commonly used when making
 GCD files to test prototype geometries
-'''
+"""
 
 from icecube import dataio, dataclasses, icetray
 from icecube.dataclasses import I3Constants
@@ -11,12 +11,13 @@ from icecube.icetray import OMKey, I3Units
 from enum import Enum
 import numpy as np
 
-cdfile = dataio.I3File('Calib_and_DetStat_File.i3.gz')
+cdfile = dataio.I3File("Calib_and_DetStat_File.i3.gz")
 cdframe = cdfile.pop_frame()
 calib = cdframe["I3Calibration"]
 start_time = calib.start_time
 end_time = calib.end_time
 bedrockz = -I3Constants.OriginElev
+
 
 # Takes the distance from the surface and returns the z position in
 # Icecube coordinates.
@@ -28,6 +29,7 @@ bedrockz = -I3Constants.OriginElev
 # the corresponding z value in the IceCube Coordinate system
 def convertDepthToZ(depth):
     return I3Constants.SurfaceElev - I3Constants.OriginElev - depth
+
 
 # Creates a calibration with all the correct OMKeys
 #
@@ -47,6 +49,7 @@ def makeCalibrationObject(geometry):
 
     return calibration
 
+
 # Creates a detector status with all the correct OMKeys
 #
 # @Param:
@@ -64,6 +67,7 @@ def makeDSObject(geometry):
     detectorStatus.dom_status = domstat
 
     return detectorStatus
+
 
 # Creates a frame with all the needed fields in a C frame
 #
@@ -83,6 +87,7 @@ def generateCFrame(geometry):
     frame["SPEScalingFactors"] = cdframe["SPEScalingFactors"]
 
     return frame
+
 
 # Creates a frame with all the needed fields in a D frame
 #
@@ -106,6 +111,7 @@ def generateDFrame(geometry):
 
     return frame
 
+
 # Generates a string of DOMs in a specified direction.
 # This is represented by an I3OMGeoMap object, which
 # has an OMKey object for a DOM and an I3OMGeo object
@@ -124,15 +130,17 @@ def generateDFrame(geometry):
 # an I3OMGeoMap object with the DOMs on the string and their
 # geometries
 def generateOMString(stringNumber, startPos, numDoms, spacing, direction):
-    orientation = dataclasses.I3Orientation(0, 0, -1, 1, 0, 0)         # same orientation as icecube DOMs (dir=down)
-    area = 0.5857538*I3Units.meter2                                    # same area as KM3NET MDOMs
+    orientation = dataclasses.I3Orientation(
+        0, 0, -1, 1, 0, 0
+    )  # same orientation as icecube DOMs (dir=down)
+    area = 0.5857538 * I3Units.meter2  # same area as KM3NET MDOMs
     geomap = dataclasses.I3OMGeoMap()
     x = startPos.x
     y = startPos.y
     z = startPos.z
-    dx = [spacingVal*direction.x for spacingVal in spacing]
-    dy = [spacingVal*direction.y for spacingVal in spacing]
-    dz = [spacingVal*direction.z for spacingVal in spacing]
+    dx = [spacingVal * direction.x for spacingVal in spacing]
+    dy = [spacingVal * direction.y for spacingVal in spacing]
+    dz = [spacingVal * direction.z for spacingVal in spacing]
 
     # create OMKeys and I3OMGeo for DOMs on string and add them to the map
     for i in xrange(0, numDoms):
@@ -141,10 +149,13 @@ def generateOMString(stringNumber, startPos, numDoms, spacing, direction):
         omGeometry.omtype = dataclasses.I3OMGeo.OMType.IceCube
         omGeometry.orientation = orientation
         omGeometry.area = area
-        omGeometry.position = dataclasses.I3Position(x + dx[i]*i, y + dy[i]*i, z + dz[i]*i)
+        omGeometry.position = dataclasses.I3Position(
+            x + dx[i] * i, y + dy[i] * i, z + dz[i] * i
+        )
         geomap[omkey] = omGeometry
 
     return geomap
+
 
 # Generates a line of DOMs with vertical strings. This was
 # necessary due to complications caused by clsim's xy divisions.
@@ -166,26 +177,28 @@ def generateOMString(stringNumber, startPos, numDoms, spacing, direction):
 #
 # @Return:
 # an I3GeoMap objects with the geometries of DOMs in the line
-def generateDOMLine(stringNum, startPos, spacing, direction, vertSpacing, numStrings, layers):
+def generateDOMLine(
+    stringNum, startPos, spacing, direction, vertSpacing, numStrings, layers
+):
     lineMap = dataclasses.I3OMGeoMap()
     x = startPos.x
     y = startPos.y
     z = startPos.z
-    dx = [spacingVal*direction.x for spacingVal in spacing]
-    dy = [spacingVal*direction.y for spacingVal in spacing]
-    dz = [spacingVal*direction.z for spacingVal in spacing]
-    stringSpacing = [vertSpacing for i in range(0,layers)]
+    dx = [spacingVal * direction.x for spacingVal in spacing]
+    dy = [spacingVal * direction.y for spacingVal in spacing]
+    dz = [spacingVal * direction.z for spacingVal in spacing]
+    stringSpacing = [vertSpacing for i in range(0, layers)]
 
     for i in xrange(0, numStrings):
         currentNum = stringNum + i
-        stringPos = dataclasses.I3Position(x + dx[i]*i, y + dy[i]*i, z + dz[i]*i)
+        stringPos = dataclasses.I3Position(x + dx[i] * i, y + dy[i] * i, z + dz[i] * i)
         stringDirection = dataclasses.I3Direction(0, 0, 1)
-        stringMap = generateOMString( currentNum, stringPos, layers, stringSpacing, stringDirection)
+        stringMap = generateOMString(
+            currentNum, stringPos, layers, stringSpacing, stringDirection
+        )
         lineMap.update(stringMap)
 
     return lineMap
-
-
 
 
 # Generates a list of offsets to the DOM string starting positions. Different
@@ -203,12 +216,12 @@ def generateOffsetList(offset_type, length):
     offsetList = []
 
     if not isinstance(offset_type, OffsetType):
-        raise TypeError('offset_type must be an instance of OffsetType Enum')
+        raise TypeError("offset_type must be an instance of OffsetType Enum")
 
     if offset_type == OffsetType.LinearResetOffset:
         offset = 0
-        for i in xrange(0,length):
-            if(offset > 300):
+        for i in xrange(0, length):
+            if offset > 300:
                 offset = 100
             offsetList.append(offset)
             offset += 100
@@ -218,16 +231,17 @@ def generateOffsetList(offset_type, length):
         # determines whether rising or falling offset
         signFactor = 1
         for i in xrange(0, length):
-            if(offset >= 300):
+            if offset >= 300:
                 signFactor = -1
-            if(offset <= 150):
+            if offset <= 150:
                 signFactor = 1
             offsetList.append(offset)
-            offset += 150*signFactor
+            offset += 150 * signFactor
     else:
-        offsetList = [50 for i in range(0,length)]
+        offsetList = [50 for i in range(0, length)]
 
     return offsetList
+
 
 # Generates a list detailing the spacings between DOMs along a string. Different
 # spacing types are described in SpacingType enum class
@@ -242,28 +256,29 @@ def generateOffsetList(offset_type, length):
 # a list containing different spacing values for the DOMs along the string
 def generateSpacingList(spacing_type, basicSpacing, length):
     spacingList = []
-    undistortedStringLength = basicSpacing*length
+    undistortedStringLength = basicSpacing * length
 
     if not isinstance(spacing_type, SpacingType):
-        raise TypeError('spacing_type must be an instance of SpacingType Enum')
+        raise TypeError("spacing_type must be an instance of SpacingType Enum")
 
     if spacing_type == SpacingType.LinearRSpacing:
         r = 0
-        for i in xrange(0,length):
-            spacing = basicSpacing * ( 1 - (r/undistortedStringLength) )
+        for i in xrange(0, length):
+            spacing = basicSpacing * (1 - (r / undistortedStringLength))
             spacingList.append(spacing)
             r += spacing
     elif spacing_type == SpacingType.ExpRSpacing:
         r = 0
-        for i in xrange(0,length):
-            spacing = basicSpacing * np.exp(-r/undistortedStringLength)
+        for i in xrange(0, length):
+            spacing = basicSpacing * np.exp(-r / undistortedStringLength)
             spacingList.append(spacing)
             r += spacing
     else:
-        spacingList = [basicSpacing for i in range(0,length)]
+        spacingList = [basicSpacing for i in range(0, length)]
 
-    print( sum(spacingList) )
+    print(sum(spacingList))
     return spacingList
+
 
 # decomposes a geometry into a new geometry with only the DOMs specified
 #
@@ -307,6 +322,7 @@ class OffsetType(Enum):
 
     def __str__(self):
         return self.value
+
 
 # an enum class to keep track of different spacing types
 #

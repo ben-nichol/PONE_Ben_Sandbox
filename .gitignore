@@ -1,5 +1,10 @@
-# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 
-env.sh
+workdir/
+docs/_build/
+oldversions/
+*.i3*
+*.h5
+*.lic
+*.csv

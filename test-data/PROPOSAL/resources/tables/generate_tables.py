@@ -7,7 +7,7 @@ from icecube.PROPOSAL import I3PropagatorServicePROPOSAL
 
 
 # FIXME - The table path I3PropagatorServicePROPOSAL settles
-#         on behind the scenes is not always going to be 
+#         on behind the scenes is not always going to be
 #         $I3_BUILD/PROPOSAL/resources/tables/
 #         It would be nice then to be able to instantiate an
 #         I3PropagatorServicePROPOSAL object, figure out what
@@ -21,16 +21,26 @@ from icecube.PROPOSAL import I3PropagatorServicePROPOSAL
 # This should have generated all data files.
 # Generate a marker file to tell the build system this task
 # has been successfully completed.
-file_lock_path = os.getenv('PONESRCDIR')+"/test-data/PROPOSAL/resources/tables/.tables.auto_generated"
+file_lock_path = (
+    os.getenv("PONESRCDIR")
+    + "/test-data/PROPOSAL/resources/tables/.tables.auto_generated"
+)
 if not os.path.exists(file_lock_path):
-    with open(file_lock_path, 'w') as f:
+    with open(file_lock_path, "w") as f:
         try:
-            I3PropagatorServicePROPOSAL(config_file = os.getenv('PONESRCDIR')+"/configs/PROPOSAL_config.json")
+            I3PropagatorServicePROPOSAL(
+                config_file=os.getenv("PONESRCDIR") + "/configs/PROPOSAL_config.json"
+            )
         except:
             # something went wrong and table generation was not successful
             os.remove(file_lock_path)
-        f.write('success') # need to be able to communicate to other objects instantiated
+        f.write(
+            "success"
+        )  # need to be able to communicate to other objects instantiated
         # in different processes whether the tables it needs are good to go.  if not, it
         # should probably emit an error message "tables are not ready yet."
 else:
-    print("%s exists already, indicating the tables are already (or in the process of being) generated." % file_lock_path)
+    print(
+        "%s exists already, indicating the tables are already (or in the process of being) generated."
+        % file_lock_path
+    )

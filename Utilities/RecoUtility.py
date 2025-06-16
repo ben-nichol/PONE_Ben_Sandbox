@@ -1,3 +1,4 @@
+from Utilities.OpticalParameters import *
 import numpy as np
 
 """!
@@ -10,17 +11,19 @@ Operation:
     This is used for testing reconstructions. The output mimics the corrdinates of initdir.
 
 """
+
+
 def rand_dir(initdir, alpha):
     theta = 0.0
     phi = 0.0
-    if len(initdir) < 3 :
+    if len(initdir) < 3:
         theta = initdir[0]
         phi = initdir[1]
-    else :
+    else:
         theta = np.arccos(initdir[2])
-        phi = np.arctan2(initdir[1],initdir[0])
+        phi = np.arctan2(initdir[1], initdir[0])
 
-    theta = 2*np.pi*rand.uniform(0,1)
+    theta = 2 * np.pi * rand.uniform(0, 1)
     ct_dir = np.cos(theta)
     st_dir = np.sin(theta)
     cp_dir = np.cos(phi)
@@ -29,11 +32,11 @@ def rand_dir(initdir, alpha):
     sa = np.sin(alpha)
     ct = np.cos(theta)
     st = np.sin(theta)
-    dir_x = cp_dir*ct_dir*sa*ct + st_dir*ca*cp_dir - sp_dir*sa*st
-    dir_y = sp_dir*ct_dir*sa*ct + st_dir*ca*sp_dir + cp_dir*sa*st
-    dir_z = ca*ct_dir - sa*ct*st_dir
-    if len(initdir)<3 :
-        return np.array([np.arccos(dir_z),np.arctan(dir_y,dir_x)])
+    dir_x = cp_dir * ct_dir * sa * ct + st_dir * ca * cp_dir - sp_dir * sa * st
+    dir_y = sp_dir * ct_dir * sa * ct + st_dir * ca * sp_dir + cp_dir * sa * st
+    dir_z = ca * ct_dir - sa * ct * st_dir
+    if len(initdir) < 3:
+        return np.array([np.arccos(dir_z), np.arctan(dir_y, dir_x)])
     return np.array([dir_x, dir_y, dir_z])
 
 
@@ -48,43 +51,63 @@ Operation:
     the distance of closest approach of the track to the DOM, 
     and the time since track was at vertex to the photon hitting the DOM.
 """
-def ComputeGeoTime(position,vert,direction) :
-    c = 0.299792458                                 # speed of light 
-    n = 1.34
-    ngroup = 1.35557                                # 1.33 is the refractive index of water at 20 degrees C
-    c_n = c/ngroup                                     # light in water
-    theta_c = np.arccos(1./n)
+
+
+def ComputeGeoTime(position, vert, direction):
+    c = 0.299792458  # speed of light
+    # n = 1.34
+    # ngroup = 1.35557                                # 1.33 is the refractive index of water at 20 degrees C
+    n = GetIndex()
+    ngroup = GetGroupIndex()
+    c_n = c / ngroup  # light in water
+    theta_c = np.arccos(1.0 / n)
     x = position[0] - vert[0]
     y = position[1] - vert[1]
     z = position[2] - vert[2]
     dotprod = 0.0
-    if len(direction) < 3 :
-        dotprod = x*np.sin(direction[0])*np.cos(direction[1]) + y*np.sin(direction[0])*np.sin(direction[1]) + z*np.cos(direction[0])
-    else :
-        dotprod = x*direction[0] + y*direction[1] + z*direction[2]
+    if len(direction) < 3:
+        dotprod = (
+            x * np.sin(direction[0]) * np.cos(direction[1])
+            + y * np.sin(direction[0]) * np.sin(direction[1])
+            + z * np.cos(direction[0])
+        )
+    else:
+        dotprod = x * direction[0] + y * direction[1] + z * direction[2]
 
     emission_point = []
-    dc = max(0.25,x*x + y*y + z*z-dotprod*dotprod)
-    ed = (dc/np.tan(theta_c))
-    emission_point = [ed*direction[0],ed*direction[1],ed*direction[2]]
-    emission_dir = [(position[0]-emission_point[0]),(position[1]-emission_point[1]),(position[2]-emission_point[2])]
-    norm = np.sqrt(emission_dir[0]**2.0+emission_dir[1]**2.0+emission_dir[2]**2.0)
-    emission_dir = [emission_dir[0]/norm,emission_dir[1]/norm,emission_dir[2]/norm]
+    dc = max(0.25, x * x + y * y + z * z - dotprod * dotprod)
+    ed = dc / np.tan(theta_c)
+    emission_point = [ed * direction[0], ed * direction[1], ed * direction[2]]
+    emission_dir = [
+        (position[0] - emission_point[0]),
+        (position[1] - emission_point[1]),
+        (position[2] - emission_point[2]),
+    ]
+    norm = np.sqrt(
+        emission_dir[0] ** 2.0 + emission_dir[1] ** 2.0 + emission_dir[2] ** 2.0
+    )
+    emission_dir = [
+        emission_dir[0] / norm,
+        emission_dir[1] / norm,
+        emission_dir[2] / norm,
+    ]
 
     theta = np.arccos(-emission_dir[2])
-    phi = np.arccos(-emission_dir[0]/np.sqrt(1.-emission_dir[2]**2.0))
+    phi = np.arccos(-emission_dir[0] / np.sqrt(1.0 - emission_dir[2] ** 2.0))
     dc = np.sqrt(dc)
-    d = dc/np.sin(theta_c)
-    t = d/c_n + dotprod/c - ed*c
-    return d,dc,t, theta, phi, emission_point
+    d = dc / np.sin(theta_c)
+    t = d / c_n + dotprod / c - ed * c
+    return d, dc, t, theta, phi, emission_point
 
-def GetGeoTime(position,vert,direction) :
 
-    d,dc,t, theta, phi, emission_point = ComputeGeoTime(position,vert,direction)
-    return d,dc,t, theta, phi
+def GetGeoTime(position, vert, direction):
+    d, dc, t, theta, phi, emission_point = ComputeGeoTime(position, vert, direction)
+    return d, dc, t, theta, phi
 
-def GetGeoTimeandEmission(position,vert,direction) :
-    return ComputeGeoTime(position,vert,direction)
+
+def GetGeoTimeandEmission(position, vert, direction):
+    return ComputeGeoTime(position, vert, direction)
+
 
 """!
 GetPhotonTravelTime(position,vert)
@@ -97,15 +120,16 @@ Operation:
 
 """
 
-def GetPhotonTravelTime(position,vert):
-    c = 0.299792458                                 # speed of light 
-    n = 1.34
-    ngroup = 1.35557                                # 1.33 is the refractive index of water at 20 degrees C
-    c_n = c/ngroup                                     # light in water
+
+def GetPhotonTravelTime(position, vert):
+    c = 0.299792458  # speed of light
+    n = GetIndex()
+    ngroup = GetGroupIndex()
+    c_n = c / ngroup  # light in water
 
     x = position[0] - vert[0]
     y = position[1] - vert[1]
     z = position[2] - vert[2]
-    dc = np.sqrt(x*x + y*y + z*z)
-    t = dc/c_n
-    return dc,t
+    dc = np.sqrt(x * x + y * y + z * z)
+    t = dc / c_n
+    return dc, t

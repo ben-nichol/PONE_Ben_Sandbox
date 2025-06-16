@@ -1,6 +1,7 @@
 """
 Tray segments for MuonGun simulations
 """
+
 import math
 
 import icecube.icetray
@@ -10,25 +11,28 @@ import icecube.MuonGun.segments
 
 
 @icecube.icetray.traysegment
-def GenerateCosmicRayMuons(tray, name,
-                           mctree_name="I3MCTree_preMuonProp",
-                           num_events=1,
-                           flux_model="Hoerandel5_atmod12_SIBYLL",
-                           gamma_index=2.,
-                           energy_offset=700.,
-                           energy_min=1e4,
-                           energy_max=1e7,
-                           cylinder_length=1600.,
-                           cylinder_radius=800.,
-                           cylinder_x=0.,
-                           cylinder_y=0.,
-                           cylinder_z=0.,
-                           inner_cylinder_length=500.,
-                           inner_cylinder_radius=150.,
-                           inner_cylinder_x=46.3,
-                           inner_cylinder_y=-34.9,
-                           inner_cylinder_z=-300.,
-                           use_inner_cylinder=False):
+def GenerateCosmicRayMuons(
+    tray,
+    name,
+    mctree_name="I3MCTree_preMuonProp",
+    num_events=1,
+    flux_model="Hoerandel5_atmod12_SIBYLL",
+    gamma_index=2.0,
+    energy_offset=700.0,
+    energy_min=1e4,
+    energy_max=1e7,
+    cylinder_length=1600.0,
+    cylinder_radius=800.0,
+    cylinder_x=0.0,
+    cylinder_y=0.0,
+    cylinder_z=0.0,
+    inner_cylinder_length=500.0,
+    inner_cylinder_radius=150.0,
+    inner_cylinder_x=46.3,
+    inner_cylinder_y=-34.9,
+    inner_cylinder_z=-300.0,
+    use_inner_cylinder=False,
+):
     r"""Generate atmospheric muons with MuonGun
 
     This segment generates atm. muons with MuonGun; it is intended to be
@@ -95,68 +99,82 @@ def GenerateCosmicRayMuons(tray, name,
     # Default: cylinder aligned with z-axis at detector center as injection
     # surface.
     outsurface_center = icecube.dataclasses.I3Position(
-        cylinder_x*icecube.icetray.I3Units.m,
-        cylinder_y*icecube.icetray.I3Units.m,
-        cylinder_z*icecube.icetray.I3Units.m)
+        cylinder_x * icecube.icetray.I3Units.m,
+        cylinder_y * icecube.icetray.I3Units.m,
+        cylinder_z * icecube.icetray.I3Units.m,
+    )
 
     outsurface = icecube.MuonGun.Cylinder(
-        length=cylinder_length*icecube.icetray.I3Units.m,
-        radius=cylinder_radius*icecube.icetray.I3Units.m,
-        center=outsurface_center)
+        length=cylinder_length * icecube.icetray.I3Units.m,
+        radius=cylinder_radius * icecube.icetray.I3Units.m,
+        center=outsurface_center,
+    )
 
     # Draw energies from a power law with offset.
     spectrum = icecube.MuonGun.OffsetPowerLaw(
         gamma=gamma_index,
-        offset=energy_offset*icecube.icetray.I3Units.GeV,
-        min=energy_min*icecube.icetray.I3Units.GeV,
-        max=energy_max*icecube.icetray.I3Units.GeV)
+        offset=energy_offset * icecube.icetray.I3Units.GeV,
+        min=energy_min * icecube.icetray.I3Units.GeV,
+        max=energy_max * icecube.icetray.I3Units.GeV,
+    )
 
     # Set up the generator. This gets stored in a special frame.
     if use_inner_cylinder:
         # Use energy-dependent scaling if generating atm. muon in DeepCore.
         insurface_center = icecube.dataclasses.I3Position(
-            inner_cylinder_x*icecube.icetray.I3Units.m,
-            inner_cylinder_y*icecube.icetray.I3Units.m,
-            inner_cylinder_z*icecube.icetray.I3Units.m)
+            inner_cylinder_x * icecube.icetray.I3Units.m,
+            inner_cylinder_y * icecube.icetray.I3Units.m,
+            inner_cylinder_z * icecube.icetray.I3Units.m,
+        )
 
         insurface = icecube.MuonGun.Cylinder(
-            length=inner_cylinder_length*icecube.icetray.I3Units.m,
-            radius=inner_cylinder_radius*icecube.icetray.I3Units.m,
-            center=insurface_center)
+            length=inner_cylinder_length * icecube.icetray.I3Units.m,
+            radius=inner_cylinder_radius * icecube.icetray.I3Units.m,
+            center=insurface_center,
+        )
 
         scaling = icecube.MuonGun.ConstantSurfaceScalingFunction(insurface)
 
         generator = icecube.MuonGun.EnergyDependentSurfaceInjector(
-            surface=outsurface, flux=model.flux, energy=spectrum,
-            radius=model.radius, scaling=scaling)
+            surface=outsurface,
+            flux=model.flux,
+            energy=spectrum,
+            radius=model.radius,
+            scaling=scaling,
+        )
     else:
         generator = icecube.MuonGun.StaticSurfaceInjector(
-            outsurface, model.flux, spectrum, model.radius)
+            outsurface, model.flux, spectrum, model.radius
+        )
 
-    tray.AddModule('I3MuonGun::GeneratorModule',name,
-                   Generator=num_events*generator)
+    tray.AddModule("I3MuonGun::GeneratorModule", name, Generator=num_events * generator)
 
-    tray.AddModule("I3MuonGun::WeightCalculatorModule", "%s_weights" % name,
-                   Generator=generator,
-                   Model=model)
+    tray.AddModule(
+        "I3MuonGun::WeightCalculatorModule",
+        "%s_weights" % name,
+        Generator=generator,
+        Model=model,
+    )
 
-    tray.AddModule("Rename", "%s_prepropMCTree" % name,
-                   keys=["I3MCTree", mctree_name])
+    tray.AddModule("Rename", "%s_prepropMCTree" % name, keys=["I3MCTree", mctree_name])
 
     return
 
 
 @icecube.icetray.traysegment
-def GenerateSingleMuons(tray, name,
-                        Surface=None,
-                        GCDFile=None,
-                        GeometryMargin=60.*icecube.icetray.I3Units.m,
-                        NumEvents=100,
-                        FromEnergy=10.*icecube.icetray.I3Units.TeV,
-                        ToEnergy=10.*icecube.icetray.I3Units.PeV,
-                        BreakEnergy=1.*icecube.icetray.I3Units.TeV,
-                        GammaIndex=2.,
-                        ZenithRange=[0., 180.*icecube.icetray.I3Units.deg]):
+def GenerateSingleMuons(
+    tray,
+    name,
+    Surface=None,
+    GCDFile=None,
+    GeometryMargin=60.0 * icecube.icetray.I3Units.m,
+    NumEvents=100,
+    FromEnergy=10.0 * icecube.icetray.I3Units.TeV,
+    ToEnergy=10.0 * icecube.icetray.I3Units.PeV,
+    BreakEnergy=1.0 * icecube.icetray.I3Units.TeV,
+    GammaIndex=2.0,
+    ZenithRange=[0.0, 180.0 * icecube.icetray.I3Units.deg],
+):
     r"""Generate single muons with MuonGun
 
     This segment injects single muons with MuonGun isotropically. This
@@ -195,8 +213,9 @@ def GenerateSingleMuons(tray, name,
     """
     if Surface is None and GCDFile is None:
         surface = icecube.MuonGun.Cylinder(
-            length=1600.*icecube.icetray.I3Units.m,
-            radius=800.*icecube.icetray.I3Units.m)
+            length=1600.0 * icecube.icetray.I3Units.m,
+            radius=800.0 * icecube.icetray.I3Units.m,
+        )
     elif Surface is not None and GCDFile is None:
         surface = Surface
     elif Surface is None and GCDFile is not None:
@@ -204,24 +223,26 @@ def GenerateSingleMuons(tray, name,
             handle = tray.context["I3FileStager"].GetReadablePath(GCDFile)
             GCDFile = str(handle)
         surface = icecube.MuonGun.ExtrudedPolygon.from_file(
-            GCDFile, padding=GeometryMargin*icecube.icetray.I3Units.m)
+            GCDFile, padding=GeometryMargin * icecube.icetray.I3Units.m
+        )
     else:
         icecube.icetray.logging.log_fatal(
-            "Surface and GCDFile are mutually exclusive.",
-            unit="GenerateSingleMuons")
+            "Surface and GCDFile are mutually exclusive.", unit="GenerateSingleMuons"
+        )
 
     spectrum = icecube.MuonGun.OffsetPowerLaw(
         GammaIndex,
-        BreakEnergy*icecube.icetray.I3Units.GeV,
-        FromEnergy*icecube.icetray.I3Units.GeV,
-        ToEnergy*icecube.icetray.I3Units.GeV)
+        BreakEnergy * icecube.icetray.I3Units.GeV,
+        FromEnergy * icecube.icetray.I3Units.GeV,
+        ToEnergy * icecube.icetray.I3Units.GeV,
+    )
 
     # Illuminate IceCube isotropically with muons.
-    generator = NumEvents*icecube.MuonGun.Floodlight(
-        surface, spectrum, math.cos(ZenithRange[1]), math.cos(ZenithRange[0]))
+    generator = NumEvents * icecube.MuonGun.Floodlight(
+        surface, spectrum, math.cos(ZenithRange[1]), math.cos(ZenithRange[0])
+    )
 
-    tray.AddModule("I3MuonGun::GeneratorModule", name,
-                   Generator=generator)
+    tray.AddModule("I3MuonGun::GeneratorModule", name, Generator=generator)
 
     # Calculate effective area.
     def effective_area(frame, generator):
@@ -229,35 +250,38 @@ def GenerateSingleMuons(tray, name,
         primary = mctree.primaries[0]
         muon = mctree.get_daughters(primary)[0]
         bundle = icecube.MuonGun.BundleConfiguration(
-            [icecube.MuonGun.BundleEntry(0, muon.energy)])
+            [icecube.MuonGun.BundleEntry(0, muon.energy)]
+        )
         fluence = generator.generated_events(primary, bundle)
-        if fluence > 0.:
-            area = 1./fluence
+        if fluence > 0.0:
+            area = 1.0 / fluence
             frame["MCMuon"] = muon
             frame["MuonEffectiveArea"] = icecube.dataclasses.I3Double(area)
         else:
             icecube.icetray.logging.log_warn(
                 "Fluence value of {0:f} encountered.".format(fluence),
-                unit="GenerateSingleMuons")
+                unit="GenerateSingleMuons",
+            )
         return True
 
-    tray.Add(effective_area,
-             generator=generator,
-             Streams=[icecube.icetray.I3Frame.DAQ])
+    tray.Add(effective_area, generator=generator, Streams=[icecube.icetray.I3Frame.DAQ])
 
-    tray.Add("Rename",
-             keys=["I3MCTree", "I3MCTree_preMuonProp"])
+    tray.Add("Rename", keys=["I3MCTree", "I3MCTree_preMuonProp"])
 
     return
 
+
 @icecube.icetray.traysegment
-def GenerateNaturalRateMuons(tray, name,
-                        mctree_name="I3MCTree_preMuonProp",
-                        flux_model="GaisserH4a_atmod12_SIBYLL",
-                        Surface=None,
-                        GCDFile=None,
-                        GeometryMargin=60.*icecube.icetray.I3Units.m,
-                        NumEvents=100):
+def GenerateNaturalRateMuons(
+    tray,
+    name,
+    mctree_name="I3MCTree_preMuonProp",
+    flux_model="GaisserH4a_atmod12_SIBYLL",
+    Surface=None,
+    GCDFile=None,
+    GeometryMargin=60.0 * icecube.icetray.I3Units.m,
+    NumEvents=100,
+):
     r"""Generate single muons with MuonGun
 
     This segment injects single muons with MuonGun isotropically. This
@@ -290,8 +314,9 @@ def GenerateNaturalRateMuons(tray, name,
     """
     if Surface is None and GCDFile is None:
         surface = icecube.MuonGun.Cylinder(
-            length=1600.*icecube.icetray.I3Units.m,
-            radius=800.*icecube.icetray.I3Units.m)
+            length=1600.0 * icecube.icetray.I3Units.m,
+            radius=800.0 * icecube.icetray.I3Units.m,
+        )
     elif Surface is not None and GCDFile is None:
         surface = Surface
     elif Surface is None and GCDFile is not None:
@@ -299,11 +324,12 @@ def GenerateNaturalRateMuons(tray, name,
             handle = tray.context["I3FileStager"].GetReadablePath(GCDFile)
             GCDFile = str(handle)
         surface = icecube.MuonGun.ExtrudedPolygon.from_file(
-            GCDFile, padding=GeometryMargin*icecube.icetray.I3Units.m)
+            GCDFile, padding=GeometryMargin * icecube.icetray.I3Units.m
+        )
     else:
         icecube.icetray.logging.log_fatal(
-            "Surface and GCDFile are mutually exclusive.",
-            unit="GenerateSingleMuons")
+            "Surface and GCDFile are mutually exclusive.", unit="GenerateSingleMuons"
+        )
 
     # Sample from given spectral flux model
     model = icecube.MuonGun.load_model(flux_model)
@@ -312,14 +338,15 @@ def GenerateNaturalRateMuons(tray, name,
     radii = model.radius
     energies = model.energy
 
-    generator = NumEvents*icecube.MuonGun.NaturalRateInjector(surface, flux, energies)
+    generator = NumEvents * icecube.MuonGun.NaturalRateInjector(surface, flux, energies)
 
-    tray.AddModule("I3MuonGun::GeneratorModule", name,
-                   Generator=generator)
-    tray.AddModule('I3MuonGun::WeightCalculatorModule', 'weight',
-                   Model=icecube.MuonGun.BundleModel(flux, radii, energies),
-                   Generator=generator)
-
+    tray.AddModule("I3MuonGun::GeneratorModule", name, Generator=generator)
+    tray.AddModule(
+        "I3MuonGun::WeightCalculatorModule",
+        "weight",
+        Model=icecube.MuonGun.BundleModel(flux, radii, energies),
+        Generator=generator,
+    )
 
     # Calculate effective area.
     def effective_area(frame, generator):
@@ -327,23 +354,22 @@ def GenerateNaturalRateMuons(tray, name,
         primary = mctree.primaries[0]
         muon = mctree.get_daughters(primary)[0]
         bundle = icecube.MuonGun.BundleConfiguration(
-            [icecube.MuonGun.BundleEntry(0, muon.energy)])
+            [icecube.MuonGun.BundleEntry(0, muon.energy)]
+        )
         fluence = generator.generated_events(primary, bundle)
-        if fluence > 0.:
-            area = 1./fluence
+        if fluence > 0.0:
+            area = 1.0 / fluence
             frame["MCMuon"] = muon
             frame["MuonEffectiveArea"] = icecube.dataclasses.I3Double(area)
         else:
             icecube.icetray.logging.log_warn(
                 "Fluence value of {0:f} encountered.".format(fluence),
-                unit="GenerateSingleMuons")
+                unit="GenerateSingleMuons",
+            )
         return True
 
-    tray.Add(effective_area,
-             generator=generator,
-             Streams=[icecube.icetray.I3Frame.DAQ])
+    tray.Add(effective_area, generator=generator, Streams=[icecube.icetray.I3Frame.DAQ])
 
-    tray.AddModule("Rename", "%s_prepropMCTree" % name,
-                   keys=["I3MCTree", mctree_name])
+    tray.AddModule("Rename", "%s_prepropMCTree" % name, keys=["I3MCTree", mctree_name])
 
     return

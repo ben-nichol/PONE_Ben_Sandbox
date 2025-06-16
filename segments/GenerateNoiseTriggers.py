@@ -13,6 +13,7 @@
 ##################################################################################
 from icecube import icetray
 
+
 @icetray.traysegment
 def ProduceNoiseTriggers(tray, name, gcd_file, nevents=1, run_id=None):
     """
@@ -29,46 +30,71 @@ def ProduceNoiseTriggers(tray, name, gcd_file, nevents=1, run_id=None):
     :param runID: The run number to put into the I3EventHeader.
     :param nevents: The number of events to simulate.
     """
-    tray.AddModule("I3InfiniteSource",name+"_streams",
-                   Prefix=gcd_file,
-                   Stream=icetray.I3Frame.DAQ)
+    tray.AddModule(
+        "I3InfiniteSource",
+        name + "_streams",
+        Prefix=gcd_file,
+        Stream=icetray.I3Frame.DAQ,
+    )
 
     from icecube import vuvuzela
     from icecube.icetray import I3Units
-    tray.AddSegment(vuvuzela.AddNoise,name+"_vuvuzela",
-            InputName = "",
-            OutputName = "I3MCPESeriesMap",
-            EndTime = 50*I3Units.millisecond,
-            StartTime = -50*I3Units.millisecond,
-            )
+
+    tray.AddSegment(
+        vuvuzela.AddNoise,
+        name + "_vuvuzela",
+        InputName="",
+        OutputName="I3MCPESeriesMap",
+        EndTime=50 * I3Units.millisecond,
+        StartTime=-50 * I3Units.millisecond,
+    )
 
     from icecube.DOMLauncher.domlauncher import DetectorResponse
-    tray.AddSegment(DetectorResponse, name+"_detector",
-            dom_config= {"BeaconLaunches":False})
+
+    tray.AddSegment(
+        DetectorResponse, name + "_detector", dom_config={"BeaconLaunches": False}
+    )
 
     from icecube import trigger_sim, dataio
-    tray.AddSegment(trigger_sim.TriggerSim,name+"_triggers",
-                    run_id = run_id,
-                    gcd_file = dataio.I3File(gcd_file,'r'))
+
+    tray.AddSegment(
+        trigger_sim.TriggerSim,
+        name + "_triggers",
+        run_id=run_id,
+        gcd_file=dataio.I3File(gcd_file, "r"),
+    )
 
     # Prepare for the CoincidenceAfterProcessing
     from icecube.dataclasses import I3MCTree
+
     def fakeTree(frame):
         frame["I3MCTree"] = I3MCTree()
 
-    tray.AddModule(fakeTree, name+"_fakeDatTree",
-           Streams=[icetray.I3Frame.DAQ,])
-    tray.AddModule(NoiseWeight, name+"_addNoiseWeights",
-           NEvents = nevents,
-           Streams=[icetray.I3Frame.DAQ,])
+    tray.AddModule(
+        fakeTree,
+        name + "_fakeDatTree",
+        Streams=[
+            icetray.I3Frame.DAQ,
+        ],
+    )
+    tray.AddModule(
+        NoiseWeight,
+        name + "_addNoiseWeights",
+        NEvents=nevents,
+        Streams=[
+            icetray.I3Frame.DAQ,
+        ],
+    )
 
-    tray.AddModule(CheckEventTime, name+"_timecheck")
+    tray.AddModule(CheckEventTime, name + "_timecheck")
 
     # This is normally for long-frame CORSIKA, but its useful here too.
     # Breaks the long frame into multiple smaller one by magic.
     from icecube import trigger_sim
-    tray.AddModule("CoincidenceAfterProcessing", name+"breakIntoFrames",
-           MinimumSignalNch = 0)
+
+    tray.AddModule(
+        "CoincidenceAfterProcessing", name + "breakIntoFrames", MinimumSignalNch=0
+    )
 
     # Now return to whatever called me
     return
@@ -85,16 +111,22 @@ def NoiseWeight(frame, NEvents):
 
     from icecube.dataclasses import I3MapStringDouble, I3MCTree
     from icecube.icetray import I3Units
+
     weightmap = I3MapStringDouble()
-    weightmap["simulated_livetime"] = 100*I3Units.millisecond
-    weightmap["time_buffer"] = 2*20*I3Units.microsecond
+    weightmap["simulated_livetime"] = 100 * I3Units.millisecond
+    weightmap["time_buffer"] = 2 * 20 * I3Units.microsecond
     weightmap["nevents"] = NEvents
-    weightmap["weight"] = 1.0/(weightmap["nevents"]*(weightmap["simulated_livetime"]-weightmap["time_buffer"]))
+    weightmap["weight"] = 1.0 / (
+        weightmap["nevents"]
+        * (weightmap["simulated_livetime"] - weightmap["time_buffer"])
+    )
     frame["noise_weight"] = weightmap
     return
 
 
-def CheckEventTime(frame, TriggerHierarchy="I3TriggerHierarchy", MCPESeriesMap="I3MCPESeriesMap"):
+def CheckEventTime(
+    frame, TriggerHierarchy="I3TriggerHierarchy", MCPESeriesMap="I3MCPESeriesMap"
+):
     """
     If the trigger exists within 20 microseconds of the first or last hit, then we need
     to remove that trigger. Otherwise events will include a non-simulated region in the
@@ -105,6 +137,7 @@ def CheckEventTime(frame, TriggerHierarchy="I3TriggerHierarchy", MCPESeriesMap="
     """
 
     from icecube.dataclasses import I3EventHeader, I3TriggerHierarchy
+
     eventtriggers = frame[TriggerHierarchy]
     eventmcpes = frame[MCPESeriesMap]
 
@@ -119,13 +152,12 @@ def CheckEventTime(frame, TriggerHierarchy="I3TriggerHierarchy", MCPESeriesMap="
     # Loop over the trigger times and remove any triggers within 20 microseconds of
     # the earliest/last hit.
     for trigger in eventtriggers:
-        if trigger.time - earliest < 20*I3Units.microsecond or\
-            latest - trigger.time < 20*I3Units.microsecond:
+        if (
+            trigger.time - earliest < 20 * I3Units.microsecond
+            or latest - trigger.time < 20 * I3Units.microsecond
+        ):
             newtriggers.erase(trigger)
-
 
     del frame[TriggerHierarchy]
     frame[TriggerHierarchy] = newtriggers
     return
-
-

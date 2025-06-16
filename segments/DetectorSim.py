@@ -2,32 +2,36 @@
 
 from icecube import icetray, dataclasses
 
+
 def ConvertToLinearizedMCTree(frame):
-    if 'I3MCTree' in frame:
+    if "I3MCTree" in frame:
         try:
-            tree = dataclasses.I3LinearizedMCTree(frame['I3MCTree'])
+            tree = dataclasses.I3LinearizedMCTree(frame["I3MCTree"])
         except:
-            icecube.icetray.logging.log_error('cannot convert to I3LinearizedMCTree')
+            icecube.icetray.logging.log_error("cannot convert to I3LinearizedMCTree")
         else:
-            del frame['I3MCTree']
-            frame['I3MCTree'] = tree
+            del frame["I3MCTree"]
+            frame["I3MCTree"] = tree
     return True
 
-@icetray.traysegment
-def DetectorSim(tray, name,
-    RandomService = None,
-    RunID = None,
-    GCDFile = None,
-    KeepMCHits = False,
-    KeepPropagatedMCTree = False,
-    KeepMCPulses = False,
-    SkipNoiseGenerator = False,
-    LowMem = False,
-    InputPESeriesMapName = "I3MCPESeriesMap",
-    BeaconLaunches = True,
-    TimeShiftSkipKeys=[],
-    FilterTrigger=True):
 
+@icetray.traysegment
+def DetectorSim(
+    tray,
+    name,
+    RandomService=None,
+    RunID=None,
+    GCDFile=None,
+    KeepMCHits=False,
+    KeepPropagatedMCTree=False,
+    KeepMCPulses=False,
+    SkipNoiseGenerator=False,
+    LowMem=False,
+    InputPESeriesMapName="I3MCPESeriesMap",
+    BeaconLaunches=True,
+    TimeShiftSkipKeys=[],
+    FilterTrigger=True,
+):
     """
     Read photon-propagated (MCPE) files, simulate noise, PTM response, DOMLaunches, and trigger.
 
@@ -44,7 +48,7 @@ def DetectorSim(tray, name,
     :param TimeShiftSkipKeys: list of keys that should be time-shifted. Default: shift all Time-like objects.
     :param FilterTrigger: remove events that don't pass any trigger.
     """
-    
+
     from icecube import icetray, dataclasses, dataio, phys_services
     from icecube import trigger_sim
 
@@ -53,147 +57,167 @@ def DetectorSim(tray, name,
     from icecube import DOMLauncher
     from icecube import topsimulator
 
-    if RunID is None: 
+    if RunID is None:
         icetray.logging.log_fatal("You *must* set a RunID in production.")
-    
+
     if not RandomService:
         icetray.logging.log_fatal("You *must* set a RandomService name.")
 
     MCPESeriesMapNames = [
         InputPESeriesMapName,
         "BackgroundI3MCPESeriesMap",
-        "SignalI3MCPEs" 
-        ]
-    MCPulseSeriesMapNames = [
-        "I3MCPulseSeriesMap",
-        "I3MCPulseSeriesMapParticleIDMap" 
-        ]
-    MCTreeNames = [
-        "I3MCTree",
-        "BackgroundI3MCTree",
-        "SignalMCTree"
-        ]
+        "SignalI3MCPEs",
+    ]
+    MCPulseSeriesMapNames = ["I3MCPulseSeriesMap", "I3MCPulseSeriesMapParticleIDMap"]
+    MCTreeNames = ["I3MCTree", "BackgroundI3MCTree", "SignalMCTree"]
     MCPMTResponseMapNames = []
 
     if not SkipNoiseGenerator:
         InputPESeriesMapName_withoutNoise = InputPESeriesMapName + "WithoutNoise"
-        tray.Add("Rename", "RenamePESeriesMap",
-                 Keys=[InputPESeriesMapName, InputPESeriesMapName_withoutNoise])
+        tray.Add(
+            "Rename",
+            "RenamePESeriesMap",
+            Keys=[InputPESeriesMapName, InputPESeriesMapName_withoutNoise],
+        )
         MCPESeriesMapNames.append(InputPESeriesMapName_withoutNoise)
 
         from icecube import vuvuzela
-        
-        tray.AddSegment(vuvuzela.AddNoise, name+"_vuvuzela",
-            OutputName = InputPESeriesMapName,
-            InputName = InputPESeriesMapName_withoutNoise,
-            StartTime = -10.*I3Units.microsecond,
-            EndTime = 10.*I3Units.microsecond,
-            RandomServiceName = RandomService,
-            )
 
-    tray.AddSegment(DOMLauncher.DetectorResponse, "DetectorResponse",
-        pmt_config = {'Input':InputPESeriesMapName,
-                      'Output':"I3MCPulseSeriesMap",
-                      'MergeHits':True,
-                      'LowMem':LowMem,
-                      'RandomServiceName' : RandomService},
-        dom_config = {'Input':'I3MCPulseSeriesMap',
-                      'Output':"I3DOMLaunchSeriesMap",
-                      'UseTabulatedPT':True,
-                      'RandomServiceName' : RandomService,
-                      'BeaconLaunches':BeaconLaunches})
-     
+        tray.AddSegment(
+            vuvuzela.AddNoise,
+            name + "_vuvuzela",
+            OutputName=InputPESeriesMapName,
+            InputName=InputPESeriesMapName_withoutNoise,
+            StartTime=-10.0 * I3Units.microsecond,
+            EndTime=10.0 * I3Units.microsecond,
+            RandomServiceName=RandomService,
+        )
 
-    timeshiftargs={'SkipKeys':TimeShiftSkipKeys}
-    tray.AddSegment(trigger_sim.TriggerSim,
-                    name+'_triggersim',
-                    gcd_file=dataio.I3File(GCDFile), # for trigger auto-configuration
-                    run_id = RunID,
-                    prune = True,
-                    time_shift = True,
-                    time_shift_args = timeshiftargs,
-                    filter_mode = FilterTrigger
-                    )
+    tray.AddSegment(
+        DOMLauncher.DetectorResponse,
+        "DetectorResponse",
+        pmt_config={
+            "Input": InputPESeriesMapName,
+            "Output": "I3MCPulseSeriesMap",
+            "MergeHits": True,
+            "LowMem": LowMem,
+            "RandomServiceName": RandomService,
+        },
+        dom_config={
+            "Input": "I3MCPulseSeriesMap",
+            "Output": "I3DOMLaunchSeriesMap",
+            "UseTabulatedPT": True,
+            "RandomServiceName": RandomService,
+            "BeaconLaunches": BeaconLaunches,
+        },
+    )
 
-    tray.AddModule('I3PrimaryPulseMapper', 'MapPrimariesToPulses')
+    timeshiftargs = {"SkipKeys": TimeShiftSkipKeys}
+    tray.AddSegment(
+        trigger_sim.TriggerSim,
+        name + "_triggersim",
+        gcd_file=dataio.I3File(GCDFile),  # for trigger auto-configuration
+        run_id=RunID,
+        prune=True,
+        time_shift=True,
+        time_shift_args=timeshiftargs,
+        filter_mode=FilterTrigger,
+    )
 
-    tray.AddModule('I3TopAddComponentWaveforms', 'AddComponentWaveforms',
-                   PESeriesMap='I3MCPESeriesMap',
-                   Waveforms="")
-    
+    tray.AddModule("I3PrimaryPulseMapper", "MapPrimariesToPulses")
 
+    tray.AddModule(
+        "I3TopAddComponentWaveforms",
+        "AddComponentWaveforms",
+        PESeriesMap="I3MCPESeriesMap",
+        Waveforms="",
+    )
 
-    tray.AddModule("Delete", name+"_cleanup",
-        Keys = ["MCTimeIncEventID",
-                "MCPMTResponseMap",
-                ])
+    tray.AddModule(
+        "Delete",
+        name + "_cleanup",
+        Keys=[
+            "MCTimeIncEventID",
+            "MCPMTResponseMap",
+        ],
+    )
 
     if not KeepMCPulses:
-        tray.AddModule("Delete", name+"_cleanup_2",
-            Keys = MCPulseSeriesMapNames + MCPMTResponseMapNames)
+        tray.AddModule(
+            "Delete",
+            name + "_cleanup_2",
+            Keys=MCPulseSeriesMapNames + MCPMTResponseMapNames,
+        )
 
     if not KeepMCHits:
-        tray.AddModule("Delete", name+"_cleanup_I3MCHits_2",
-            Keys = MCPESeriesMapNames)
+        tray.AddModule("Delete", name + "_cleanup_I3MCHits_2", Keys=MCPESeriesMapNames)
 
-    if not KeepPropagatedMCTree: # Always keep original tree
-        tray.AddModule("Delete", name+"_cleanup_I3MCTree_3",
-            Keys = MCTreeNames)
-    
+    if not KeepPropagatedMCTree:  # Always keep original tree
+        tray.AddModule("Delete", name + "_cleanup_I3MCTree_3", Keys=MCTreeNames)
+
 
 @icetray.traysegment
-def DetectorSegment(tray,name,If=lambda f:True,
-                     gcdfile='',
-                     mctype='corsika_weighted',
-                     MCPESeriesMapName='I3MCPESeriesMap',
-                     detector_label='IC86:2012',
-                     runtrigger=True,
-                     filtertrigger=True,
-                     stats={},
-                     basicHisto=False,
-                     icetop=False,
-                     genie=False,
-                     prescale=1,
-                     uselineartree=True,
-                     lowmem=False,
-                     BeaconLaunches=True,
-                     TimeShiftSkipKeys=[],
-                     GeneratedEfficiency=0.0,
-                     SampleEfficiency=0.0,
-                     RunID=None,
-                     KeepMCHits = False,
-                     KeepPropagatedMCTree = False,
-                     KeepMCPulses = False,
-                     ):
+def DetectorSegment(
+    tray,
+    name,
+    If=lambda f: True,
+    gcdfile="",
+    mctype="corsika_weighted",
+    MCPESeriesMapName="I3MCPESeriesMap",
+    detector_label="IC86:2012",
+    runtrigger=True,
+    filtertrigger=True,
+    stats={},
+    basicHisto=False,
+    icetop=False,
+    genie=False,
+    prescale=1,
+    uselineartree=True,
+    lowmem=False,
+    BeaconLaunches=True,
+    TimeShiftSkipKeys=[],
+    GeneratedEfficiency=0.0,
+    SampleEfficiency=0.0,
+    RunID=None,
+    KeepMCHits=False,
+    KeepPropagatedMCTree=False,
+    KeepMCPulses=False,
+):
     """
     Run IC86 detector simulation
     """
     from .. import segments
-    
+
     # Combine MCPEs from both detectors
     if genie:
-       tray.Add("Rename", Keys=[MCPESeriesMapName, 'GenieMCPEs'])
-       tray.Add("I3CombineMCPE", 
-               InputResponses = ["GenieMCPEs", "BackgroundMCPEs"],
-               OutputResponse = MCPESeriesMapName)
-       tray.Add("Delete", Keys=['BackgroundMCPEs','GenieMCPEs']) 
+        tray.Add("Rename", Keys=[MCPESeriesMapName, "GenieMCPEs"])
+        tray.Add(
+            "I3CombineMCPE",
+            InputResponses=["GenieMCPEs", "BackgroundMCPEs"],
+            OutputResponse=MCPESeriesMapName,
+        )
+        tray.Add("Delete", Keys=["BackgroundMCPEs", "GenieMCPEs"])
 
     if icetop:
-       tray.Add("Rename", Keys=[MCPESeriesMapName, 'InIceMCPEs'])
-       tray.Add("I3CombineMCPE", 
-               InputResponses = ["IceTopMCPEs", "InIceMCPEs"],
-               OutputResponse = MCPESeriesMapName)
-       tray.Add("Delete", Keys=['InIceMCPEs', 'IceTopMCPEs'])
-
+        tray.Add("Rename", Keys=[MCPESeriesMapName, "InIceMCPEs"])
+        tray.Add(
+            "I3CombineMCPE",
+            InputResponses=["IceTopMCPEs", "InIceMCPEs"],
+            OutputResponse=MCPESeriesMapName,
+        )
+        tray.Add("Delete", Keys=["InIceMCPEs", "IceTopMCPEs"])
 
     # Sample a different efficiency
     if SampleEfficiency > 0.0:
-        if SampleEfficiency > GeneratedEfficiency: 
+        if SampleEfficiency > GeneratedEfficiency:
             icecube.icetray.logging.log_fatal(
-              'Cannot upscale from GeneratedEfficiency %s to SampleEfficiency %s' % (
-                    SampleEfficiency, GeneratedEfficiency))
+                "Cannot upscale from GeneratedEfficiency %s to SampleEfficiency %s"
+                % (SampleEfficiency, GeneratedEfficiency)
+            )
 
-        tray.AddSegment(segments.MultiDomEffSample,"resample",
+        tray.AddSegment(
+            segments.MultiDomEffSample,
+            "resample",
             GeneratedEfficiency=GeneratedEfficiency,
             SampleEfficiencies=[SampleEfficiency],
             InputSeriesName=MCPESeriesMapName,
@@ -201,35 +225,45 @@ def DetectorSegment(tray,name,If=lambda f:True,
             OverwriteOriginalSeries=True,
         )
 
-    tray.AddSegment(DetectorSim, "DetectorSim",
-        RandomService = 'I3RandomService',
-        GCDFile = gcdfile,
-        InputPESeriesMapName = MCPESeriesMapName,
-        KeepMCHits = KeepMCHits,
-        KeepMCPulses = KeepMCPulses,
-        KeepPropagatedMCTree = KeepPropagatedMCTree,
-        LowMem = lowmem,
+    tray.AddSegment(
+        DetectorSim,
+        "DetectorSim",
+        RandomService="I3RandomService",
+        GCDFile=gcdfile,
+        InputPESeriesMapName=MCPESeriesMapName,
+        KeepMCHits=KeepMCHits,
+        KeepMCPulses=KeepMCPulses,
+        KeepPropagatedMCTree=KeepPropagatedMCTree,
+        LowMem=lowmem,
         BeaconLaunches=BeaconLaunches,
-        SkipNoiseGenerator = False,
-        TimeShiftSkipKeys = TimeShiftSkipKeys,
+        SkipNoiseGenerator=False,
+        TimeShiftSkipKeys=TimeShiftSkipKeys,
         FilterTrigger=filtertrigger,
-        RunID=RunID)
+        RunID=RunID,
+    )
 
     from ..util import BasicCounter, DAQCounter
-    tray.AddModule(BasicCounter,"count_triggers", 
-                    Streams = [icetray.I3Frame.DAQ] ,
-                    name="%s Triggered Events" % detector_label,
-                    Stats=stats)
 
-    skipkeys = [ "I3Triggers", "EnhancementFactor", "MCPMTResponseMap", "MCTimeIncEventID"]
+    tray.AddModule(
+        BasicCounter,
+        "count_triggers",
+        Streams=[icetray.I3Frame.DAQ],
+        name="%s Triggered Events" % detector_label,
+        Stats=stats,
+    )
 
-    skipkeys += ["IceTopRawData_unused","MCPMTResponseMap","MCTopHitSeriesMap"]
-    if "NKGInfo" in skipkeys:   # Keep NKGInfo for IceTop
-             skipkeys.remove("NKGInfo")
-            
+    skipkeys = [
+        "I3Triggers",
+        "EnhancementFactor",
+        "MCPMTResponseMap",
+        "MCTimeIncEventID",
+    ]
+
+    skipkeys += ["IceTopRawData_unused", "MCPMTResponseMap", "MCTopHitSeriesMap"]
+    if "NKGInfo" in skipkeys:  # Keep NKGInfo for IceTop
+        skipkeys.remove("NKGInfo")
+
     if uselineartree:
-        tray.AddModule(ConvertToLinearizedMCTree,"lineartree",streams=[icetray.I3Frame.DAQ])
-
-
-
-
+        tray.AddModule(
+            ConvertToLinearizedMCTree, "lineartree", streams=[icetray.I3Frame.DAQ]
+        )
