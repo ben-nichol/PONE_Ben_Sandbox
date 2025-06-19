@@ -73,8 +73,7 @@ then
 fi
 
 _ROOTSYS=''
-_LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/OpenBLAS/
-#_LD_LIBRARY_PATH=/usr/local/icetray/build/lib:/usr/local/icetray/build/lib/tools::$LD_LIBRARY_PATH
+_LD_LIBRARY_PATH=/usr/local/icetray/build/lib:/usr/local/icetray/build/lib/tools:/usr/local/OpenBLAS::$LD_LIBRARY_PATH
 _DYLD_LIBRARY_PATH=/usr/local/icetray/build/lib:/usr/local/icetray/build/lib/tools:$DYLD_LIBRARY_PATH
 
 _PYTHONPATH=/usr/local/icetray/build/lib:$PYTHONPATH

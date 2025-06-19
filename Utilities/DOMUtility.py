@@ -293,8 +293,6 @@ class DOMProperties:
             table.append(value * factor)
 
         clsim_table = simclasses.I3CLSimFunctionFromTable(self.wlen_min, binning, table)
-        # clsim_table = clsim.I3CLSimFunctionFromTable(self.wlen_min, binning, table)
-
         return clsim_table
 
     def MakePMTAcceptancePlots(self, directory):
