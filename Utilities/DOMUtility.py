@@ -516,7 +516,13 @@ class Geant4PMTAcceptance:
             )
         )[:, 0, :, 0]
 
+        print('rel_costheta')
+        print(rel_costheta)
+
         pt = np.arccos(np.clip(rel_costheta, -1, 1))
+
+        print('pt')
+        print(pt)
 
         pdf_eval = np.empty_like(pt)
 
@@ -528,7 +534,13 @@ class Geant4PMTAcceptance:
         pdf_eval[:, group_1_mask] = self.rayleigh_1.pdf(pt[:, group_1_mask])
         pdf_eval[:, group_2_mask] = self.rayleigh_2.pdf(pt[:, group_2_mask])
 
+        print('pdf_eval')
+        print(pdf_eval)
+
         sinpt = np.sin(pt)
+
+        print('sinpt')
+        print(sinpt)
 
         non_zero_mask = sinpt != 0
 
@@ -538,6 +550,9 @@ class Geant4PMTAcceptance:
             0.5 * sinpt[non_zero_mask_ix]
         )
 
+        print('rel_weight')
+        print(rel_weight)
+
         hit_a_pmt_prob = np.zeros_like(pt)
         hit_a_pmt_prob[:, group_1_mask] = np.interp(
             hit_wavelengths, self.wavelengths, self.acc_pmt_grp_1
@@ -545,6 +560,9 @@ class Geant4PMTAcceptance:
         hit_a_pmt_prob[:, group_2_mask] = np.interp(
             hit_wavelengths, self.wavelengths, self.acc_pmt_grp_2
         )[:, np.newaxis]
+
+        print('hit_a_pmt_prob')
+        print(hit_a_pmt_prob)
 
         # hit_a_pmt_prob is the probability to hit any pmt from a pmt group assuming
         # a uniform photon flux. Each pmt group contains 8 pmts, so divide by 8 to account for the overcounting.
@@ -554,12 +572,34 @@ class Geant4PMTAcceptance:
         prob_per_pmt = rel_weight * hit_a_pmt_prob * hit_weights[:, np.newaxis]
         prob_per_pmt /= 8
 
+        print('prob_per_pmt')
+        print(prob_per_pmt)
+
         if with_qe:
             prob_per_pmt *= self.get_qe(hit_wavelengths)[:, np.newaxis]
 
         prob_any_pmt = np.sum(prob_per_pmt, axis=1)
+        print('prob_any_pmt')
+        print(prob_any_pmt)
+        print(rel_hit_positions)
 
         if np.any(prob_any_pmt > 1):
+            print(f'any pmt probabilities: {prob_any_pmt[np.where(prob_any_pmt > 1)[0]]}')
+            print(f'hit position: {rel_hit_positions[np.where(prob_any_pmt > 1)[0]]}')
+            print(f'hit_wavelengths: {hit_wavelengths[np.where(prob_any_pmt > 1)[0]]}')
+            #print(f'hit_a_pmt_prob: {hit_a_pmt_prob[np.where(prob_any_pmt > 1)[0]]}')
+            print(f'rel_weight: {rel_weight[np.where(prob_any_pmt > 1)[0]]}')
+
+            print(rel_hit_positions[np.where(prob_any_pmt > 1)[0]])
+            print(self.pmt_positions)
+            #print(f'pdf_eval[non_zero_mask_ix]: {pdf_eval[non_zero_mask_ix][np.where(prob_any_pmt > 1)[0]]}')
+            #print(f'pdf_eval[non_zero_mask_ix]: {pdf_eval[non_zero_mask_ix][np.where(pdf_eval[non_zero_mask_ix] > 1)[0]]}')
+            #print(f'pdf_eval[non_zero_mask_ix]: {pdf_eval[non_zero_mask_ix]}')
+            #print(f'sinpt[non_zero_mask_ix]: {sinpt[non_zero_mask_ix][np.where(sinpt[non_zero_mask_ix] > 1)[0]]}')
+            print(np.min(pt))
+            print(min(sinpt[non_zero_mask_ix]))
+            #print(f'sinpt[non_zero_mask_ix]: {sinpt[non_zero_mask_ix]}')
+            print(f'prob_per_pmt: {prob_per_pmt[np.where(prob_any_pmt > 1)[0], :]}')
             raise ValueError(
                 "Probability to hit any pmt is greater than 1. Adjust CLSim weights."
             )
@@ -568,6 +608,8 @@ class Geant4PMTAcceptance:
 
         eta = rng.uniform(size=prob_any_pmt.shape)
         hit_any_pmt = eta < prob_any_pmt
+        print('hit_any_pmt')
+        print(hit_any_pmt)
 
         pmt_hit_ids = np.zeros_like(hit_wavelengths, dtype=int)
 
