@@ -71,6 +71,23 @@ tray.AddModule("I3Reader", "reader", FilenameList=[infile])
 MCTreeName = "I3MCTree_postprop"
 photonSeriesName = "I3Photons"
 
+# NEW THINGS TO MAKE WORK FOR 1.14
+WavelengthAcceptance = dom_properties.GetCLSimQETable(factor=dom_properties.GetMaxAngularAcceptance() * 1.05)
+GCDFile  = options.gcdfile
+infile=dataio.I3File(GCDFile)
+frames = []
+for frame in infile:
+	frames.append(frame)
+calib_frame = frames[1]
+rde = dict()
+for k, domcal in dataclasses.I3Calibration.from_frame(calib_frame).dom_cal.items():
+	rde[k] = domcal.relative_dom_eff
+domAcceptance = simclasses.I3CLSimFunctionMap()
+for k in rde.keys():
+	domAcceptance[k] = WavelengthAcceptance
+# END OF NEW THINGS
+
+
 kwargs = {}
 
 tray.AddSegment(
@@ -92,9 +109,7 @@ tray.AddSegment(
     UnshadowedFraction=1.0,  # normal in IC79 and older CLSim versions was 0.9, now it is 1.0
     UseI3PropagatorService=False,
     UnWeightedPhotons=True,
-    WavelengthAcceptance=dom_properties.GetCLSimQETable(
-        factor=dom_properties.GetMaxAngularAcceptance() * 1.05
-    ),
+    WavelengthAcceptance=domAcceptance,
 )
 
 tray.AddModule(
