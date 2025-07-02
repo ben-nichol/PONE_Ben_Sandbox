@@ -104,14 +104,16 @@ printctr()
     printf $FORMAT " " "$*" " "
 }
 
+I3VERSION=$(grep -oP 'VERSION\s+\K[0-9]+\.[0-9]+\.[0-9]+' $BASEDIR/cmake/toplevel.cmake)
+
 if [ -z "$ARGV" ]
     then
     printf "$TOPBAR\n"
     printctr ""
     printctr "W E L C O M E  to  I C E T R A Y"
-    printctr ""
-    printctr " P-ONE Test Build"
-    printctr " NOT FOR PUBLICATIONS"
+    printctr " Version $I3VERSION "
+    printctr " P-ONE Offline Extensions Loaded"
+    printctr " "
     printctr ""
     printctr ""
     printf "$TOPBAR\n"
