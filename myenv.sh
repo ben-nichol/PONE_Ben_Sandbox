@@ -105,6 +105,9 @@ printctr()
 }
 
 I3VERSION=$(grep -oP 'VERSION\s+\K[0-9]+\.[0-9]+\.[0-9]+' $BASEDIR/cmake/toplevel.cmake)
+PTAG=$(<.versiontag)
+RED='\033[1;31m'
+NC='\033[0m'
 
 if [ -z "$ARGV" ]
     then
@@ -112,8 +115,11 @@ if [ -z "$ARGV" ]
     printctr ""
     printctr "W E L C O M E  to  I C E T R A Y"
     printctr " Version $I3VERSION "
-    printctr " P-ONE Offline Extensions Loaded"
     printctr " "
+    printctr " P-ONE Offline Extensions Loaded"
+    if [[ "$VERSION" != "$PTAG" ]]; then
+        printctr "    $(echo -e "${RED} WARNING!!, PONE_OFFLINE EXPECTS ICETRAY VERSION $PTAG ${NC}")     "
+    fi
     printctr ""
     printctr ""
     printf "$TOPBAR\n"
