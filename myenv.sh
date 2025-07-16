@@ -117,7 +117,7 @@ if [ -z "$ARGV" ]
     printctr " Version $I3VERSION "
     printctr " "
     printctr " P-ONE Offline Extensions Loaded"
-    if [[ "$VERSION" != "$PTAG" ]]; then
+    if [[ "$I3VERSION" != "$PTAG" ]]; then
         printctr "    $(echo -e "${RED} WARNING!!, PONE_OFFLINE EXPECTS ICETRAY VERSION $PTAG ${NC}")     "
     fi
     printctr ""
