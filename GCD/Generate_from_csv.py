@@ -11,6 +11,7 @@ parser.add_argument("-o","--output", type=str, default="out", help="i3 file name
 parser.add_argument("-d","--ndoms",  type=int, default=20, help="Doms per string.")
 parser.add_argument("-r","--domradius", type=int, default=(17.0 * 2.54 * 0.01 * 0.5), help='Radius of dom. Defaults to 17"')
 parser.add_argument("-p", "--npmts", type=int, default=16, help="PMTs per DOM.")
+parser.add_argument("-l", "--mooringlength", type=int, default=1000, help="Length of the mooring")
 args = parser.parse_args()
 
 
@@ -38,9 +39,9 @@ def generateGeometry():
     geomap = dataclasses.I3OMGeoMap()
 
 
-    #create list of depths for modules, currently hardcoded. Should add to params
-    sp = 950.0 / 19.0
-    depthlist = [(-450.0 + sp * i) * I3Units.meter for i in range(20)]
+    #create list of depths for modules
+    sp = args.mooringlength / args.ndoms #spacing
+    depthlist = [(sp + sp * i) * I3Units.meter for i in range(args.ndoms)] # from sp to mooringlength. 0 at sea floor
     depth = np.array(depthlist) 
 
 
@@ -84,13 +85,9 @@ geomap = generateGeometry()
 geometry.omgeo = geomap
 
 gframe = icetray.I3Frame(icetray.I3Frame.Geometry)
-cframe = gcdHelpers.generateCFrame(geometry)
-dframe = gcdHelpers.generateDFrame(geometry)
-
-geomap = generateGeometry()
-
 gframe["I3Geometry"] = geometry
 gframe["I3OMGeoMap"] = geomap
+
 modgeomap = dataclasses.I3ModuleGeoMap()
 for dom in geomap.keys():
     mkey = dataclasses.ModuleKey(dom.string, dom.om)
@@ -102,15 +99,11 @@ for dom in geomap.keys():
     modgeomap[mkey] = module
 
 gframe["I3ModuleGeoMap"] = modgeomap
-subdetec = dataclasses.I3MapModuleKeyString()
-for dom in geomap.keys():
-    mkey = dataclasses.ModuleKey(dom.string, dom.om)
-    subdetec[mkey] = "Upgrade"
-
-gframe["Subdetectors"] = subdetec
-
 gframe["StartTime"] = gcdHelpers.start_time
 gframe["EndTime"] = gcdHelpers.end_time
+
+cframe = gcdHelpers.generateCFrame(geometry)
+dframe = gcdHelpers.generateDFrame(geometry)
 
 outfile.push(gframe)
 outfile.push(cframe)
