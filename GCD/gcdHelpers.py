@@ -81,7 +81,6 @@ def generateCFrame(geometry):
     frame = icetray.I3Frame(icetray.I3Frame.Calibration)
 
     # add key-value pairs
-    frame["I3Geometry"] = geometry
     frame["I3Calibration"] = makeCalibrationObject(geometry)
     frame["SPEAbove"] = cdframe["SPEAbove"]
     frame["SPEScalingFactors"] = cdframe["SPEScalingFactors"]
@@ -101,10 +100,6 @@ def generateDFrame(geometry):
     frame = icetray.I3Frame(icetray.I3Frame.DetectorStatus)
 
     # add key-value pairs
-    frame["I3Geometry"] = geometry
-    frame["I3Calibration"] = makeCalibrationObject(geometry)
-    frame["SPEAbove"] = cdframe["SPEAbove"]
-    frame["SPEScalingFactors"] = cdframe["SPEScalingFactors"]
     frame["I3DetectorStatus"] = makeDSObject(geometry)
     frame["BadDomsList"] = cdframe["BadDomsList"]
     frame["BadDomsListSLC"] = cdframe["BadDomsListSLC"]
