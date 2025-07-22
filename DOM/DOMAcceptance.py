@@ -60,7 +60,7 @@ class DOMAcceptance(icetray.I3ConditionalModule):
             new_omkey = NoPMTKey(omkey)
 
             # collect the photons that hit a particular OM
-            photon_list           = np.array(photon_map[omkey])
+            photon_list           = np.array(photon_map[omkey]) #SHOULD THIS BE NEW_OMKEY??????? BUG
             hit_photons, hit_pmts = self.module.apply_acceptance_cut(photon_list)
 
             # add these hits to the new photon map and add
