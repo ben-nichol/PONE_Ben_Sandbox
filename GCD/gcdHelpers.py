@@ -39,15 +39,31 @@ def convertDepthToZ(depth):
 # @Return:
 # An I3Calibration object to be used in the GCD file
 def makeCalibrationObject(geometry):
-    calibrationData = cdframe["I3Calibration"].dom_cal.values()[0]
+    # # THIS PASSES AN EMPTY I3Calibration FRAME, WORKS FOR ICETRAY V1.14
+    # calib = dataclasses.I3Calibration()
+    # frame = icetray.I3Frame(icetray.I3Frame.Calibration)
+    # frame["I3Calibration"] = calib
+    # calibration=calib
+    # # END OF EMPTY FRAME
+
+    # THIS PASSES THE CALIBRATION FRAME TO THE OMKEY(0,0,0) FOR ICETRAY V1.14
     domcal = dataclasses.Map_OMKey_I3DOMCalibration()
-    calibration = cdframe["I3Calibration"]
-    for omkey in geometry.omgeo.keys():
-        domcal[omkey] = calibrationData
+    calibrationData = cdframe["I3Calibration"].dom_cal.popitem()[1]
+    domcal[OMKey(0,0,0)] = calibrationData
+    test = dataclasses.I3Calibration()
+    test = cdframe["I3Calibration"]
+    test.dom_cal = domcal
+    return test
 
-    calibration.dom_cal = domcal
+    # # THIS IS THE V1.10 VERSION
+    # calibrationData = cdframe["I3Calibration"].dom_cal.values()[0]
+    # domcal = dataclasses.Map_OMKey_I3DOMCalibration()
+    # calibration = cdframe["I3Calibration"]
+    # for omkey in geometry.omgeo.keys():
+    #     domcal[omkey] = calibrationData
+    # calibration.dom_cal = domcal
 
-    return calibration
+    # return calibration
 
 
 # Creates a detector status with all the correct OMKeys
@@ -58,7 +74,7 @@ def makeCalibrationObject(geometry):
 # @Return:
 # An I3DetectorStatus object to be used in the GCD file
 def makeDSObject(geometry):
-    dsData = cdframe["I3DetectorStatus"].dom_status.values()[0]
+    dsData = list(cdframe["I3DetectorStatus"].dom_status.values())[0] # NEW V1.14, NEEDED TO ADD list()
     domstat = dataclasses.Map_OMKey_I3DOMStatus()
     detectorStatus = cdframe["I3DetectorStatus"]
     for omkey in geometry.omgeo.keys():
