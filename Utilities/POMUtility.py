@@ -236,27 +236,36 @@ class POMProperties:
     GetPMTDirection(pmtid)
     Iputs: pmtid = the PMT number within the POM (OMKey.pmt for IceTray pulseseries keys)
     Operation:
-            Returns the x,y,z for the PMT direction in a normalized vector.
+            Returns the x,y,z for the PMT direction. 
+            PMTs 1-8 are pointing in the +x direction
+            PMTs 9-16 are pointing in the -x direction
+            Has titanium ring about the y axis
     """
-
     def GetPMTDirection(self, pmtid):
-        vectors = np.array([[ 0.866,   0.,      0.5   ],
-                            [ 0.866,  -0.5,     0.    ],
-                            [ 0.866,   0.,     -0.5   ],
-                            [ 0.866,   0.5,     0.    ],
-                            [ 0.4461,  0.687,   0.5736],
-                            [ 0.4461, -0.687,   0.5736],
-                            [ 0.4461, -0.687,  -0.5736],
-                            [ 0.4461,  0.687,  -0.5736],
-                            [-0.866,   0.,      0.5   ],
-                            [-0.866,   0.5,     0.    ],
-                            [-0.866,   0.,     -0.5   ],
-                            [-0.866,  -0.5,     0.    ],
-                            [-0.4461, -0.687,   0.5736],
-                            [-0.4461,  0.687,   0.5736],
-                            [-0.4461,  0.687,  -0.5736],
-                            [-0.4461, -0.687,  -0.5736]])
-        return vectors[int(pmtid-1)]
+    PMTAngles = np.array([1,1])*np.array([[57.5, 270.],  # PMT 1
+                            [57.5, 0.],    # PMT 2
+                            [57.5, 90.],   # PMT 3
+                            [57.5, 180.],  # PMT 4
+                            [25., 225.],   # PMT 5
+                            [25., 315.],   # PMT 6
+                            [25., 45.],    # PMT 7
+                            [25., 135.],   # PMT 8
+                            [-57.5, 270.], # PMT 9
+                            [-57.5, 180.], # PMT 10
+                            [-57.5, 90.],  # PMT 11
+                            [-57.5, 0.],   # PMT 12
+                            [-25., 315.],  # PMT 13
+                            [-25., 225.],  # PMT 14
+                            [-25., 135.],  # PMT 15
+                            [-25., 45.]    # PMT 16
+                            ])+np.array([-90,0])
+    # Angles are difined in a strange way, so need to rotate to get to proper alignment
+    y_coordinates_int = np.multiply(np.sin(np.deg2rad(PMTAngles[:,0])), np.cos(np.deg2rad(PMTAngles[:,1])))
+    z_coordinates_int = np.multiply(np.sin(np.deg2rad(PMTAngles[:,0])), np.sin(np.deg2rad(PMTAngles[:,1])))
+    x_coordinates_int = np.cos(np.deg2rad(PMTAngles[:,0]))
+    vectors = np.round(np.array([x_coordinates_int,y_coordinates_int,z_coordinates_int]).T,7)
+
+    return vectors[int(pmtid-1)]
 
 
     """!
