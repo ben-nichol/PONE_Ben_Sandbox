@@ -10,6 +10,10 @@ from icecube.dataclasses import I3Constants
 from icecube.icetray import OMKey, I3Units
 from enum import Enum
 import numpy as np
+from Utilities.POMUtility import POMProperties
+pom_properties = POMProperties()
+pmt_vectors = np.array([pom_properties.GetPMTDirection(i+1) for i in range(16)])
+PMT_orientations = np.array([dataclasses.I3Orientation(dataclasses.I3Direction(pmt_vectors[i][0],pmt_vectors[i][1],pmt_vectors[i][2])) for i in range(len(pmt_vectors))])
 
 cdfile = dataio.I3File("Calib_and_DetStat_File.i3.gz")
 cdframe = cdfile.pop_frame()
@@ -316,6 +320,72 @@ def makePartialGeometry(denseGeometry, domsUsed):
     newGeo.omgeo = newGeoMap
 
     return newGeo
+
+# Adds a POM to a I3OMGeoMap object at a specified location and
+# IDs. POM consists of two spheres with correct PMT orientations.
+# PMTs 1-8 are on face oriented in the +x direction
+#
+# @Param:
+# geomap:       dataclasses.I3OMGeoMap object which will have 
+#               the POM added to it
+# position:     Array like [x,y,z] position of the centre of
+#               the POM
+# string:       Integer string ID that the POM will be added
+#               to
+# om:           Integer OM ID that the POM will be added
+#               to
+# separation:   Separation of the centre of the two 
+#               hemispheres in meters. Default = 0.0785
+# pom_radius:   Radius of each hemistphere in meters.
+#               Default = 0.2159
+def AddPOM(geomap,position,string,om,separation=0.0785,pom_radius=0.2159):
+    npmts=16
+    x,y,z = position
+    for k in range(2):
+        omGeometry = dataclasses.I3OMGeo()
+        omGeometry.omtype = dataclasses.I3OMGeo.OMType.mDOM
+        omGeometry.area = 4*np.pi*pom_radius**2
+        omGeometry.position = dataclasses.I3Position(
+            x+separation*(-1)**(k), y, z
+        )
+        for j in range(int(npmts/2)):
+            omGeometry.orientation = PMT_orientations[int(j+k*npmts/2)]
+            omkey = OMKey(string, om, int(j+k*npmts/2)+1)
+
+            geomap[omkey] = omGeometry
+# Adds a PCAL to a I3OMGeoMap object at a specified location and
+# IDs. PCAL consists of two spheres with correct PMT orientations.
+# PMTs 1-4 are on face oriented in the +x direction
+#
+# @Param:
+# geomap:       dataclasses.I3OMGeoMap object which will have 
+#               the POM added to it
+# position:     Array like [x,y,z] position of the centre of
+#               the POM
+# string:       Integer string ID that the POM will be added
+#               to
+# om:           Integer OM ID that the POM will be added
+#               to
+# separation:   Separation of the centre of the two 
+#               hemispheres in meters. Default = 0.0785
+# pom_radius:   Radius of each hemistphere in meters.
+#               Default = 0.2159
+def AddPCAL(geomap,position,string,om,separation=0.0785,pcal_radius=0.2159):
+    npmts=8
+    x,y,z = position
+    for k in range(2):
+        omGeometry = dataclasses.I3OMGeo()
+        omGeometry.omtype = dataclasses.I3OMGeo.OMType.mDOM
+        # omGeometry.orientation = orientation
+        # omGeometry.area = area
+        omGeometry.area = 4*np.pi*pcal_radius**2
+        omGeometry.position = dataclasses.I3Position(
+            x+separation*(-1)**(k+1), y, z
+        )
+        for j in range(int(npmts/2)):
+            omGeometry.orientation = PMT_orientations[int(j+k*8+4)]
+            omkey = OMKey(string, om, int(j+k*npmts/2)+5)
+            geomap[omkey] = omGeometry
 
 
 # an enum class to keep track of different offset types
