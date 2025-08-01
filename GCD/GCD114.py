@@ -9,7 +9,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-i","--input",  type=str, default=None, help="csv file to read in x and y positions of lines")
 parser.add_argument("-o","--output", type=str, default="out", help="i3 file name to write")
 parser.add_argument("-d","--noms",  type=int, default=20, help="OMs per string.")
-parser.add_argument("-r","--domradius", type=int, default=216, help='Radius of dom. Defaults to 0.216 m')
+parser.add_argument("-r","--domradius", type=int, default=0.2159, help='Radius of dom. Defaults to 0.2159 m')
 parser.add_argument("-l", "--mooringlength", type=int, default=1000, help="Length of the mooring")
 parser.add_argument("-s", "--omsequence", type=list, default=['POM'], help="Repeating sequence of POM or PCAL going from the bottom of the line to the top. Default is all POMs")
 # The below sequence is the order that PONE-1 will have
