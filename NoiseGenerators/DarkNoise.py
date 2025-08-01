@@ -94,7 +94,7 @@ class DarkNoise(icetray.I3ConditionalModule):
                 continue
 
             for pmt_index in range(self.num_pmts):
-                pmtkey = AddPMTKey(omkey, pmt_index)
+                pmtkey = AddPMTKey(omkey, pmt_index+1)
 
                 # poisson distribution of dark noise so sample
                 # time between hits from an exponential distribution
