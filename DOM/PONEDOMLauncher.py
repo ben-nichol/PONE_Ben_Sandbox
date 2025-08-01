@@ -380,9 +380,9 @@ class DOMSimulation(icetray.I3ConditionalModule):
 
             for pe in mcpe_map[omkey]:
                 pmt = pe[1]
-                if pe[0] - last_hit_times[pmt] > dead_time_ns:
+                if pe[0] - last_hit_times[pmt-1] > dead_time_ns:
                     dead_removed_mcpe_map[omkey].append((pe[0], pe[1]))
-                    last_hit_times[pmt] = pe[0]
+                    last_hit_times[pmt-1] = pe[0]
         
         return dead_removed_mcpe_map
 

@@ -218,7 +218,7 @@ class POM:
             hit_angle    = pmt_photon_angles[pmts_hit]
             hit_distance = pmt_vector_distances[pmts_hit]
 
-            return [pmts_hit[0], hit_distance, hit_angle]
+            return [pmts_hit[0]+1, hit_distance, hit_angle]
         
         elif len(pmts_hit) > 1:
             # multiple pmts hit

@@ -258,7 +258,7 @@ class K40Noise(icetray.I3ConditionalModule):
 
             # only add the omkeys for pmts that were hit to the pulse series
             for pmt in np.unique(pmts):
-                k40_pulse_map[OMKey(omkey.string, omkey.om, int(pmt))] = dataclasses.I3RecoPulseSeries()
+                k40_pulse_map[OMKey(omkey.string, omkey.om, int(pmt)+1)] = dataclasses.I3RecoPulseSeries()
 
             for i, pmt in enumerate(pmts):
                 pulse        = dataclasses.I3RecoPulse()
@@ -266,7 +266,7 @@ class K40Noise(icetray.I3ConditionalModule):
                 pulse.charge = 1.0
                 pulse.width  = int(pmt) # width seems to be a proxy for PMT number in the current DOMTrigger
 
-                k40_pulse_map[OMKey(omkey.string, omkey.om, int(pmt))].append(pulse)
+                k40_pulse_map[OMKey(omkey.string, omkey.om, int(pmt)+1)].append(pulse)
             
         return k40_pulse_map
 

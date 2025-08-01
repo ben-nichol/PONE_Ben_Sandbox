@@ -28,12 +28,12 @@ class DetectorTrigger(icetray.I3ConditionalModule):
             True,
         )
         self.AddParameter("ForceAdjacency", "Require adjacency ", True)
-        self.AddParameter("DOMPMTCoinc", "Number of PMTs needed for DOM Trigger", 2)
+        self.AddParameter("OMPMTCoinc", "Number of PMTs needed for OM Trigger", 2)
         self.AddParameter("EventLength", "Length of Event", 10000)
         self.AddParameter("TriggerTime", "Time of trigger in event.", 2000)
         self.AddParameter("PulseSeriesIn", "Pulse series in", "")
         self.AddParameter("PulseSeriesOut", "Pulse series out", "")
-        self.AddParameter("SingleDOMTriggerCoince", " ", 3)
+        self.AddParameter("SingleOMTriggerCoince", " ", 3)
         self.AddOutBox("OutBox")
 
     def Configure(self):
@@ -51,7 +51,7 @@ class DetectorTrigger(icetray.I3ConditionalModule):
         self.StringCoincidenceWindow_unscaled = self.GetParameter(
             "StringCoincidenceWindow"
         )
-        self.DOMPMTCoinc = self.GetParameter("DOMPMTCoinc")
+        self.OMPMTCoinc = self.GetParameter("OMPMTCoinc")
         self.EventLength = self.GetParameter("EventLength")
         self.TriggerTime = self.GetParameter("TriggerTime")
         self.PulseSeriesIn = self.GetParameter("PulseSeriesIn")
@@ -59,12 +59,12 @@ class DetectorTrigger(icetray.I3ConditionalModule):
         self.ScaleBySpacing = self.GetParameter("ScaleBySpacing")
         self.DoStringTrigger = True
         self.DoCoincTriggers = True
-        self.SingleDOMPMTTriggerCoince = self.GetParameter("SingleDOMTriggerCoince")
-        if self.SingleDOMPMTTriggerCoince <= self.DOMPMTCoinc:
+        self.SingleOMPMTTriggerCoince = self.GetParameter("SingleOMTriggerCoince")
+        if self.SingleOMPMTTriggerCoince <= self.OMPMTCoinc:
             self.DoCoincTriggers = False
 
         self.nstrings = int(0)
-        self.nDOMs = int(0)
+        self.nOMs = int(0)
         self.npmts = int(0)
 
         self.has_seen_geometry = False
@@ -75,66 +75,67 @@ class DetectorTrigger(icetray.I3ConditionalModule):
         self.has_seen_geometry = True
 
         if self.ScaleBySpacing:
-            # Figure out largest distance between two DOMs, average distance between closest String, Average min distance between DOMs.
-            domsUsed = frame["I3Geometry"].omgeo
+            # Figure out largest distance between two OMs, average distance between closest String, Average min distance between OMs.
+            geo = frame["I3Geometry"].omgeo
 
-            for domkey in domsUsed.keys():
-                if domkey.string > self.nstrings:
-                    self.nstrings = int(domkey.string)
-                if domkey.om > self.nDOMs:
-                    self.nDOMs = int(domkey.om)
-                if domkey.pmt > self.npmts:
-                    self.npmts = int(domkey.pmt)
+            stringlist = set()
+            omlist = set()
+            pmtlist = set()
 
-            DOM_space = (
-                domsUsed[OMKey(1, 1, 1)].position.z
-                - domsUsed[OMKey(1, 2, 1)].position.z
-            )
+            for omkey in geo.keys():
+                stringlist.add(omkey.string)
+                omlist.add(omkey.om)
+                pmtlist.add(omkey.pmt)
 
-            String_space = 99999.0
+            stringlist=sorted(stringlist)
+            self.nstrings = len(stringlist)
+            self.nOMs = len(omlist)
+            self.npmts = len(pmtlist) #assumes all POM and no PCAL
+
+            OM_space = abs(geo[geo.keys()[0]].position.z- geo[geo.keys()[self.npmts]].position.z) #npmts should index to the first pmt of the next OM
             string_pos = list()
 
-            for i in range(1, self.nstrings + 1):
-                string_pos.append(domsUsed[OMKey(i, 1, 1)].position)
+            for string in stringlist:
+                string_pos.append(geo[OMKey(string, 1, 1)].position)
 
             average_min_stringdist = 0.0
             for i in range(len(string_pos) - 1):
                 this_min_stringdist = 99999.0
-                domposi = string_pos[i]
+                omposi = string_pos[i]
                 for j in range(i + 1, len(string_pos)):
-                    domposj = string_pos[j]
-                    dist = sqrt(
-                        (domposi.x - domposj.x) ** 2.0 + (domposi.y - domposj.y) ** 2.0
-                    )
+                    omposj = string_pos[j]
+                    dist = sqrt((omposi.x - omposj.x) ** 2.0 + (omposi.y - omposj.y) ** 2.0)
                     if dist < this_min_stringdist:
                         this_min_stringdist = dist
                 average_min_stringdist += this_min_stringdist
             average_min_stringdist /= self.nstrings - 1
 
-            maxDOMDistance = 0.0
-            dom_pos = list()
-            for domkey in domsUsed.keys():
-                dom_pos.append(domsUsed[domkey].position)
+            maxOMDistance = 0.0
+            om_pos = list()
+            for omkey in geo.keys():
+                if (omkey.om==1 or omkey.om==self.nOMs): #assumes 1 to N of POMs 
+                    if(omkey.pmt==1): #only check 1 PMT
+                        om_pos.append(geo[omkey].position)
 
-            for i in range(len(dom_pos) - 1):
-                domposi = dom_pos[i]
-                for j in range(i + 1, len(dom_pos)):
-                    domposj = dom_pos[j]
+            for i in range(len(om_pos) - 1):
+                omposi = om_pos[i]
+                for j in range(i + 1, len(om_pos)):
+                    omposj = om_pos[j]
                     dist = sqrt(
-                        (domposi.x - domposj.x) ** 2.0
-                        + (domposi.y - domposj.y) ** 2.0
-                        + (domposi.z - domposj.z) ** 2.0
+                          (omposi.x - omposj.x) ** 2.0
+                        + (omposi.y - omposj.y) ** 2.0
+                        + (omposi.z - omposj.z) ** 2.0
                     )
-                    if dist > maxDOMDistance:
-                        maxDOMDistance = dist
+                    if dist > maxOMDistance:
+                        maxOMDistance = dist
 
             self.FullDetectorCoincidenceWindow = (
-                self.FullDetectorCoincidenceWindow_unscaled * maxDOMDistance / 0.3
-                + DOM_space * 1.3 / 0.3
+                self.FullDetectorCoincidenceWindow_unscaled * maxOMDistance / 0.3
+                + OM_space * 1.3 / 0.3
             )
             self.StringCoincidenceWindow = (
                 self.StringCoincidenceWindow_unscaled * average_min_stringdist / 0.3
-                + DOM_space * 1.3 / 0.3
+                + OM_space * 1.3 / 0.3
             )
         else:
             self.FullDetectorCoincidenceWindow = (
@@ -152,7 +153,7 @@ class DetectorTrigger(icetray.I3ConditionalModule):
         if self.ForceAdjacency:
             nstart = int((self.StringNRows - 1) / 2)
             for j in range(self.nstrings):
-                for i in range(nstart, self.nDOMs - nstart):
+                for i in range(nstart, self.nOMs - nstart):
                     self.StringTriggerGroups.append([])
                     for l in range(len(string_pos)):
                         if (
@@ -163,23 +164,21 @@ class DetectorTrigger(icetray.I3ConditionalModule):
                             < average_min_stringdist * 1.5
                         ):
                             for k in range(i - nstart, i + nstart + 1):
-                                self.StringTriggerGroups[-1].append(
-                                    OMKey(l + 1, k + 1, 1)
-                                )
+                                self.StringTriggerGroups[-1].append(OMKey(stringlist[l], k + 1, 1))
         else:
             nstart = int((self.StringNRows - 1) / 2)
-            for i in range(nstart, self.nDOMs - nstart):
+            for i in range(nstart, self.nOMs - nstart):
                 self.StringTriggerGroups.append([])
-                for j in range(1, self.nstrings + 1):
+                for j in range(self.nstrings):
                     for k in range(i - nstart, i + nstart + 1):
-                        self.StringTriggerGroups[-1].append(OMKey(j, k, 1))
+                        self.StringTriggerGroups[-1].append(OMKey(stringlist[j], k, 1))
 
-        self.DOMTriggerGroups = {}
+        self.OMTriggerGroups = {}
         for i in range(len(self.StringTriggerGroups)):
-            for dom in self.StringTriggerGroups[i]:
-                if dom not in self.DOMTriggerGroups.keys():
-                    self.DOMTriggerGroups[dom] = list()
-                self.DOMTriggerGroups[dom].append(i)
+            for om in self.StringTriggerGroups[i]:
+                if om not in self.OMTriggerGroups.keys():
+                    self.OMTriggerGroups[om] = list()
+                self.OMTriggerGroups[om].append(i)
 
         self.PushFrame(frame)
 
@@ -207,72 +206,72 @@ class DetectorTrigger(icetray.I3ConditionalModule):
 
         self.PushFrame(frame)
 
-    def GetDOMTriggers(
+    def GetOMTriggers(
         self,
-        DOMCoincidence_time,
-        DOMCoincidence_ncoin,
-        DOMCoincidence_pmts,
+        OMCoincidence_time,
+        OMCoincidence_ncoin,
+        OMCoincidence_pmts,
         ncoincidence,
     ):
-        DOMTriggers = {}
+        OMTriggers = {}
 
-        for key in DOMCoincidence_time.keys():
-            fullpmtlist = DOMCoincidence_pmts[key]
+        for key in OMCoincidence_time.keys():
+            fullpmtlist = OMCoincidence_pmts[key]
             start = 0
-            for i in range(len(DOMCoincidence_time[key])):
-                time = DOMCoincidence_time[key][i]
-                coinc = DOMCoincidence_ncoin[key][i]
+            for i in range(len(OMCoincidence_time[key])):
+                time = OMCoincidence_time[key][i]
+                coinc = OMCoincidence_ncoin[key][i]
                 if coinc >= ncoincidence:
-                    if key not in DOMTriggers.keys():
-                        DOMTriggers[key] = list()
-                    DOMTriggers[key].append(time)
+                    if key not in OMTriggers.keys():
+                        OMTriggers[key] = list()
+                    OMTriggers[key].append(time)
 
-        return DOMTriggers
+        return OMTriggers
 
     def DAQ(self, frame):
         # print("Detecctor Trigger Start")
 
-        DOMCoincidence_time = frame["DOMTrigger_Time" + self.input]
-        DOMCoincidence_ncoin = frame["DOMTrigger_NCoin" + self.input]
-        DOMCoincidence_pmts = frame["DOMTrigger_PMTs" + self.input]
+        OMCoincidence_time = frame["DOMTrigger_Time" + self.input]
+        OMCoincidence_ncoin = frame["DOMTrigger_NCoin" + self.input]
+        OMCoincidence_pmts = frame["DOMTrigger_PMTs" + self.input]
 
         stringTriggerTime = dataclasses.I3VectorDouble()
         detectorTriggerTime = dataclasses.I3VectorDouble()
-        singleDOMTriggerTime = dataclasses.I3VectorDouble()
+        singleOMTriggerTime = dataclasses.I3VectorDouble()
 
-        SingleDOMTriggers = self.GetDOMTriggers(
-            DOMCoincidence_time, DOMCoincidence_ncoin, DOMCoincidence_pmts, 3
+        SingleOMTriggers = self.GetOMTriggers(
+            OMCoincidence_time, OMCoincidence_ncoin, OMCoincidence_pmts, 3
         )
 
         if self.DoCoincTriggers:
-            DOMTriggers = self.GetDOMTriggers(
-                DOMCoincidence_time,
-                DOMCoincidence_ncoin,
-                DOMCoincidence_pmts,
-                self.DOMPMTCoinc,
+            OMTriggers = self.GetOMTriggers(
+                OMCoincidence_time,
+                OMCoincidence_ncoin,
+                OMCoincidence_pmts,
+                self.OMPMTCoinc,
             )
 
-            FullDetectDOMTriggers = list()
+            FullDetectOMTriggers = list()
             StringTriggers = {}
 
-            # for key in DOMTriggers.keys() :
+            # for key in OMTriggers.keys() :
             #    for i in range(len(self.StringTriggerGroups)) :
             #        if key in self.StringTriggerGroups[i]:
             #            if i not in StringTriggers.keys() :
             #                StringTriggers[i] = list()
-            #            for time in DOMTriggers[key] :
+            #            for time in OMTriggers[key] :
             #                StringTriggers[i].append((key,time))
-            #    for time in DOMTriggers[key] :
-            #        FullDetectDOMTriggers.append((key,time))
+            #    for time in OMTriggers[key] :
+            #        FullDetectOMTriggers.append((key,time))
 
-            for key in DOMTriggers.keys():
-                for i in self.DOMTriggerGroups[key]:
+            for key in OMTriggers.keys():
+                for i in self.OMTriggerGroups[key]:
                     if i not in StringTriggers.keys():
                         StringTriggers[i] = list()
-                    for time in DOMTriggers[key]:
+                    for time in OMTriggers[key]:
                         StringTriggers[i].append((key, time))
-                for time in DOMTriggers[key]:
-                    FullDetectDOMTriggers.append((key, time))
+                for time in OMTriggers[key]:
+                    FullDetectOMTriggers.append((key, time))
 
             StringTrigOpp = {}
             if self.DoStringTrigger:
@@ -298,29 +297,29 @@ class DetectorTrigger(icetray.I3ConditionalModule):
                                 StringTrigOpp[i][k][1].append(StringTriggers[i][j][0])
                                 StringTrigOpp[i][k][2].append(StringTriggers[i][j][1])
 
-            # print("FullDetectDOMTriggers")
-            # print(FullDetectDOMTriggers)
+            # print("FullDetectOMTriggers")
+            # print(FullDetectOMTriggers)
             DetectTrigOpp = list()
-            for j in range(len(FullDetectDOMTriggers)):
+            for j in range(len(FullDetectOMTriggers)):
                 DetectTrigOpp.append(
                     [
-                        FullDetectDOMTriggers[j][1],
-                        [FullDetectDOMTriggers[j][0]],
-                        [FullDetectDOMTriggers[j][1]],
+                        FullDetectOMTriggers[j][1],
+                        [FullDetectOMTriggers[j][0]],
+                        [FullDetectOMTriggers[j][1]],
                     ]
                 )
             for k in range(len(DetectTrigOpp)):
-                for j in range(len(FullDetectDOMTriggers)):
+                for j in range(len(FullDetectOMTriggers)):
                     if (
                         (
-                            (FullDetectDOMTriggers[j][1] - DetectTrigOpp[k][0])
+                            (FullDetectOMTriggers[j][1] - DetectTrigOpp[k][0])
                             < self.FullDetectorCoincidenceWindow
                         )
-                        and ((FullDetectDOMTriggers[j][1] - DetectTrigOpp[k][0]) >= 0.0)
-                        and (FullDetectDOMTriggers[j][0] not in DetectTrigOpp[k][1])
+                        and ((FullDetectOMTriggers[j][1] - DetectTrigOpp[k][0]) >= 0.0)
+                        and (FullDetectOMTriggers[j][0] not in DetectTrigOpp[k][1])
                     ):
-                        DetectTrigOpp[k][1].append(FullDetectDOMTriggers[j][0])
-                        DetectTrigOpp[k][2].append(FullDetectDOMTriggers[j][1])
+                        DetectTrigOpp[k][1].append(FullDetectOMTriggers[j][0])
+                        DetectTrigOpp[k][2].append(FullDetectOMTriggers[j][1])
 
             # print("DetectTrigOpp")
             # print(DetectTrigOpp)
@@ -361,29 +360,29 @@ class DetectorTrigger(icetray.I3ConditionalModule):
                             if not triggered:
                                 stringTriggerTime.append(max(StringTrigOpp[j][i][2]))
 
-        for dom in SingleDOMTriggers.keys():
-            for time in SingleDOMTriggers[dom]:
-                singleDOMTriggerTime.append(time)
+        for om in SingleOMTriggers.keys():
+            for time in SingleOMTriggers[om]:
+                singleOMTriggerTime.append(time)
 
         if (
             self.CutOnTrigger
             and len(stringTriggerTime) < 1
             and len(detectorTriggerTime) < 1
-            and len(singleDOMTriggerTime) < 1
+            and len(singleOMTriggerTime) < 1
         ):
             if self.CutOnTrigger:
                 return
             else:
                 frame["DetectorTriggers" + self.output] = detectorTriggerTime
                 frame["StringTriggers" + self.output] = stringTriggerTime
-                frame["singleDOMTrigger" + self.output] = singleDOMTriggerTime
+                frame["singleOMTrigger" + self.output] = singleOMTriggerTime
                 outputpulsemap = dataclasses.I3RecoPulseSeriesMap()
                 frame[self.dPulseSeriesOut] = outputpulsemap
                 self.PushFrame(frame)
 
         frame["DetectorTriggers" + self.output] = detectorTriggerTime
         frame["StringTriggers" + self.output] = stringTriggerTime
-        frame["singleDOMTrigger" + self.output] = singleDOMTriggerTime
+        frame["singleOMTrigger" + self.output] = singleOMTriggerTime
 
         pulseseriesmap = frame[self.PulseSeriesIn]
         outputpulsemap = dataclasses.I3RecoPulseSeriesMap()
@@ -397,13 +396,13 @@ class DetectorTrigger(icetray.I3ConditionalModule):
             if _time < mintrigtime:
                 mintrigtime = _time
 
-        for _time in singleDOMTriggerTime:
+        for _time in singleOMTriggerTime:
             if _time < mintrigtime:
                 mintrigtime = _time
 
-        for dom in pulseseriesmap.keys():
+        for om in pulseseriesmap.keys():
             pulseseries = dataclasses.I3RecoPulseSeries()
-            for pulse in pulseseriesmap[dom]:
+            for pulse in pulseseriesmap[om]:
                 if (
                     pulse.time > mintrigtime - self.TriggerTime
                     and pulse.time < mintrigtime + self.EventLength - self.TriggerTime
@@ -413,7 +412,7 @@ class DetectorTrigger(icetray.I3ConditionalModule):
                     resetpulse.time = pulse.time - mintrigtime + self.TriggerTime
                     pulseseries.append(resetpulse)
             if len(pulseseries) > 0:
-                outputpulsemap[dom] = pulseseries
+                outputpulsemap[om] = pulseseries
 
         frame[self.PulseSeriesOut] = outputpulsemap
         frame["TriggerTime" + self.output] = dataclasses.I3Double(mintrigtime)
