@@ -7,8 +7,6 @@ from os.path import expandvars
 from DOM.DOMAcceptance import DOMAcceptance
 from DOM.PONEDOMLauncher import DOMSimulation
 
-from Trigger.DOMTrigger import DOMTrigger
-
 from NoiseGenerators.DarkNoise import DarkNoise
 from NoiseGenerators.K40Noise import K40Noise
 
@@ -86,6 +84,20 @@ parser.add_argument(
     help="path to cross section models",
 )
 
+class HitCountCheck(icetray.I3Module):
+    def __init__(self, context):
+        super(HitCountCheck, self).__init__(context)
+        self.AddParameter("NHits", "required number of OMs hit to pass frame","")
+    def Configure(self):
+        self.NHits=self.GetParameter("NHits")
+
+    def DAQ(self,frame):
+        if(len(frame['PMT_Response_nonoise'])<self.NHits):
+            return False
+        else:
+            self.PushFrame(frame)
+
+
 tray = I3Tray()
 
 args = parser.parse_args()
@@ -108,13 +120,14 @@ outfile = args.outfile
 
 tray.AddModule("I3Reader", "reader", FilenameList=[args.gcdfile, infile])
 
+
 tray.AddModule(DOMAcceptance,
                'DOMAcceptance',
                input_map      = photon_series,
                output_map     = 'Accepted_PulseMap',
-               random_service = randomService
+               random_service = randomService,
+               drop_empty = True
                )
-
 
 tray.AddModule(DarkNoise,
                'AddDarkNoise',
@@ -147,6 +160,8 @@ tray.AddModule(DOMSimulation,
                k40_map        = 'Noise_K40'
               )
 
+tray.AddModule(HitCountCheck, "hitcheck",NHits=5)
+
 tray.AddModule(
     DOMTrigger,
     "DOMTrigger",
@@ -157,7 +172,7 @@ tray.AddModule(
     DetectorTrigger,
     "PONE_Trigger",
     output="_3PMT_2DOM",
-    DOMPMTCoinc=3,
+    OMPMTCoinc=3,
     FullDetectorCoincidenceN=args.nDOMs,
     CutOnTrigger=False,
     EventLength=10000,
@@ -173,8 +188,6 @@ tray.AddModule(
     Filename=outfile,
     Streams=[icetray.I3Frame.DAQ, icetray.I3Frame.Physics],
 )
-
-tray.AddModule("TrashCan", "adios")
 
 tray.Execute()
 tray.Finish()
