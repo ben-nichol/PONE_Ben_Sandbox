@@ -376,15 +376,13 @@ def AddPCAL(geomap,position,string,om,separation=0.0785,pcal_radius=0.2159):
     for k in range(2):
         omGeometry = dataclasses.I3OMGeo()
         omGeometry.omtype = dataclasses.I3OMGeo.OMType.mDOM
-        # omGeometry.orientation = orientation
-        # omGeometry.area = area
         omGeometry.area = 4*np.pi*pcal_radius**2
         omGeometry.position = dataclasses.I3Position(
             x+separation*(-1)**(k+1), y, z
         )
         for j in range(int(npmts/2)):
             omGeometry.orientation = PMT_orientations[int(j+k*8+4)]
-            omkey = OMKey(string, om, int(j+k*npmts/2)+5)
+            omkey = OMKey(string, om, int(j+k*npmts/2)+1)
             geomap[omkey] = omGeometry
 
 
