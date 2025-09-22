@@ -60,6 +60,8 @@ class DOMAcceptance(icetray.I3ConditionalModule):
             new_omkey = NoPMTKey(omkey)
 
             # collect the photons that hit a particular OM
+            #Correct as it is. new_omkey has an index for specific PMTs, something that isn't
+            #assigned until the line below. omkey just cares about specific OMs
             photon_list           = np.array(photon_map[omkey])
             hit_photons, hit_pmts = self.module.apply_acceptance_cut(photon_list)
 

@@ -271,8 +271,8 @@ class POM:
             rotated_position  = np.dot(rotation_matrix, position)
 
             photon.pos.x = rotated_position[0] * I3Units.m
-            photon.pos.x = rotated_position[1] * I3Units.m
-            photon.pos.x = rotated_position[2] * I3Units.m
+            photon.pos.y = rotated_position[1] * I3Units.m
+            photon.pos.z = rotated_position[2] * I3Units.m
             # -------------------------------------------------------------
 
             pmt, hit_distance, hit_angle = self.get_pmt(photon)
