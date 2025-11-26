@@ -5,9 +5,6 @@
 # Icetray environment script.
 #
 # modified to work with pone-offline
-# test
-
-	
 
 if [ "$1" = "help" ]
     then
@@ -53,8 +50,6 @@ popd >/dev/null
 
 _I3_SRC=$BASEDIR
 _I3_BUILD=$BASEDIR/build
-_I3_TESTDATA=/usr/local/icetray/build/test-data
-_I3_PRODDATA=/usr/local/icetray/build/prod-data
 
 _PONE_SRC="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
@@ -73,11 +68,11 @@ then
 fi
 
 _ROOTSYS=''
-_LD_LIBRARY_PATH=/usr/local/icetray/build/lib:/usr/local/icetray/build/lib/tools:/usr/local/OpenBLAS::$LD_LIBRARY_PATH
-_DYLD_LIBRARY_PATH=/usr/local/icetray/build/lib:/usr/local/icetray/build/lib/tools:$DYLD_LIBRARY_PATH
+_LD_LIBRARY_PATH=$BASEDIR/build/lib:$BASEDIR/build/lib/tools:/usr/local/OpenBLAS::$LD_LIBRARY_PATH
+_DYLD_LIBRARY_PATH=$BASEDIR/build/lib:$BASEDIR/build/lib/tools:$DYLD_LIBRARY_PATH
 
-_PYTHONPATH=/usr/local/icetray/build/lib:$PYTHONPATH
-_PATH=/usr/local/icetray/build/bin:$PATH
+_PYTHONPATH=$BASEDIR/build/lib:$PYTHONPATH
+_PATH=$BASEDIR/build/bin:$PATH
 
 
 _HIPPO_FOUND=
@@ -127,13 +122,7 @@ if [ -z "$ARGV" ]
     printf "Icetray environment has:\n"
     printf "   I3_SRC       = %s\n" $_I3_SRC
     printf "   I3_BUILD     = %s\n" $_I3_BUILD
-    [ -d "$_I3_TESTDATA" ] && printf "   I3_TESTDATA  = %s\n" $_I3_TESTDATA \
-                           || printf "   I3_TESTDATA should be set to an existing directory path\n" \
-                                     "   (and 'make rsync' may need to be run) if you wish to run tests."
-    [ -d "$_I3_PRODDATA" ] && printf "   I3_PRODDATA  = %s\n" $_I3_PRODDATA \
-                           || printf "   I3_PRODDATA should be set to an existing directory path\n" \
-                                     "   (and 'make rsync-prod-data' may need to be run) if you wish to use 'production data'."
-    echo   "   Python       =" 3.10.6
+    echo   "   "$(python3 -V 2>&1)
 fi
 
 if [ -z "$I3_SHELL" ] # a clean, first invocation
@@ -150,13 +139,10 @@ if [ -z "$I3_SHELL" ] # a clean, first invocation
         I3_PLATFORM="" \
 	I3_SRC=$_I3_SRC \
 	I3_BUILD=$_I3_BUILD \
-	I3_TESTDATA=$_I3_TESTDATA \
-	I3_PRODDATA=$_I3_PRODDATA \
 	ROOTSYS=$_ROOTSYS \
 	I3_SHELL=$_I3_SHELL \
 	PONESRCDIR=$_PONE_SRC \
-    HDF5_USE_FILE_LOCKING=$_HDF5_USE_FILE_LOCKING \
-	PYTHONPATH=$PYTHONPATH:/usr/local/LeptonInjector/build\
+    	HDF5_USE_FILE_LOCKING=$_HDF5_USE_FILE_LOCKING \
 	 \
 	$NEW_SHELL --rcfile <(echo 'export PS1="\e[0;32m[I3T]:\W\$ \e[m ";  export PYTHONPATH=$PYTHONPATH:$(pwd)') "$@"
 
