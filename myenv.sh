@@ -92,11 +92,11 @@ then
 fi
 
 _ROOTSYS=''
-_LD_LIBRARY_PATH=$BASEDIR/build/lib:$BASEDIR/build/lib/tools:/usr/local/OpenBLAS::$LD_LIBRARY_PATH
-_DYLD_LIBRARY_PATH=$BASEDIR/build/lib:$BASEDIR/build/lib/tools:$DYLD_LIBRARY_PATH
+_LD_LIBRARY_PATH=$_I3_BUILD/lib:$_I3_BUILD/lib/tools:/usr/local/OpenBLAS::$LD_LIBRARY_PATH
+_DYLD_LIBRARY_PATH=$_I3_BUILD/lib:$_I3_BUILD/lib/tools:$DYLD_LIBRARY_PATH
 
-_PYTHONPATH=$BASEDIR/build/lib:$PYTHONPATH
-_PATH=$BASEDIR/build/bin:$PATH
+_PYTHONPATH=$_I3_BUILD/lib:$PYTHONPATH
+_PATH=$_I3_BUILD/bin:$PATH
 
 
 _HIPPO_FOUND=
@@ -123,7 +123,7 @@ printctr()
     printf $FORMAT " " "$*" " "
 }
 
-I3VERSION=$(grep -i 'project(icetray' "$BASEDIR/cmake/toplevel.cmake" | grep -oP 'VERSION\s+\K[0-9]+\.[0-9]+\.[0-9]+')
+I3VERSION=$(grep -i 'project(icetray' "$_I3_SRC/cmake/toplevel.cmake" | grep -oP 'VERSION\s+\K[0-9]+\.[0-9]+\.[0-9]+')
 PTAG=$(<.versiontag)
 RED='\033[1;31m'
 NC='\033[0m'
