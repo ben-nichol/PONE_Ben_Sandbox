@@ -92,7 +92,8 @@ class DetectorTrigger(icetray.I3ConditionalModule):
             self.nOMs = len(omlist)
             self.npmts = len(pmtlist) #assumes all POM and no PCAL
 
-            OM_space = abs(geo[geo.keys()[0]].position.z- geo[geo.keys()[self.npmts]].position.z) #npmts should index to the first pmt of the next OM
+            keys = list(geo.keys())
+            OM_space = abs(geo[keys[0]].position.z- geo[keys[self.npmts]].position.z) #npmts should index to the first pmt of the next OM
             string_pos = list()
 
             for string in stringlist:
