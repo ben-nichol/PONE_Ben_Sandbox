@@ -8,8 +8,8 @@ import csv
 parser = argparse.ArgumentParser()
 parser.add_argument("-i", "--input", type=str, default=None, help="CSV file to read x and y positions of strings")
 parser.add_argument("-o", "--output", type=str, default="out", help="I3 file name to write")
-parser.add_argument("-d", "--ndoms", type=int, default=20, help="DOMs per string.")
-parser.add_argument("-r", "--domradius", type=float, default=0.2159, help='Radius of DOM in meters. Defaults to 0.2159 m')
+parser.add_argument("-d", "--npoms", type=int, default=20, help="POMs per string.")
+parser.add_argument("-r", "--pomradius", type=float, default=0.2159, help='Radius of POM in meters. Defaults to 0.2159 m')
 parser.add_argument("-l", "--mooringlength", type=int, default=1000, help="Length of the mooring line in meters")
 parser.add_argument("-s", "--omsequence", type=list, default=['POM'], help="Repeating sequence of POM or PCAL going from the bottom of the line to the top. Default is all POMs")
 
@@ -22,8 +22,8 @@ outfileName = f"PONE_{args.output}.i3.gz"
 outfile = dataio.I3File(outfileName, "w")
 
 # Create list of depths for modules
-sp = args.mooringlength / args.ndoms  # spacing between DOMs
-depthlist = [(sp + sp * i) * I3Units.meter for i in range(args.ndoms)]  # from sp to mooringlength. 0 at sea floor
+sp = args.mooringlength / args.npoms  # spacing between POMs
+depthlist = [(sp + sp * i) * I3Units.meter for i in range(args.npoms)]  # from sp to mooringlength. 0 at sea floor
 
 # Read x,y positions from CSV file
 xpositions = []

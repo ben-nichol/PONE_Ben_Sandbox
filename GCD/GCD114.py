@@ -8,8 +8,8 @@ import csv
 parser = argparse.ArgumentParser()
 parser.add_argument("-i","--input",  type=str, default=None, help="csv file to read in x and y positions of lines")
 parser.add_argument("-o","--output", type=str, default="out", help="i3 file name to write")
-parser.add_argument("-d","--noms",  type=int, default=20, help="OMs per string.")
-parser.add_argument("-r","--pomradius", type=int, default=0.2159, help='Radius of pom. Defaults to 0.2159 m')
+parser.add_argument("-d","--npoms",  type=int, default=20, help="OMs per string.")
+parser.add_argument("-r","--pomradius", type=float, default=0.2159, help='Radius of pom. Defaults to 0.2159 m')
 parser.add_argument("-l", "--mooringlength", type=int, default=1000, help="Length of the mooring")
 parser.add_argument("-s", "--omsequence", type=list, default=['POM'], help="Repeating sequence of POM or PCAL going from the bottom of the line to the top. Default is all POMs")
 # The below sequence is the order that PONE-1 will have
@@ -18,26 +18,21 @@ parser.add_argument("-s", "--omsequence", type=list, default=['POM'], help="Repe
 
 args = parser.parse_args()
 if args.input==None:
-    raise("No input csv provided. Please provide correct file")
+    raise Exception("No input CSV provided. Please provide correct file using -i option")
 
 outfileName = (
     "PONE_" + str(args.output)+".i3.gz"
 )
-
 outfile = dataio.I3File(outfileName, "w")
-domsPerString = args.noms
-omsequence = args.omsequence
 
 #create list of depths for modules
-sp = args.mooringlength / args.noms #spacing
+sp = args.mooringlength / args.npoms #spacing
 depthlist = [(sp + sp * i) * I3Units.meter for i in range(args.noms)] # from sp to mooringlength. 0 at sea floor
 depth = np.array(depthlist) 
 
 #read x,y from csv file
 xpositions = []
 ypositions = []
-
-if(args.input==None): raise Exception("no csv input file specified") 
 
 with open(args.input, newline='') as csvfile:
     reader = csv.reader(csvfile)
@@ -48,7 +43,7 @@ with open(args.input, newline='') as csvfile:
 
 
 # Generate frames using gcdHelpers
-gframe = gcdHelpers.generateGFrame(xpositions, ypositions, depthlist, omsequence, args.pomradius)
+gframe = gcdHelpers.generateGFrame(xpositions, ypositions, depthlist, args.omsequence, args.pomradius)
 geometry = gframe["I3Geometry"]
 cframe = gcdHelpers.generateCFrame(geometry, empty=True)
 dframe = gcdHelpers.generateDFrame(geometry, empty=True)
