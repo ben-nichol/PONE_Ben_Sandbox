@@ -4,7 +4,7 @@ from icecube.dataclasses import I3Constants
 import numpy as np
 import argparse
 import sys
-from GCD.GenerateLatticeStructure import generateLaticeSpots
+from GCD.GenerateLatticeStructure import generateLatticeSpots
 import gcdHelpers
 
 parser = argparse.ArgumentParser()
