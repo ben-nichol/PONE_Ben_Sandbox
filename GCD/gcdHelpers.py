@@ -5,6 +5,7 @@ a few helper functions that will be commonly used when making
 GCD files to test prototype geometries
 """
 
+from AcousticFrame import geometry
 from icecube import dataio, dataclasses, icetray
 from icecube.dataclasses import I3Constants
 from icecube.icetray import OMKey, I3Units
@@ -20,37 +21,25 @@ cdframe = cdfile.pop_frame()
 calib = cdframe["I3Calibration"]
 start_time = calib.start_time
 end_time = calib.end_time
-bedrockz = -I3Constants.OriginElev
 
 
-# Takes the distance from the surface and returns the z position in
-# Icecube coordinates.
-#
-# @Param:
-# depth:        a float representing vertical distance from the surface
-#
-# @Return:
-# the corresponding z value in the IceCube Coordinate system
-def convertDepthToZ(depth):
-    return I3Constants.SurfaceElev - I3Constants.OriginElev - depth
-
-
-# Creates a calibration with all the correct OMKeys
-#
-# @Param:
-# geometry:     the I3Geometry object inputted to the frame
-#
-# @Return:
-# An I3Calibration object to be used in the GCD file
-def makeCalibrationObject(geometry):
+def makeCalibrationObject(geometry, empty=False):
+    """Creates a calibration with all the correct OMKeys.
+    
+    Args:
+        geometry: The I3Geometry object inputted to the frame.
+        empty (bool, optional): If True, returns an empty I3Calibration. Defaults to False.
+        
+    Returns:
+        I3Calibration: An I3Calibration object to be used in the GCD file.
+    """
     # # THIS PASSES AN EMPTY I3Calibration FRAME, WORKS FOR ICETRAY V1.14
-    # calib = dataclasses.I3Calibration()
-    # frame = icetray.I3Frame(icetray.I3Frame.Calibration)
-    # frame["I3Calibration"] = calib
-    # calibration=calib
-    # # END OF EMPTY FRAME
+    if(empty):
+        calib = dataclasses.I3Calibration()
+        return calib
 
     # THIS PASSES THE CALIBRATION FRAME TO THE OMKEY(0,0,0) FOR ICETRAY V1.14
+    # NEEDS SOME CLEANUP. Why OMKEY(0,0,0)?
     domcal = dataclasses.Map_OMKey_I3DOMCalibration()
     calibrationData = cdframe["I3Calibration"].dom_cal.popitem()[1]
     domcal[OMKey(0,0,0)] = calibrationData
@@ -59,25 +48,21 @@ def makeCalibrationObject(geometry):
     test.dom_cal = domcal
     return test
 
-    # # THIS IS THE V1.10 VERSION
-    # calibrationData = cdframe["I3Calibration"].dom_cal.values()[0]
-    # domcal = dataclasses.Map_OMKey_I3DOMCalibration()
-    # calibration = cdframe["I3Calibration"]
-    # for omkey in geometry.omgeo.keys():
-    #     domcal[omkey] = calibrationData
-    # calibration.dom_cal = domcal
 
-    # return calibration
-
-
-# Creates a detector status with all the correct OMKeys
-#
-# @Param:
-# geometry:     the I3Geometry object inputted to the frame
-#
-# @Return:
-# An I3DetectorStatus object to be used in the GCD file
-def makeDSObject(geometry):
+def makeDSObject(geometry, empty=False):
+    """Creates a detector status with all the correct OMKeys.
+    
+    Args:
+        geometry: The I3Geometry object inputted to the frame.
+        empty (bool, optional): If True, returns an empty I3DetectorStatus. Defaults to False.
+        
+    Returns:
+        I3DetectorStatus: An I3DetectorStatus object to be used in the GCD file.
+    """
+    if(empty):
+        detectorStatus = dataclasses.I3DetectorStatus()
+        return detectorStatus
+    
     dsData = list(cdframe["I3DetectorStatus"].dom_status.values())[0] # NEW V1.14, NEEDED TO ADD list()
     domstat = dataclasses.Map_OMKey_I3DOMStatus()
     detectorStatus = cdframe["I3DetectorStatus"]
@@ -89,223 +74,61 @@ def makeDSObject(geometry):
     return detectorStatus
 
 
-# Creates a frame with all the needed fields in a C frame
-#
-# @Param:
-# geometry:     the I3Geometry object inputted to the frame
-#
-# @Return:
-# An I3Frame object to be used as the C frame
-def generateCFrame(geometry):
+def generateCFrame(geometry, empty=False):
+    """Creates a frame with all the needed fields in a C frame.
+    
+    Args:
+        geometry: The I3Geometry object inputted to the frame.
+        empty (bool, optional): If True, creates frame with empty calibration. Defaults to False.
+        
+    Returns:
+        I3Frame: An I3Frame object to be used as the C frame.
+    """
     # intialize frame as a C frame
     frame = icetray.I3Frame(icetray.I3Frame.Calibration)
 
     # add key-value pairs
-    frame["I3Calibration"] = makeCalibrationObject(geometry)
+    frame["I3Calibration"] = makeCalibrationObject(geometry, empty)
     frame["SPEAbove"] = cdframe["SPEAbove"]
     frame["SPEScalingFactors"] = cdframe["SPEScalingFactors"]
 
     return frame
 
 
-# Creates a frame with all the needed fields in a D frame
-#
-# @Param:
-# geometry:     the I3Geometry object inputted to the frame
-#
-# @Return:
-# An I3Frame object to be used as the D frame
-def generateDFrame(geometry):
+def generateDFrame(geometry, empty=False):
+    """Creates a frame with all the needed fields in a D frame.
+    
+    Args:
+        geometry: The I3Geometry object inputted to the frame.
+        empty (bool, optional): If True, creates frame with empty detector status. Defaults to False.
+        
+    Returns:
+        I3Frame: An I3Frame object to be used as the D frame.
+    """
     # intialize frame as a D frame
     frame = icetray.I3Frame(icetray.I3Frame.DetectorStatus)
 
     # add key-value pairs
-    frame["I3DetectorStatus"] = makeDSObject(geometry)
+    frame["I3DetectorStatus"] = makeDSObject(geometry, empty)
     frame["BadDomsList"] = cdframe["BadDomsList"]
     frame["BadDomsListSLC"] = cdframe["BadDomsListSLC"]
 
     return frame
 
-
-# Generates a string of DOMs in a specified direction.
-# This is represented by an I3OMGeoMap object, which
-# has an OMKey object for a DOM and an I3OMGeo object
-# to represent its geometry.
-#
-# @Param:
-# stringNumber: an integer representing the string id
-# startPos:     an I3Position object with the location
-#               of the top of the string
-# numDoms:      number of DOMs on the string
-# spacing:      array detailing DOM spacing on string
-# direction:    an I3Direction object representing the
-#               direction of the line of the string
-#
-# @Return:
-# an I3OMGeoMap object with the DOMs on the string and their
-# geometries
-def generateOMString(stringNumber, startPos, numDoms, spacing, direction):
-    orientation = dataclasses.I3Orientation(
-        0, 0, -1, 1, 0, 0
-    )  # same orientation as icecube DOMs (dir=down)
-    area = 0.5857538 * I3Units.meter2  # same area as KM3NET MDOMs
-    geomap = dataclasses.I3OMGeoMap()
-    x = startPos.x
-    y = startPos.y
-    z = startPos.z
-    dx = [spacingVal * direction.x for spacingVal in spacing]
-    dy = [spacingVal * direction.y for spacingVal in spacing]
-    dz = [spacingVal * direction.z for spacingVal in spacing]
-
-    # create OMKeys and I3OMGeo for DOMs on string and add them to the map
-    for i in xrange(0, numDoms):
-        omkey = OMKey(stringNumber, i, 0)
-        omGeometry = dataclasses.I3OMGeo()
-        omGeometry.omtype = dataclasses.I3OMGeo.OMType.IceCube
-        omGeometry.orientation = orientation
-        omGeometry.area = area
-        omGeometry.position = dataclasses.I3Position(
-            x + dx[i] * i, y + dy[i] * i, z + dz[i] * i
-        )
-        geomap[omkey] = omGeometry
-
-    return geomap
-
-
-# Generates a line of DOMs with vertical strings. This was
-# necessary due to complications caused by clsim's xy divisions.
-# The simulation divides the grid into x-y cells, but this
-# is only compatible with verticle strings since it tries to
-# divide it such that only one string fits in an x-y cell.
-#
-# @Param:
-# stringNum:    an integer representing the id of the first
-#               string in the DOM line
-# startPos:     an I3Position object with the location of
-#               the start of the DOM line
-# spacing:      array detailing DOM spacing on line
-# direction:    an I3Direction object representing the
-#               direction of the line
-# vertSpacing:  integer representing the distance between layers
-# numStrings:   number of strings per DOM line
-# layers:       number of DOMs in each string in the DOM line
-#
-# @Return:
-# an I3GeoMap objects with the geometries of DOMs in the line
-def generateDOMLine(
-    stringNum, startPos, spacing, direction, vertSpacing, numStrings, layers
-):
-    lineMap = dataclasses.I3OMGeoMap()
-    x = startPos.x
-    y = startPos.y
-    z = startPos.z
-    dx = [spacingVal * direction.x for spacingVal in spacing]
-    dy = [spacingVal * direction.y for spacingVal in spacing]
-    dz = [spacingVal * direction.z for spacingVal in spacing]
-    stringSpacing = [vertSpacing for i in range(0, layers)]
-
-    for i in xrange(0, numStrings):
-        currentNum = stringNum + i
-        stringPos = dataclasses.I3Position(x + dx[i] * i, y + dy[i] * i, z + dz[i] * i)
-        stringDirection = dataclasses.I3Direction(0, 0, 1)
-        stringMap = generateOMString(
-            currentNum, stringPos, layers, stringSpacing, stringDirection
-        )
-        lineMap.update(stringMap)
-
-    return lineMap
-
-
-# Generates a list of offsets to the DOM string starting positions. Different
-# offset types are described in OffsetType enum class
-#
-# @Param:
-# offset_type:  an enum indicating which offset method is chosen
-# length:       the length of the resulting list. Should be equal to number
-#               of strings in the layer
-#
-# @Return:
-# a list containing different offset values for the starting positions of the
-# DOM strings
-def generateOffsetList(offset_type, length):
-    offsetList = []
-
-    if not isinstance(offset_type, OffsetType):
-        raise TypeError("offset_type must be an instance of OffsetType Enum")
-
-    if offset_type == OffsetType.LinearResetOffset:
-        offset = 0
-        for i in xrange(0, length):
-            if offset > 300:
-                offset = 100
-            offsetList.append(offset)
-            offset += 100
-    elif offset_type == OffsetType.LinearRiseFallOffset:
-        # start at center
-        offset = 0
-        # determines whether rising or falling offset
-        signFactor = 1
-        for i in xrange(0, length):
-            if offset >= 300:
-                signFactor = -1
-            if offset <= 150:
-                signFactor = 1
-            offsetList.append(offset)
-            offset += 150 * signFactor
-    else:
-        offsetList = [50 for i in range(0, length)]
-
-    return offsetList
-
-
-# Generates a list detailing the spacings between DOMs along a string. Different
-# spacing types are described in SpacingType enum class
-#
-# @Param:
-# spacing_type:     an enum indicating which spacing method was chosen
-# basicSpacing:     the spacing between the first two DOMs
-# length:           the length of the resulting list. Should be equal to number
-#                   of DOMs in the string
-#
-# @Return:
-# a list containing different spacing values for the DOMs along the string
-def generateSpacingList(spacing_type, basicSpacing, length):
-    spacingList = []
-    undistortedStringLength = basicSpacing * length
-
-    if not isinstance(spacing_type, SpacingType):
-        raise TypeError("spacing_type must be an instance of SpacingType Enum")
-
-    if spacing_type == SpacingType.LinearRSpacing:
-        r = 0
-        for i in xrange(0, length):
-            spacing = basicSpacing * (1 - (r / undistortedStringLength))
-            spacingList.append(spacing)
-            r += spacing
-    elif spacing_type == SpacingType.ExpRSpacing:
-        r = 0
-        for i in xrange(0, length):
-            spacing = basicSpacing * np.exp(-r / undistortedStringLength)
-            spacingList.append(spacing)
-            r += spacing
-    else:
-        spacingList = [basicSpacing for i in range(0, length)]
-
-    print(sum(spacingList))
-    return spacingList
-
-
-# decomposes a geometry into a new geometry with only the DOMs specified
-#
-# @Param:
-# denseGeometry:    an I3Geometry object representing the dense geometry
-# domsUsed:         a list of OMKey objects representing the DOMs to be
-#                   included in the new geometry. If an OMKey in domsUsed
-#                   is not in denseGeometry, a ValueError is raised
-#
-# @Return:
-# a new I3Geometry object containing only the DOMs in domsUsed
 def makePartialGeometry(denseGeometry, domsUsed):
+    """Decomposes a geometry into a new geometry with only the DOMs specified.
+    
+    Args:
+        denseGeometry (I3Geometry): An I3Geometry object representing the dense geometry.
+        domsUsed (list): A list of OMKey objects representing the DOMs to be
+            included in the new geometry.
+            
+    Returns:
+        I3Geometry: A new I3Geometry object containing only the DOMs in domsUsed.
+        
+    Raises:
+        ValueError: If an OMKey in domsUsed is not in denseGeometry.
+    """
     newGeo = dataclasses.I3Geometry()
     newGeo.start_time = start_time
     newGeo.end_time = end_time
@@ -321,24 +144,22 @@ def makePartialGeometry(denseGeometry, domsUsed):
 
     return newGeo
 
-# Adds a POM to a I3OMGeoMap object at a specified location and
-# IDs. POM consists of two spheres with correct PMT orientations.
-# PMTs 1-8 are on face oriented in the +x direction
-#
-# @Param:
-# geomap:       dataclasses.I3OMGeoMap object which will have 
-#               the POM added to it
-# position:     Array like [x,y,z] position of the centre of
-#               the POM
-# string:       Integer string ID that the POM will be added
-#               to
-# om:           Integer OM ID that the POM will be added
-#               to
-# separation:   Separation of the centre of the two 
-#               hemispheres in meters. Default = 0.0785
-# pom_radius:   Radius of each hemistphere in meters.
-#               Default = 0.2159
 def AddPOM(geomap,position,string,om,separation=0.0785,pom_radius=0.2159):
+    """Adds a POM to a I3OMGeoMap object at a specified location and IDs.
+    
+    POM consists of two spheres with correct PMT orientations.
+    PMTs 1-8 are on face oriented in the +x direction.
+    
+    Args:
+        geomap (dataclasses.I3OMGeoMap): Object which will have the POM added to it.
+        position (array-like): [x,y,z] position of the centre of the POM.
+        string (int): String ID that the POM will be added to.
+        om (int): OM ID that the POM will be added to.
+        separation (float, optional): Separation of the centre of the two 
+            hemispheres in meters. Defaults to 0.0785.
+        pom_radius (float, optional): Radius of each hemisphere in meters.
+            Defaults to 0.2159.
+    """
     npmts=16
     x,y,z = position
     for k in range(2):
@@ -353,24 +174,23 @@ def AddPOM(geomap,position,string,om,separation=0.0785,pom_radius=0.2159):
             omkey = OMKey(string, om, int(j+k*npmts/2)+1)
 
             geomap[omkey] = omGeometry
-# Adds a PCAL to a I3OMGeoMap object at a specified location and
-# IDs. PCAL consists of two spheres with correct PMT orientations.
-# PMTs 1-4 are on face oriented in the +x direction
-#
-# @Param:
-# geomap:       dataclasses.I3OMGeoMap object which will have 
-#               the POM added to it
-# position:     Array like [x,y,z] position of the centre of
-#               the POM
-# string:       Integer string ID that the POM will be added
-#               to
-# om:           Integer OM ID that the POM will be added
-#               to
-# separation:   Separation of the centre of the two 
-#               hemispheres in meters. Default = 0.0785
-# pom_radius:   Radius of each hemistphere in meters.
-#               Default = 0.2159
+
 def AddPCAL(geomap,position,string,om,separation=0.0785,pcal_radius=0.2159):
+    """Adds a PCAL to a I3OMGeoMap object at a specified location and IDs.
+    
+    PCAL consists of two spheres with correct PMT orientations.
+    PMTs 1-4 are on face oriented in the +x direction.
+    
+    Args:
+        geomap (dataclasses.I3OMGeoMap): Object which will have the PCAL added to it.
+        position (array-like): [x,y,z] position of the centre of the PCAL.
+        string (int): String ID that the PCAL will be added to.
+        om (int): OM ID that the PCAL will be added to.
+        separation (float, optional): Separation of the centre of the two 
+            hemispheres in meters. Defaults to 0.0785.
+        pcal_radius (float, optional): Radius of each hemisphere in meters.
+            Defaults to 0.2159.
+    """
     npmts=8
     x,y,z = position
     for k in range(2):
@@ -386,34 +206,90 @@ def AddPCAL(geomap,position,string,om,separation=0.0785,pcal_radius=0.2159):
             geomap[omkey] = omGeometry
 
 
-# an enum class to keep track of different offset types
-#
-# SimpleOffset:         offset of 50m to avoid DOMs overlapping
-# LinearResetOffset:    Offset starts at and increases by 20m with each string.
-#                       If it reaches 100m, it resets back to 20m.
-# LinearRiseFallOffset: Offset starts at 0 and increases by 20m with each string.
-#                       If it reaches 100m, offset starts decreasing by 20m.
-#                       When reaching 20m, starts increasing again.
-class OffsetType(Enum):
-    SimpleOffset = "simple_offset"
-    LinearResetOffset = "linear_reset_offset"
-    LinearRiseFallOffset = "rise_fall_offset"
+def generateGeometry(xpositions, ypositions, depth, omsequence):
+    """Creates an I3OMGeoMap object from x,y coordinates and other parameters.
+    
+    Args:
+        xpositions (list): List of x positions for strings.
+        ypositions (list): List of y positions for strings.
+        depth (array): Array of depths for OMs.
+        omsequence (list): List defining the OM sequence (POM/PCAL).
+        
+    Returns:
+        I3OMGeoMap: Map of Optical Modules (OMs).
+        
+    Raises:
+        Exception: If unknown optical module type is specified.
+    """
+    geomap = dataclasses.I3OMGeoMap()
+    
+    # Add OMs at x,y and depth
+    for i in range(len(xpositions)):
+        for m in range(len(depth)):
+            loc = [xpositions[i], ypositions[i], depth[m]]
+            string_num = i+1
+            om_num = m+1
+            if omsequence[m%len(omsequence)]=='POM':
+                AddPOM(geomap, loc, string_num, om_num)
+            elif omsequence[m%len(omsequence)]=='PCAL':
+                AddPCAL(geomap, loc, string_num, om_num)
+            else:
+                raise Exception("Unknown optical module type specified. Type can be 'POM' or 'PCAL'")
+    
+    return geomap
 
-    def __str__(self):
-        return self.value
 
+def generateGFrame(xpositions, ypositions, depthlist, omsequence, domradius):
+    """Creates a geometry frame with all the needed fields in a G frame.
+    
+    Args:
+        xpositions (list): List of x positions for strings.
+        ypositions (list): List of y positions for strings.
+        depthlist (list): List of depths for OMs.
+        omsequence (list): List defining the OM sequence (POM/PCAL).
+        domradius (float): Radius of the optical modules.
+        
+    Returns:
+        I3Frame: An I3Frame object to be used as the G frame.
+    """
+    geometry = dataclasses.I3Geometry()
+    geomap = generateGeometry(xpositions, ypositions, depthlist, omsequence)
+    geometry.omgeo = geomap
 
-# an enum class to keep track of different spacing types
-#
-# SimpleSpacing:        uniform spacing determined by the basicSpacing parameter
-# LinearRSpacing:       Spacing decreases linearly with r according to the equation
-#                       spacing = basicSpacing * ( 1 - (r/totalStringLength) )
-# ExpRSpacing:          Spacing decreases exponentially with r according to the euqatiion
-#                       spacing = basicSpacing * np.exp(-r/undistortedStringLength)
-class SpacingType(Enum):
-    SimpleSpacing = "simple_spacing"
-    LinearRSpacing = "linear_r_spacing"
-    ExpRSpacing = "exp_r_spacing"
-
-    def __str__(self):
-        return self.value
+    # Create orientation - OM oriented upwards
+    orientation = dataclasses.I3Orientation(0, 0, 1, 1, 0, 0)
+    
+    # Initialize frame as a G frame
+    gframe = icetray.I3Frame(icetray.I3Frame.Geometry)
+    
+    # Add geometry to frame
+    gframe["I3Geometry"] = geometry
+    #Duplicate copy of geomap in frame. Taking out for now
+    #gframe["I3OMGeoMap"] = geomap
+    
+    # Create module geometry map
+    modgeomap = dataclasses.I3ModuleGeoMap()
+    for dom in geomap.keys():
+        mkey = dataclasses.ModuleKey(dom.string, dom.om)
+        module = dataclasses.I3ModuleGeo()
+        module.module_type = dataclasses.I3ModuleGeo.ModuleType.mDOM
+        module.orientation = orientation
+        module.pos = dataclasses.I3Position(
+            xpositions[dom.string-1], ypositions[dom.string-1], depthlist[dom.om-1]
+        )
+        module.radius = domradius
+        modgeomap[mkey] = module
+    gframe["I3ModuleGeoMap"] = modgeomap
+    
+    # Setting subdetector labels
+    subdetec = dataclasses.I3MapModuleKeyString()
+    for dom in geomap.keys():
+        mkey = dataclasses.ModuleKey(dom.string, dom.om)
+        subdetec[mkey] = omsequence[dom.om%len(omsequence)]
+    gframe["Subdetectors"] = subdetec
+    
+    # Add start and end times
+    gframe["StartTime"] = start_time
+    gframe["EndTime"] = end_time
+    
+    return gframe
