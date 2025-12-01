@@ -2,7 +2,7 @@ from icecube import dataio, dataclasses, icetray
 from icecube.icetray import OMKey, I3Units
 import numpy as np
 import argparse
-from GenerateLatticeStructure import generateLatticeSpots
+from LatticeCalculator import generateLatticeSpots
 import gcdHelpers
 
 parser = argparse.ArgumentParser()
