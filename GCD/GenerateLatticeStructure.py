@@ -85,19 +85,34 @@ def generateLatticeSpots(nstrings=10):
 
 #Generated main function to show usage of generateLatticeSpots
 if __name__ == "__main__":
-    # Generate lattice structure with different numbers of strings
+    """Main function to demonstrate usage of generateLatticeSpots."""
+    import argparse
+    
+    parser = argparse.ArgumentParser(description="Generate lattice structure for string positions")
+    parser.add_argument("-n", "--nstrings", type=int, nargs="+", default=[6, 8, 10, 12],
+                       help="Number(s) of strings to generate layouts for")
+    parser.add_argument("--spacing", type=float, default=50.0, 
+                       help="Base spacing used in lattice generation")
+    
+    args = parser.parse_args()
+    
     print("Generating lattice structure for different string counts:")
     
-    for nstrings in [6, 8, 10, 12]:
+    for nstrings in args.nstrings:
         print(f"\n--- {nstrings} strings ---")
         x_positions, y_positions, angles = generateLatticeSpots(nstrings)
         
         print(f"Number of generated positions: {len(x_positions)}")
-        print("String positions (x, y, angle):")
+        print("String positions (normalized x, y, angle):")
         for i, (x, y, theta) in enumerate(zip(x_positions, y_positions, angles)):
             print(f"  String {i:2d}: ({x:6.3f}, {y:6.3f}, {theta:6.3f} rad)")
         
-        
+        print(f"Actual positions with {args.spacing}m spacing:")
+        for i, (x, y) in enumerate(zip(x_positions, y_positions)):
+            actual_x = x * args.spacing
+            actual_y = y * args.spacing
+            print(f"  String {i:2d}: ({actual_x:7.1f}, {actual_y:7.1f}) m")
+            
 
         print("Lattice pattern (approximate):")
         grid_size = 11
