@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def generateLaticeSpots(nstrings=10):
+def generateLatticeSpots(nstrings=10):
     offset = np.pi * (1.0 / 6)
     anglediff = np.pi * (1.0 / 3)
     neighbourangles = [
@@ -82,3 +82,48 @@ def generateLaticeSpots(nstrings=10):
         stringposy[i] = (stringposy[i] - mean_y) / spacing
 
     return stringposx, stringposy, theta
+
+#Generated main function to show usage of generateLatticeSpots
+if __name__ == "__main__":
+    """Main function to demonstrate usage of generateLatticeSpots."""
+    import argparse
+    
+    parser = argparse.ArgumentParser(description="Generate lattice structure for string positions")
+    parser.add_argument("-n", "--nstrings", type=int, nargs="+", default=[6, 8, 10, 12],
+                       help="Number(s) of strings to generate layouts for")
+    parser.add_argument("--spacing", type=float, default=50.0, 
+                       help="Base spacing used in lattice generation")
+    
+    args = parser.parse_args()
+    
+    print("Generating lattice structure for different string counts:")
+    
+    for nstrings in args.nstrings:
+        print(f"\n--- {nstrings} strings ---")
+        x_positions, y_positions, angles = generateLatticeSpots(nstrings)
+        
+        print(f"Number of generated positions: {len(x_positions)}")
+        print("String positions (normalized x, y, angle):")
+        for i, (x, y, theta) in enumerate(zip(x_positions, y_positions, angles)):
+            print(f"  String {i:2d}: ({x:6.3f}, {y:6.3f}, {theta:6.3f} rad)")
+        
+        print(f"Actual positions with {args.spacing}m spacing:")
+        for i, (x, y) in enumerate(zip(x_positions, y_positions)):
+            actual_x = x * args.spacing
+            actual_y = y * args.spacing
+            print(f"  String {i:2d}: ({actual_x:7.1f}, {actual_y:7.1f}) m")
+            
+
+        print("Lattice pattern (approximate):")
+        grid_size = 11
+        grid = [['.' for _ in range(grid_size)] for _ in range(grid_size)]
+        center = grid_size // 2
+            
+        for i, (x, y) in enumerate(zip(x_positions, y_positions)):
+            grid_x = int(round(x * 2)) + center
+            grid_y = int(round(y * 2)) + center
+            if 0 <= grid_x < grid_size and 0 <= grid_y < grid_size:
+                grid[grid_y][grid_x] = str(i % 10)
+            
+        for row in grid:
+            print('  ' + ' '.join(row))
