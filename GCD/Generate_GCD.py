@@ -27,7 +27,8 @@ outfile = dataio.I3File(outfileName, "w")
 
 #create list of depths for modules
 sp = args.mooringlength / args.npoms #spacing
-depthlist = [(sp + sp * i) * I3Units.meter for i in range(args.noms)] # from sp to mooringlength. 0 at sea floor
+mid = args.mooringlength / 2.0 #middle of string
+depthlist = [(-mid + sp + sp * i) * I3Units.meter for i in range(args.npoms)] # from sp to mooringlength. 0 at middle of detector
 depth = np.array(depthlist) 
 
 #read x,y from csv file
