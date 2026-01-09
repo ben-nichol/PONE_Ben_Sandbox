@@ -1,4 +1,4 @@
-from icecube import icetray, dataio, LeptonInjector
+from icecube import icetray, dataio, hdfwriter, LeptonInjector
 
 tray = icetray.I3Tray()
 
@@ -11,6 +11,16 @@ tray.AddModule("I3Reader", "reader",
 tray.AddModule("InjectionConfigSerializer", "lic_writer",
     OutputPath="config.lic"
 )
+
+# Write Q frame data to hdf5 files
+tray.AddSegment(hdfwriter.I3SimHDFWriter, "hdf",
+    Output="output.h5",
+    Keys=[
+        "I3EventHeader",
+        "EventProperties",
+        "I3MCTree",
+    ]
+    )
 
 tray.Execute()
 
