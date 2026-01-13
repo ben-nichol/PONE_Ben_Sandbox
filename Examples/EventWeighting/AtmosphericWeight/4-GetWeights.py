@@ -14,6 +14,10 @@ def parse_args():
     parser.add_argument("--events", required=True, help="Event HDF5 file (output.h5)")
     parser.add_argument("--nusquids_flux", required=True, help="nuSQuIDS flux file (AtmFlux_output.h5)")
     parser.add_argument("--output", default="nusquids_weights.txt", help="Output text file for weights")
+    parser.add_argument("--xs_nu_cc", default="/cvmfs/icecube.opensciencegrid.org/data/neutrino-generator/cross_section_data/csms_differential_v1.0/dsdxdy_nu_CC_iso.fits", help="cross section for charged current nuetrino")
+    parser.add_argument("--xs_nubar_cc", default="/cvmfs/icecube.opensciencegrid.org/data/neutrino-generator/cross_section_data/csms_differential_v1.0/dsdxdy_nubar_CC_iso.fits", help="cross section for charged current antineutrino")
+    parser.add_argument("--xs_nu_nc", default="/cvmfs/icecube.opensciencegrid.org/data/neutrino-generator/cross_section_data/csms_differential_v1.0/dsdxdy_nu_NC_iso.fits", help="cross section for neutral current neutrino")
+    parser.add_argument("--xs_nubar_nc", default="/cvmfs/icecube.opensciencegrid.org/data/neutrino-generator/cross_section_data/csms_differential_v1.0/dsdxdy_nubar_NC_iso.fits", help="cross section for neutral current antineutrino")
     return parser.parse_args()
 
 def check_nusquids_support():
@@ -29,14 +33,14 @@ def main():
     generators = LW.MakeGeneratorsFromLICFile(args.lic)
     # Load nuSQuIDS flux
     nusquids_flux = LW.nuSQUIDSAtmFlux(args.nusquids_flux)
-    # Use default cross sections (or add as arguments if needed)
-    xs = None
-
-    # Try to use cross sections if available in LeptonWeighter
-    if hasattr(LW, "DefaultCrossSections"):
-        xs = LW.DefaultCrossSections()
-    else:
-        print("WARNING: No cross section splines specified, using default if available.")
+    
+    # Load cross sections
+    xs = LW.CrossSectionFromSpline(
+        args.xs_nu_cc,
+        args.xs_nubar_cc,
+        args.xs_nu_nc,
+        args.xs_nubar_nc
+    )
 
     weighter = LW.Weighter(nusquids_flux, xs, generators)
 
