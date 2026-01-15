@@ -20,12 +20,15 @@ else
 fi
 PTAG=""
 if [ -f "${_PONE_SRC}/.versiontag" ]; then
-	PTAG=$(<"${_PONE_SRC}/.versiontag")
+	PTAG=$(cat "${_PONE_SRC}/.versiontag")
 fi
 if [ -n "$I3VERSION" ] && [ -n "$PTAG" ] && [ "$I3VERSION" != "$PTAG" ]; then
 	echo "${RED}WARNING: PONE_OFFLINE EXPECTS ICETRAY VERSION $PTAG, but found $I3VERSION${NC}" 1>&2
+elif [ -z "$I3VERSION" ] || [ -z "$PTAG" ]; then
+	echo "${RED} WARNING: MISSING VERSION"
+	echo "${RED} PONE_OFFLINE: ${PTAG}"
+	echo "${RED} ICETRAY: ${I3VERSION}${NC}"
 else
-
 	echo "${GREEN}PONE_OFFLINE FOUND EXPECTED ICETRAY VERSION${NC}" 1>&2
 fi
 
