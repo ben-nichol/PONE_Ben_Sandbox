@@ -6,12 +6,12 @@ This directory contains example scripts for calculating the weights for MC. Ther
 ## Structure
 - `BasicWeight/`
 	- `1-GenSimpleMC.py`: Generates 10 muons between 100-1000GeV.
-	- `2-WriteGeneratorConfig.py`: Reads the .i3 file to write the LeptonInjector confing.lic and data tables.
+	- `2-WriteGeneratorConfig.py`: Reads the .i3 file to write the LeptonInjector config.lic and data tables.
 	- `3-GetEventWeights.py`: Calculates event weights using a basic power-law flux.
 
 - `AtmosphericWeight/`
 	- `1-GenSimpleMC.py`: Generates 10 muons between 100-1000GeV.
-	- `2-WriteGeneratorConfig.py`: Reads the .i3 file to write the LeptonInjector confing.lic and data tables.
+	- `2-WriteGeneratorConfig.py`: Reads the .i3 file to write the LeptonInjector config.lic and data tables.
 	- `3-AtmFlux.py`: Calculates atmospheric neutrino flux using nuSQuIDS.
 	- `4-GetWeights.py`: Calculates event weights using atmospheric flux.
 
