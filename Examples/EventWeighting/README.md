@@ -24,5 +24,4 @@ This directory contains example scripts for calculating the weights for MC. Ther
 
 
 ## Open Questions
-How are and should multiple S frames be handled?
 Is the weighting correct?
