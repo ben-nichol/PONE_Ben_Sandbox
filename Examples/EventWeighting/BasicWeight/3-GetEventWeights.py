@@ -50,7 +50,7 @@ def get_weight(props, weight_event):
 #get lic details, each event is weighted against all generators
 generators = []
 for lic_file in args.lic:
-    generators.append(LW.MakeGeneratorsFromLICFile(lic_file))
+    generators.extend(LW.MakeGeneratorsFromLICFile(lic_file))
 
 #get combined weighter
 weight_event = LW.Weighter(flux, xs, generators)

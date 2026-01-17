@@ -64,7 +64,7 @@ def main():
     # Each event will be weighted against all generators
     generators = []
     for lic_file in args.lic:
-        generators.append(LW.MakeGeneratorsFromLICFile(lic_file))
+        generators.extend(LW.MakeGeneratorsFromLICFile(lic_file))
 
     # Build the weighter using all generators and the atmospheric flux
     weighter = LW.Weighter(nusquids_flux, xs, generators)
