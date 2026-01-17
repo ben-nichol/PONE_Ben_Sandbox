@@ -1,0 +1,1 @@
+../BasicWeight/2-WriteGeneratorConfig.py
