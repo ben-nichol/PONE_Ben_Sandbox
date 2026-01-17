@@ -2,18 +2,16 @@ from icecube import icetray, dataio, hdfwriter, LeptonInjector
 import sys
 
 if len(sys.argv) < 3:
-    print("Usage: {} <input1.i3> [<input2.i3> ...] <output>".format(sys.argv[0]))
+    print("Usage: {} <input1.i3> [<input2.i3> ...] <outputBaseName>".format(sys.argv[0]))
     sys.exit(1)
 
 # All arguments except the last are input files
 input_files = sys.argv[1:-1]
+
 # The last argument is the output base name (for .h5 and .lic)
-output = sys.argv[-1]
-
-# Form the .lic file name by removing .h5 or .hdf5 and appending .lic
-output_lic = output + '.lic'
-output_h5 = output + '.h5'
-
+outputName = sys.argv[-1]
+output_lic = outputName + '.lic'
+output_h5 = outputName + '.h5'
 
 tray = icetray.I3Tray()
 

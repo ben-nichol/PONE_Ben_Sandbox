@@ -4,8 +4,8 @@ import nuSQuIDS as nsq
 #CONSTANT DEFINITIONS
 units = nsq.Const()
 NUM_NEUTRINOS = 3
-E_MIN_GEV = 1.0
-E_MAX_GEV = 1.0e4
+E_MIN_GEV = 1.0e2
+E_MAX_GEV = 1.0e6
 
 FLUX_SPECTRUM_INDEX = -2.0  # E^-2 spectrum
 
