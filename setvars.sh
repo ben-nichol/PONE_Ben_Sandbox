@@ -6,6 +6,7 @@ _LD_LIBRARY_PATH=/usr/local/OpenBLAS:$LD_LIBRARY_PATH
 
 export PONESRCDIR="$_PONE_SRC"
 export PYTHONPATH="$_PYTHONPATH"
+export LD_LIBRARY_PATH="$_LD_LIBRARY_PATH"
 
 #Check if pone_offline version matches I3 version
 I3VERSION=""
