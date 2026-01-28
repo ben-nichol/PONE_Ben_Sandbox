@@ -49,7 +49,7 @@ class OMAcceptance(icetray.I3ConditionalModule):
         '''
         Split photon hits into PMTs on the OMs
         '''
-        output_pulse_map = dataclasses.I3RecoPulseSeriesMap()
+        output_MCPE_map = dataclasses.I3MCPESeriesMap() # Changed to I3MCPESeriesMap
         
         # make new map with individual PMTs
         for omkey in photon_map.keys():
@@ -69,15 +69,16 @@ class OMAcceptance(icetray.I3ConditionalModule):
             # a reco pulse to the output pulse map
             for photon, pmt in zip(hit_photons, hit_pmts):
                 pmtkey = AddPMTKey(new_omkey, pmt)
-                if pmtkey not in output_pulse_map.keys():
-                    output_pulse_map[pmtkey] = dataclasses.I3RecoPulseSeries()
+                if pmtkey not in output_MCPE_map.keys():
+                    output_MCPE_map[pmtkey] = dataclasses.I3MCPESeries()
 
-                reco_pulse        = dataclasses.I3RecoPulse()
-                reco_pulse.time   = photon.time
-                reco_pulse.charge = 1.0
-                output_pulse_map[pmtkey].append(reco_pulse)
+                MCPE        = dataclasses.I3MCPE()
+                MCPE.time   = photon.time
+                MCPE.charge = 1.0
+                MCPE.width = 3.0
+                output_MCPE_map[pmtkey].append(MCPE)
 
-        return output_pulse_map
+        return output_MCPE_map
 
 
     def DAQ(self, frame):
