@@ -73,9 +73,8 @@ class OMAcceptance(icetray.I3ConditionalModule):
                     output_MCPE_map[pmtkey] = dataclasses.I3MCPESeries()
 
                 MCPE        = dataclasses.I3MCPE()
-                MCPE.time   = photon.time
-                MCPE.charge = 1.0
-                MCPE.width = 3.0
+                MCPE.time   = photon.time # Could make this non-instentaneous
+                MCPE.charge = 1.0 # 1 photon = 1 PE
                 output_MCPE_map[pmtkey].append(MCPE)
 
         return output_MCPE_map
