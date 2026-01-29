@@ -216,10 +216,11 @@ class K40Noise(icetray.I3ConditionalModule):
         '''
         Generate the k40 noise pulse map
         '''
-        k40_pulse_map = dataclasses.I3RecoPulseSeriesMap()
+        # Added changes to return I3MCPESeriesMap
+        k40_mcpe_map = simclasses.I3MCPESeriesMap()
 
         if lower_bound > upper_bound:
-            return k40_pulse_map
+            return k40_mcpe_map
 
         for omkey in self.omkeys_to_use:
             if omkey.string in self.drop_strings:
@@ -258,17 +259,17 @@ class K40Noise(icetray.I3ConditionalModule):
 
             # only add the omkeys for pmts that were hit to the pulse series
             for pmt in np.unique(pmts):
-                k40_pulse_map[OMKey(omkey.string, omkey.om, int(pmt)+1)] = dataclasses.I3RecoPulseSeries()
+                k40_mcpe_map[OMKey(omkey.string, omkey.om, int(pmt)+1)] = dataclasses.I3RecoPulseSeries()
 
             for i, pmt in enumerate(pmts):
-                pulse        = dataclasses.I3RecoPulse()
+                pulse        = simclasses.I3MCPE()
                 pulse.time   = times[i]
-                pulse.charge = 1.0
-                pulse.width  = int(pmt) # width seems to be a proxy for PMT number in the current DOMTrigger
+                pulse.npe = 1 # Number of MCPEs
+                # pulse.width  = int(pmt) # width seems to be a proxy for PMT number in the current DOMTrigger
 
-                k40_pulse_map[OMKey(omkey.string, omkey.om, int(pmt)+1)].append(pulse)
-            
-        return k40_pulse_map
+                k40_mcpe_map[OMKey(omkey.string, omkey.om, int(pmt)+1)].append(pulse)
+
+        return k40_mcpe_map
 
 
     def Geometry(self, frame):

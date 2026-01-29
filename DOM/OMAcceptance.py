@@ -72,17 +72,10 @@ class OMAcceptance(icetray.I3ConditionalModule):
                 if pmtkey not in output_MCPE_map.keys():
                     output_MCPE_map[pmtkey] = simclasses.I3MCPESeriesMap()
 
-<<<<<<< HEAD
                 mcpe        = simclasses.I3MCPE()
                 mcpe.time   = photon.time # Could add time delay here
                 mcpe.npe    = 1 # Number of MCPEs per photon
                 output_MCPE_map[pmtkey].append(mcpe)
-=======
-                MCPE        = dataclasses.I3MCPE()
-                MCPE.time   = photon.time # Could make this non-instentaneous
-                MCPE.charge = 1.0 # 1 photon = 1 PE
-                output_MCPE_map[pmtkey].append(MCPE)
->>>>>>> 5ebe6e6943ae0b84b5862c415588d05627dddb8c
 
         return output_MCPE_map
 
