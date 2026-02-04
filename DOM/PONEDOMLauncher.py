@@ -207,7 +207,8 @@ class DOMSimulation(icetray.I3ConditionalModule):
         # based on tts and late pulse probability
         for pe in mcpe_map:
             # time shifted by tts
-            time = self.random_service.gaus(pe[0], self.pmt_tts)
+            # Changed to take proper MCPE object attributes
+            time = self.random_service.gaus(pe.time, self.pmt_tts)
 
             # check if the pulse will be a late pulse based
             # on the late pulse probability
@@ -216,9 +217,9 @@ class DOMSimulation(icetray.I3ConditionalModule):
                     time += self.random_service.gaus(self.pmt_ts * 2.0, np.sqrt(2.0) * self.pmt_tts)
 
             if len(pulse_time_list) < 1 or time > pulse_time_list[-1][0]:
-                pulse_time_list.append((time, pe[1]))
+                pulse_time_list.append((time, pe.npe))
             else:
-                pulse_out_of_order_time_list.append((time, pe[1]))
+                pulse_out_of_order_time_list.append((time, pe.npe))
 
         # if there are pulses out of order we need to combine the
         # two ordered lists into one
@@ -346,7 +347,8 @@ class DOMSimulation(icetray.I3ConditionalModule):
         Apply the response of the PMT, including combining pulses
         that are too close together
         '''
-        mcpe_map = self.apply_dead_time(mcpe_map.copy())
+        mcpe_map = self.apply_dead_time(mcpe_map) # Will this work?
+        # mcpe_map = self.apply_dead_time(mcpe_map.copy())
 
         output_pulse_map = dataclasses.I3RecoPulseSeriesMap()
         om_pulse_map     = dataclasses.I3RecoPulseSeriesMap()
@@ -379,10 +381,10 @@ class DOMSimulation(icetray.I3ConditionalModule):
             last_hit_times = np.ones(self.num_pmts) * -9999.
 
             for pe in mcpe_map[omkey]:
-                pmt = pe[1]
-                if pe[0] - last_hit_times[pmt-1] > dead_time_ns:
-                    dead_removed_mcpe_map[omkey].append((pe[0], pe[1]))
-                    last_hit_times[pmt-1] = pe[0]
+                pmt = omkey.pmt
+                if pe.time - last_hit_times[pmt-1] > dead_time_ns:
+                    dead_removed_mcpe_map[omkey].append((pe.time, pe.npe))
+                    last_hit_times[pmt-1] = pe.time
         
         return dead_removed_mcpe_map
 
@@ -425,8 +427,8 @@ class DOMSimulation(icetray.I3ConditionalModule):
                 merged_map[omkey] = mcpe_map_1[omkey]
                 continue
             
-            times_1 = [pe[0] for pe in mcpe_map_1[omkey]]
-            times_2 = [pe[0] for pe in mcpe_map_2[omkey]]
+            times_1 = [pe.time for pe in mcpe_map_1[omkey]]
+            times_2 = [pe.time for pe in mcpe_map_2[omkey]]
 
             combined_mcpes, _ = self.combine_ordered_lists(list_1  = mcpe_map_1[omkey],
                                                            order_1 = times_1,
@@ -487,41 +489,60 @@ class DOMSimulation(icetray.I3ConditionalModule):
             simframe = icetray.I3Frame('S')
             self.Simulation(simframe)
         
-        simulation_pulse_map = frame[self.input_map]
-        simulation_mcpe_map  = get_mcpe_map(simulation_pulse_map, self.drop_strings)
+        simulation_mcpe_map  = frame[self.input_map]
 
-        length_noise_pulses = 0
+        length_noise_mcpes = 0
         if self.use_dark:
-            dark_pulse_map       = frame[self.dark_map]
-            dark_mcpe_map        = get_mcpe_map(dark_pulse_map, self.drop_strings)
-            length_noise_pulses += len(dark_pulse_map)
+            dark_mcpe_map        = frame[self.dark_map]
+            length_noise_mcpes += len(dark_mcpe_map)
         if self.use_k40:
-            k40_pulse_map        = frame[self.k40_map]
-            k40_mcpe_map         = get_mcpe_map(k40_pulse_map, self.drop_strings)
-            length_noise_pulses += len(k40_pulse_map)
+            k40_mcpe_map         = frame[self.k40_map]
+            length_noise_mcpes += len(k40_mcpe_map)
         
-        # if there are no pulses or noise
+        # if there are no mcpes or noise
         # just drop the frame
         if self.drop_empty:
-            if (len(simulation_pulse_map) < 1) and self.no_pure_noise_events:
+            if (len(simulation_mcpe_map) < 1) and self.no_pure_noise_events:
                 return            
-            if len(simulation_pulse_map) < 1 and length_noise_pulses < 1:
+            if len(simulation_mcpe_map) < 1 and length_noise_mcpes < 1:
                 return
 
         noise_mcpe_maps = []
 
         # apply the pmt timing characteristics to each mcpe map
-        for omkey in simulation_mcpe_map.keys():
-            simulation_mcpe_map[omkey] = self.apply_pmt_timing_characteristics(simulation_mcpe_map[omkey].copy())
+        # QUICK FIX, CLEAN THIS UP LATE, CHANGE apply_pmt_timing_characteristics TO RETURN A MCPE MAP?
+        for omkey in simulation_mcpe_map.keys(): 
+            new_props = self.apply_pmt_timing_characteristics(simulation_mcpe_map[omkey])
+            new_series = simclasses.I3MCPESeries()
+            for prop in new_props:
+                new_mcpe = simclasses.I3MCPE()
+                new_mcpe.time   = prop[0]
+                new_mcpe.npe    = prop[1] # Number of MCPEs
+                new_series.append(new_mcpe)
+            simulation_mcpe_map[omkey] = new_series
         
         if self.use_dark:
             for omkey in dark_mcpe_map.keys():
-                dark_mcpe_map[omkey] = self.apply_pmt_timing_characteristics(dark_mcpe_map[omkey].copy(), late_pulses=False)
+                new_props = self.apply_pmt_timing_characteristics(dark_mcpe_map[omkey], late_pulses=False)
+                new_series = simclasses.I3MCPESeries()
+                for prop in new_props:
+                    new_mcpe = simclasses.I3MCPE()
+                    new_mcpe.time   = prop[0]
+                    new_mcpe.npe    = prop[1] # Number of MCPEs
+                    new_series.append(new_mcpe)
+                dark_mcpe_map[omkey] = new_series
             noise_mcpe_maps.append(dark_mcpe_map)
         
         if self.use_k40:
             for omkey in k40_mcpe_map.keys():
-                k40_mcpe_map[omkey] = self.apply_pmt_timing_characteristics(k40_mcpe_map[omkey].copy())
+                new_props = self.apply_pmt_timing_characteristics(k40_mcpe_map[omkey], late_pulses=False)
+                new_series = simclasses.I3MCPESeries()
+                for prop in new_props:
+                    new_mcpe = simclasses.I3MCPE()
+                    new_mcpe.time   = prop[0]
+                    new_mcpe.npe    = prop[1] # Number of MCPEs
+                    new_series.append(new_mcpe)
+                k40_mcpe_map[omkey] = new_series
             noise_mcpe_maps.append(k40_mcpe_map)
 
         noise_mcpe_map = {}
