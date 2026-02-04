@@ -4,7 +4,7 @@ import argparse
 import os, sys, random
 from os.path import expandvars
 
-from DOM.DOMAcceptance import DOMAcceptance
+from DOM.OMAcceptance import OMAcceptance
 from DOM.PONEDOMLauncher import DOMSimulation
 
 from NoiseGenerators.DarkNoise import DarkNoise
@@ -50,7 +50,7 @@ parser.add_argument(
 parser.add_argument(
     "-g",
     "--gcdfile",
-    default=os.getenv("PONESRCDIR") + "/GCD/PONE_5String.i3.gz",
+    default=os.getenv("PONESRCDIR") + "/GCD/PONE_10String_1Cluster.i3.gz",
     help="Read in GCD file",
 )
 parser.add_argument(
@@ -121,17 +121,17 @@ outfile = args.outfile
 tray.AddModule("I3Reader", "reader", FilenameList=[args.gcdfile, infile])
 
 
-tray.AddModule(DOMAcceptance,
-               'DOMAcceptance',
+tray.AddModule(OMAcceptance,
+               'OMAcceptance',
                input_map      = photon_series,
-               output_map     = 'Accepted_PulseMap',
-               random_service = randomService,
-               drop_empty = True
+               output_map     = 'Accepted_MCPEMap',
+               random_service = randomService
                )
+
 
 tray.AddModule(DarkNoise,
                'AddDarkNoise',
-               input_map      = 'Accepted_PulseMap',
+               input_map      = 'Accepted_MCPEMap',
                output_map     = 'Noise_Dark',
                random_service = randomService,
                gcd_file       = args.gcdfile
@@ -140,7 +140,7 @@ tray.AddModule(DarkNoise,
 
 tray.AddModule(K40Noise,
                'AddK40Noise',
-               input_map             = 'Accepted_PulseMap',
+               input_map             = 'Accepted_MCPEMap',
                output_map            = 'Noise_K40',
                random_service        = randomService,
                gcd_file              = args.gcdfile
@@ -149,7 +149,7 @@ tray.AddModule(K40Noise,
 
 tray.AddModule(DOMSimulation,
                'DOMLauncher',
-               input_map      = 'Accepted_PulseMap',
+               input_map      = 'Accepted_MCPEMap',
                output_map     = 'PMT_Response',
                random_service = randomService,
                min_time_sep   = args.pulsesep,
@@ -186,7 +186,7 @@ tray.AddModule(
     "writer",
     # SkipKeys = ["I3Photons","I3Photons_PMTResponse","TimeShiftedMCPEMap"],
     Filename=outfile,
-    Streams=[icetray.I3Frame.DAQ, icetray.I3Frame.Physics],
+    Streams=[icetray.I3Frame.Geometry, icetray.I3Frame.Calibration,icetray.I3Frame.DetectorStatus,icetray.I3Frame.DAQ, icetray.I3Frame.Simulation, icetray.I3Frame.Physics],
 )
 
 tray.Execute()
