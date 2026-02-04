@@ -93,8 +93,7 @@ tray.AddModule(
 
 tray.Add(
     "I3Writer",
-    filename=args.outfile,
-    streams=[icetray.I3Frame.TrayInfo, icetray.I3Frame.DAQ],
+    filename=args.outfile
 )
 
 tray.Execute()
