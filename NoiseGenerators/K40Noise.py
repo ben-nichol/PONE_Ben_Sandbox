@@ -214,12 +214,13 @@ class K40Noise(icetray.I3ConditionalModule):
 
     def generate_k40_hits(self, characterization, lower_bound, upper_bound):
         '''
-        Generate the k40 noise pulse map
+        Generate the k40 noise MCPE map
         '''
-        k40_pulse_map = dataclasses.I3RecoPulseSeriesMap()
+        # Added changes to return I3MCPESeriesMap
+        k40_mcpe_map = simclasses.I3MCPESeriesMap()
 
         if lower_bound > upper_bound:
-            return k40_pulse_map
+            return k40_mcpe_map
 
         for omkey in self.omkeys_to_use:
             if omkey.string in self.drop_strings:
@@ -256,19 +257,18 @@ class K40Noise(icetray.I3ConditionalModule):
                 times = np.delete(times, out_of_bounds_time_indices)
                 pmts  = np.delete(pmts, out_of_bounds_time_indices)
 
-            # only add the omkeys for pmts that were hit to the pulse series
+            # only add the omkeys for pmts that were hit to the MCPE series
             for pmt in np.unique(pmts):
-                k40_pulse_map[OMKey(omkey.string, omkey.om, int(pmt)+1)] = dataclasses.I3RecoPulseSeries()
+                k40_mcpe_map[OMKey(omkey.string, omkey.om, int(pmt)+1)] = simclasses.I3MCPESeriesMap()
 
             for i, pmt in enumerate(pmts):
-                pulse        = dataclasses.I3RecoPulse()
-                pulse.time   = times[i]
-                pulse.charge = 1.0
-                pulse.width  = int(pmt) # width seems to be a proxy for PMT number in the current DOMTrigger
+                mcpe        = simclasses.I3MCPE()
+                mcpe.time   = times[i]
+                mcpe.npe = 1 # Number of MCPEs
 
-                k40_pulse_map[OMKey(omkey.string, omkey.om, int(pmt)+1)].append(pulse)
-            
-        return k40_pulse_map
+                k40_mcpe_map[OMKey(omkey.string, omkey.om, int(pmt)+1)].append(mcpe)
+
+        return k40_mcpe_map
 
 
     def Geometry(self, frame):
@@ -289,8 +289,8 @@ class K40Noise(icetray.I3ConditionalModule):
             lower_time_limit = self.manual_time_bounds[0]
             upper_time_limit = self.manual_time_bounds[1]
         else:
-            pulse_map = frame[self.input_map]
-            mcpe_map  = get_mcpe_map(pulse_map, self.drop_strings, self.drop_oms)
+            mcpe_map = frame[self.input_map]
+            mcpe_map  = get_mcpe_map(mcpe_map, self.drop_strings, self.drop_oms)
 
             lower_time_limit, upper_time_limit = get_noise_time_bounds(mcpe_map, self.noise_padding[0], self.noise_padding[1])
         

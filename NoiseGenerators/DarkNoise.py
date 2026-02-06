@@ -25,8 +25,8 @@ class DarkNoise(icetray.I3ConditionalModule):
                           'Name of the i3phtons after module acceptance is applied',
                           'I3Photons_pmtsplit')
         self.AddParameter('output_map',
-                          'Name for the tree of dark hits in the i3 file',
-                          'DarkHits')
+                          'Name for the tree of Dark MCPE Map in the i3 file',
+                          'DarkMCPE')
         self.AddParameter('dark_rate',
                           'Dark Noise rate (pulses per ns)',
                           0.000001)
@@ -82,11 +82,11 @@ class DarkNoise(icetray.I3ConditionalModule):
         '''
         Add dark hits across all OMs (Adds I3MCPEs)
         '''
-        dark_pulse_map = dataclasses.I3RecoPulseSeriesMap()
+        dark_mcpe_map = simclasses.I3MCPESeriesMap()
 
         if lower_bound > upper_bound:
-            return dark_pulse_map
-        
+            return dark_mcpe_map
+
         for omkey in self.omkeys_to_use:
             if omkey.string in self.drop_strings:
                 continue
@@ -101,22 +101,22 @@ class DarkNoise(icetray.I3ConditionalModule):
                 time_delta = self.random_service.exp(1.0 / self.dark_rate) + lower_bound
 
                 first = True
+                # NOW USING I3MCPEs INSTEAD OF I3RecoPulses
                 while time_delta < upper_bound:
                     if first:
-                        dark_pulse_map[pmtkey] = dataclasses.I3RecoPulseSeries()
+                        dark_mcpe_map[pmtkey] = simclasses.I3MCPESeriesMap()
                         first = False
 
-                    pulse        = dataclasses.I3RecoPulse()
-                    pulse.time   = time_delta
-                    pulse.charge = 1.0
-                    pulse.width  = pmt_index # width seems to be a proxy for PMT number in the current DOMTrigger
-                    dark_pulse_map[pmtkey].append(pulse)
+                    mcpe        = simclasses.I3MCPE()
+                    mcpe.time   = time_delta
+                    mcpe.npe    = 1 # Number of MCPEs
+                    dark_mcpe_map[pmtkey].append(mcpe)
 
                     # get the time to the next dark hit
                     # and the next PMT to be hit
                     time_delta += self.random_service.exp(1.0 / self.dark_rate)
         
-        return dark_pulse_map
+        return dark_mcpe_map
 
 
     def Geometry(self, frame):
