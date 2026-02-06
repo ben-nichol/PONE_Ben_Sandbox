@@ -186,7 +186,7 @@ tray.AddModule(
     "writer",
     # SkipKeys = ["I3Photons","I3Photons_PMTResponse","TimeShiftedMCPEMap"],
     Filename=outfile,
-    Streams=[icetray.I3Frame.Geometry, icetray.I3Frame.Calibration,icetray.I3Frame.DetectorStatus,icetray.I3Frame.DAQ, icetray.I3Frame.Simulation, icetray.I3Frame.Physics],
+    Streams=[icetray.I3Frame.DAQ, icetray.I3Frame.Simulation, icetray.I3Frame.Physics],
 )
 
 tray.Execute()
