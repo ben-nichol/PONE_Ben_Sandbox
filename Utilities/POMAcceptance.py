@@ -9,7 +9,7 @@ from scipy.interpolate import CubicSpline, interp1d
 from icecube import phys_services
 from icecube.icetray import I3Units
 
-lass POM:
+class POM:
     '''
     Simple model of the POM
     '''
@@ -29,23 +29,22 @@ lass POM:
         # THIS PMT NUMBERING IS NOT THE SAME AS THE PMT NUMBERING USED IN THE POM FRAME DEFINITION. CHECK POMM
         # indices in this array correspond to the
         # pmt number in the POM frame -1
-        self.PMT_ANGLES = np.array([[57.5, 270.],  # PMT 1
-                                    [57.5, 0.],    # PMT 2
-                                    [57.5, 90.],   # PMT 3
-                                    [57.5, 180.],  # PMT 4
-                                    [25., 225.],   # PMT 5
-                                    [25., 315.],   # PMT 6
-                                    [25., 45.],    # PMT 7
-                                    [25., 135.],   # PMT 8
-                                    [-57.5, 270.], # PMT 9
-                                    [-57.5, 180.], # PMT 10
-                                    [-57.5, 90.],  # PMT 11
-                                    [-57.5, 0.],   # PMT 12
-                                    [-25., 315.],  # PMT 13
-                                    [-25., 225.],  # PMT 14
-                                    [-25., 135.],  # PMT 15
-                                    [-25., 45.]    # PMT 16
-                                    ])
+        self.PMT_ANGLES = np.array([[  58.,0.  ],
+ [  90., -32.  ],
+ [ 122., -0.  ],
+ [  90., 32.  ],
+ [  51.37, 53.06],
+ [  51.37, -53.06],
+ [ 128.63, -53.06],
+ [ 128.63, 53.06],
+ [  58., 180.  ],
+ [  90., 148.  ],
+ [ 122., -180.  ],
+ [  90., -148.  ],
+ [  51.37, -126.94],
+ [  51.37, 126.94],
+ [ 128.63, 126.94],
+ [ 128.63, -126.94]])
 
         # GET RID OF ALL OF THESE COMMENTED THINGS ONCE WE MAKE SURE IT WORKS
 
@@ -69,6 +68,7 @@ lass POM:
 
         # CHANGE THIS??
         # define xyz coordinates for all PMT centres
+        # PMTs 1-8 will be pointing in the +x direction and PMTs 9-16 will be pointing in the -x direction.
         x_coordinates = np.multiply(np.sin(np.deg2rad(90. - self.PMT_ANGLES[:, 0])), np.cos(np.deg2rad(self.PMT_ANGLES[:, 1])))
         y_coordinates = np.multiply(np.sin(np.deg2rad(90. - self.PMT_ANGLES[:, 0])), np.sin(np.deg2rad(self.PMT_ANGLES[:, 1])))
         z_coordinates = np.cos(np.deg2rad(90. - self.PMT_ANGLES[:, 0]))
@@ -89,18 +89,18 @@ lass POM:
         # ----------------------------------------------------------------------------
         self.random_service = random_service
 
+# GET RID OF ALL OF THESE COMMENTED THINGS ONCE WE MAKE SURE IT WORKS
+    # # ----------------------------------------------------------------------------
+    # # methods for referencing PMTs
+    # # ----------------------------------------------------------------------------
+    # def get_pmt_pair_angle(self, pmt_1, pmt_2):
+    #     '''
+    #     Returns the angle in degrees separating two PMTs
+    #     '''
+    #     angle = np.arccos(self.PMT_MATRIX[pmt_1].dot(self.PMT_MATRIX[pmt_2]))
+    #     angle = np.round(np.rad2deg(angle), 2)
 
-    # ----------------------------------------------------------------------------
-    # methods for referencing PMTs
-    # ----------------------------------------------------------------------------
-    def get_pmt_pair_angle(self, pmt_1, pmt_2):
-        '''
-        Returns the angle in degrees separating two PMTs
-        '''
-        angle = np.arccos(self.PMT_MATRIX[pmt_1].dot(self.PMT_MATRIX[pmt_2]))
-        angle = np.round(np.rad2deg(angle), 2)
-
-        return angle
+    #     return angle
 
 
     # ----------------------------------------------------------------------------
@@ -250,25 +250,25 @@ lass POM:
         hit_distance_list = np.zeros_like(photon_list, dtype=float)
 
         for i, photon in enumerate(photon_list):
-            # -------------------------------------------------------------
-            # the module definition is rotated 90 degrees (Ti can in the x-y plane)
-            # because it's a nicer symmetry to work with this way. however, this
-            # means we have to rotate each photon 90 degrees around the x axis
-            # to transform it to the coordinate space of the module definition
+            # # -------------------------------------------------------------
+            # # the module definition is rotated 90 degrees (Ti can in the x-y plane)
+            # # because it's a nicer symmetry to work with this way. however, this
+            # # means we have to rotate each photon 90 degrees around the x axis
+            # # to transform it to the coordinate space of the module definition
 
-            # ------ !!!!!! WARNING !!!!!! ------
-            # DIRECTION IS NOT CURRENTLY USED IN ACCEPTANCE SO IT IS NOT ROTATED
-            # BUT AT SOME POINT IT WILL PROBABLY BE INCLUDED. CAN'T SET DIRECTION XYZ
-            # LIKE POSITION BUT NEED TO SET DIRECTION THETA AND PHI INSTEAD
+            # # ------ !!!!!! WARNING !!!!!! ------
+            # # DIRECTION IS NOT CURRENTLY USED IN ACCEPTANCE SO IT IS NOT ROTATED
+            # # BUT AT SOME POINT IT WILL PROBABLY BE INCLUDED. CAN'T SET DIRECTION XYZ
+            # # LIKE POSITION BUT NEED TO SET DIRECTION THETA AND PHI INSTEAD
 
-            rotation_matrix   = np.array([[1., 0., 0.], [0., 0., -1.], [0., 1., 0.]])
-            position          = np.array([photon.pos.x, photon.pos.y, photon.pos.z])
-            rotated_position  = np.dot(rotation_matrix, position)
+            # rotation_matrix   = np.array([[1., 0., 0.], [0., 0., -1.], [0., 1., 0.]])
+            # position          = np.array([photon.pos.x, photon.pos.y, photon.pos.z])
+            # rotated_position  = np.dot(rotation_matrix, position)
 
-            photon.pos.x = rotated_position[0] * I3Units.m
-            photon.pos.y = rotated_position[1] * I3Units.m
-            photon.pos.z = rotated_position[2] * I3Units.m
-            # -------------------------------------------------------------
+            # photon.pos.x = rotated_position[0] * I3Units.m
+            # photon.pos.y = rotated_position[1] * I3Units.m
+            # photon.pos.z = rotated_position[2] * I3Units.m
+            # # -------------------------------------------------------------
 
             pmt, hit_distance, hit_angle = self.get_pmt(photon)
             
@@ -301,85 +301,85 @@ lass POM:
 
         return [surviving_photons, surviving_pmts]
     
+# ALL OF THES STUFF BELOW THIS IS FOR K40, SO WE DON'T NEED IT HERE
+    # def pmts_home(self, hit_pmts):
+    #     '''
+    #     Returns an array of PMTs that have been
+    #     rotated/vertically flipped to include the
+    #     home PMT. Used to merge symmetrically
+    #     identical PMT combinations
+    #     '''
+    #     # determine the home pmt we want to use. use the lower
+    #     # ring home if only lower ring pmts were hit. in any other
+    #     # case (some number of upper ring pmts were hit), use the
+    #     # upper ring home
+    #     home                   = self.LOWER_RING_HOME
+    #     upper_ring_pmt_indices = np.where(self.UPPER_RING[hit_pmts])[0]
+    #     if len(upper_ring_pmt_indices != 0):
+    #         # if we need to use an upper ring pmt as the home pmt,
+    #         # move it to position 0 in the array because we will
+    #         # rotate whatever pmt is at position 0 to the home
+    #         # locaion
+    #         home              = self.UPPER_RING_HOME
+    #         first_upper_index = upper_ring_pmt_indices[0]
 
-    def rotate_pmts_home(self, hit_pmts):
-        '''
-        Returns an array of PMTs that have been
-        rotated/vertically flipped to include the
-        home PMT. Used to merge symmetrically
-        identical PMT combinations
-        '''
-        # determine the home pmt we want to use. use the lower
-        # ring home if only lower ring pmts were hit. in any other
-        # case (some number of upper ring pmts were hit), use the
-        # upper ring home
-        home                   = self.LOWER_RING_HOME
-        upper_ring_pmt_indices = np.where(self.UPPER_RING[hit_pmts])[0]
-        if len(upper_ring_pmt_indices != 0):
-            # if we need to use an upper ring pmt as the home pmt,
-            # move it to position 0 in the array because we will
-            # rotate whatever pmt is at position 0 to the home
-            # locaion
-            home              = self.UPPER_RING_HOME
-            first_upper_index = upper_ring_pmt_indices[0]
-
-            hit_pmts[0], hit_pmts[first_upper_index] = hit_pmts[first_upper_index], hit_pmts[0]
-
-
-        hit_pmt_angles = self.PMT_ANGLES[hit_pmts]
-        new_angles     = np.zeros_like(hit_pmt_angles)
+    #         hit_pmts[0], hit_pmts[first_upper_index] = hit_pmts[first_upper_index], hit_pmts[0]
 
 
-        new_angles[:, 0] = hit_pmt_angles[:, 0]
-        if not self.TOP_PMTS[hit_pmts[0]]:
-            new_angles[:, 0] *= -1
+    #     hit_pmt_angles = self.PMT_ANGLES[hit_pmts]
+    #     new_angles     = np.zeros_like(hit_pmt_angles)
+
+
+    #     new_angles[:, 0] = hit_pmt_angles[:, 0]
+    #     if not self.TOP_PMTS[hit_pmts[0]]:
+    #         new_angles[:, 0] *= -1
         
-        azimuth_difference = hit_pmt_angles[0, 1] - home[1]
-        new_angles[:, 1]    = hit_pmt_angles[:, 1] - azimuth_difference
+    #     azimuth_difference = hit_pmt_angles[0, 1] - home[1]
+    #     new_angles[:, 1]    = hit_pmt_angles[:, 1] - azimuth_difference
 
-        # make sure the angles are within [0, 360) degrees
-        # so we can match with the defined pmt angles
-        new_angles[:, 1][np.where(new_angles[:, 1] < 0)[0]] += 360
-        new_angles[:, 1][np.where(new_angles[:, 1] >= 360)[0]] -= 360
+    #     # make sure the angles are within [0, 360) degrees
+    #     # so we can match with the defined pmt angles
+    #     new_angles[:, 1][np.where(new_angles[:, 1] < 0)[0]] += 360
+    #     new_angles[:, 1][np.where(new_angles[:, 1] >= 360)[0]] -= 360
 
-        transformed_pmts = np.zeros_like(hit_pmts, dtype=int)
-        new_angle_sums   = np.sum(new_angles, axis=1)
+    #     transformed_pmts = np.zeros_like(hit_pmts, dtype=int)
+    #     new_angle_sums   = np.sum(new_angles, axis=1)
 
-        for i, angle_sum in enumerate(new_angle_sums):
-            transformed_pmts[i] = np.where(self.ANGLE_SUMS == angle_sum)[0][0]
+    #     for i, angle_sum in enumerate(new_angle_sums):
+    #         transformed_pmts[i] = np.where(self.ANGLE_SUMS == angle_sum)[0][0]
         
-        return transformed_pmts
+    #     return transformed_pmts
     
 
-    def horizontal_symmetric_pmts(self, hit_pmts):
-        '''
-        Returns an array of PMTs flipped horizontally
-        across the home PMT. Used to further compress
-        symmetrically identical PMT combinations
-        '''
-        hit_pmt_angles = self.PMT_ANGLES[hit_pmts]
+    # def horizontal_symmetric_pmts(self, hit_pmts):
+    #     '''
+    #     Returns an array of PMTs flipped horizontally
+    #     across the home PMT. Used to further compress
+    #     symmetrically identical PMT combinations
+    #     '''
+    #     hit_pmt_angles = self.PMT_ANGLES[hit_pmts]
 
-        if self.UPPER_HOME_INDEX in hit_pmts:
-            home = self.UPPER_RING_HOME
-        elif self.LOWER_HOME_INDEX in hit_pmts:
-            home = self.LOWER_RING_HOME
-        else:
-            raise Exception(f'No home PMT found in PMT list! (hit_pmts: {hit_pmts})')
+    #     if self.UPPER_HOME_INDEX in hit_pmts:
+    #         home = self.UPPER_RING_HOME
+    #     elif self.LOWER_HOME_INDEX in hit_pmts:
+    #         home = self.LOWER_RING_HOME
+    #     else:
+    #         raise Exception(f'No home PMT found in PMT list! (hit_pmts: {hit_pmts})')
 
-        azimuth_differences = hit_pmt_angles[:, 1] - home[1]
-        flipped_azimuths    = hit_pmt_angles[:, 1] - (2 * azimuth_differences)
+    #     azimuth_differences = hit_pmt_angles[:, 1] - home[1]
+    #     flipped_azimuths    = hit_pmt_angles[:, 1] - (2 * azimuth_differences)
 
-        hit_pmt_angles[:, 1] = flipped_azimuths
+    #     hit_pmt_angles[:, 1] = flipped_azimuths
 
-        # make sure the angles are within [0, 360) degrees
-        # so we can match with the defined pmt angles
-        hit_pmt_angles[:, 1][np.where(hit_pmt_angles[:, 1] < 0)[0]] += 360
-        hit_pmt_angles[:, 1][np.where(hit_pmt_angles[:, 1] >= 360)[0]] -= 360
+    #     # make sure the angles are within [0, 360) degrees
+    #     # so we can match with the defined pmt angles
+    #     hit_pmt_angles[:, 1][np.where(hit_pmt_angles[:, 1] < 0)[0]] += 360
+    #     hit_pmt_angles[:, 1][np.where(hit_pmt_angles[:, 1] >= 360)[0]] -= 360
 
-        flipped_pmts       = np.zeros(len(hit_pmts), dtype=int)
-        flipped_angle_sums = np.sum(hit_pmt_angles, axis=1)
+    #     flipped_pmts       = np.zeros(len(hit_pmts), dtype=int)
+    #     flipped_angle_sums = np.sum(hit_pmt_angles, axis=1)
 
-        for i, angle_sum in enumerate(flipped_angle_sums):
-            flipped_pmts[i] = np.where(self.ANGLE_SUMS == angle_sum)[0][0]
+    #     for i, angle_sum in enumerate(flipped_angle_sums):
+    #         flipped_pmts[i] = np.where(self.ANGLE_SUMS == angle_sum)[0][0]
         
-        return flipped_pmts
+    #     return flipped_pmts
