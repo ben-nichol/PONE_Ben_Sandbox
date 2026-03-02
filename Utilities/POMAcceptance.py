@@ -26,12 +26,12 @@ class POM:
         # ----------------------------------------------------------------------------
         self.MODULE_RADIUS_M      = 0.2159
         self.PMT_RADIUS_M         = 0.055
-        # THIS PMT NUMBERING IS NOT THE SAME AS THE PMT NUMBERING USED IN THE POM FRAME DEFINITION. CHECK POMM
+        # DOUBLE CHECK IF THIS IS CORRECT, SHOULD BE THE SAME AS DEFINIED IN FULL DEPLOYMENT LAYOUT ON CONFLUENCE
         # indices in this array correspond to the
         # pmt number in the POM frame -1
         self.PMT_ANGLES = np.array([[  58.,0.  ],
  [  90., -32.  ],
- [ 122., -0.  ],
+ [ 122., 0.  ],
  [  90., 32.  ],
  [  51.37, 53.06],
  [  51.37, -53.06],
@@ -69,9 +69,9 @@ class POM:
         # CHANGE THIS??
         # define xyz coordinates for all PMT centres
         # PMTs 1-8 will be pointing in the +x direction and PMTs 9-16 will be pointing in the -x direction.
-        x_coordinates = np.multiply(np.sin(np.deg2rad(90. - self.PMT_ANGLES[:, 0])), np.cos(np.deg2rad(self.PMT_ANGLES[:, 1])))
-        y_coordinates = np.multiply(np.sin(np.deg2rad(90. - self.PMT_ANGLES[:, 0])), np.sin(np.deg2rad(self.PMT_ANGLES[:, 1])))
-        z_coordinates = np.cos(np.deg2rad(90. - self.PMT_ANGLES[:, 0]))
+        x_coordinates = np.multiply(np.sin(np.deg2rad(self.PMT_ANGLES[:, 0])), np.cos(np.deg2rad(self.PMT_ANGLES[:, 1])))
+        y_coordinates = np.multiply(np.sin(np.deg2rad(self.PMT_ANGLES[:, 0])), np.sin(np.deg2rad(self.PMT_ANGLES[:, 1])))
+        z_coordinates = np.cos(np.deg2rad(self.PMT_ANGLES[:, 0]))
 
         self.PMT_MATRIX = np.array([x_coordinates, y_coordinates, z_coordinates]).T
 
@@ -250,25 +250,6 @@ class POM:
         hit_distance_list = np.zeros_like(photon_list, dtype=float)
 
         for i, photon in enumerate(photon_list):
-            # # -------------------------------------------------------------
-            # # the module definition is rotated 90 degrees (Ti can in the x-y plane)
-            # # because it's a nicer symmetry to work with this way. however, this
-            # # means we have to rotate each photon 90 degrees around the x axis
-            # # to transform it to the coordinate space of the module definition
-
-            # # ------ !!!!!! WARNING !!!!!! ------
-            # # DIRECTION IS NOT CURRENTLY USED IN ACCEPTANCE SO IT IS NOT ROTATED
-            # # BUT AT SOME POINT IT WILL PROBABLY BE INCLUDED. CAN'T SET DIRECTION XYZ
-            # # LIKE POSITION BUT NEED TO SET DIRECTION THETA AND PHI INSTEAD
-
-            # rotation_matrix   = np.array([[1., 0., 0.], [0., 0., -1.], [0., 1., 0.]])
-            # position          = np.array([photon.pos.x, photon.pos.y, photon.pos.z])
-            # rotated_position  = np.dot(rotation_matrix, position)
-
-            # photon.pos.x = rotated_position[0] * I3Units.m
-            # photon.pos.y = rotated_position[1] * I3Units.m
-            # photon.pos.z = rotated_position[2] * I3Units.m
-            # # -------------------------------------------------------------
 
             pmt, hit_distance, hit_angle = self.get_pmt(photon)
             
