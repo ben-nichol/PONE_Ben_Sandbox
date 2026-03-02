@@ -5,7 +5,8 @@ from icecube.icetray import I3Units, OMKey, I3Frame
 from icecube.dataclasses import ModuleKey
 
 from Utilities.DOMUtility import NoPMTKey, AddPMTKey
-from Utilities.POMModel import POM
+from Utilities.POMAcceptance import POM # Testing this new model with the proper PMT angles
+# from Utilities.POMModel import POM
 
 
 
