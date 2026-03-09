@@ -4,7 +4,7 @@ import numpy as np
 import scipy.constants as const
 from os.path import dirname, abspath
 
-from scipy.interpolate import CubicSpline, interp1d
+from scipy.interpolate import CubicSpline, LinearNDInterpolator
 
 from icecube import phys_services
 from icecube.icetray import I3Units
@@ -15,7 +15,7 @@ class POM:
     '''
     def __init__(self,
                  qe_file        = os.getenv('PONESRCDIR') + '/data/qe.csv',
-                 aa_file        = os.getenv('PONESRCDIR') + '/data/aa-0.csv',
+                 aa_file        = os.getenv('PONESRCDIR') + '/data/Angular_Acceptance.txt',
                  glass_file     = os.getenv('PONESRCDIR') + '/data/glass.csv',
                  random_service = None):
         '''
@@ -91,8 +91,9 @@ class POM:
         Function that loads single PMT angular
         acceptance data
         '''
-        aa_data     = np.loadtxt(aa_file, delimiter=',')
-        aa_function = interp1d(aa_data.T[0], aa_data.T[1], bounds_error=False, fill_value=0)
+        aa_data     = np.loadtxt(aa_file, skiprows=1, delimiter=',')
+        points = list(zip(aa_data.T[0],aa_data.T[1]))
+        aa_function = LinearNDInterpolator(points, aa_data.T[2], fill_value=0)
 
         return aa_function
     
@@ -122,14 +123,15 @@ class POM:
         return efficiencies
     
 
-    def get_angular_acceptance(self, pmt_distance_list):
+    def get_angular_acceptance(self, pmt_distance_list, pmt_angle_list):
         '''
         Returns an array of angular acceptances
-        for a given array of distances between
+        for a given array of distances and angles between
         pmts and photons
         '''
         distances    = np.hstack(pmt_distance_list)
-        efficiencies = np.nan_to_num(self.aa_function(distances))
+        angles       = np.hstack(pmt_angle_list)
+        efficiencies = np.nan_to_num(self.aa_function(distances, angles))
 
         return efficiencies
 
@@ -213,14 +215,15 @@ class POM:
         '''
         pmt_list          = np.zeros_like(photon_list, dtype=float)
         hit_distance_list = np.zeros_like(photon_list, dtype=float)
-
-        for i, photon in enumerate(photon_list):
+        hit_angle_list    = np.zeros_like(photon_list, dtype=float)
+        for i, photon in enumerate(photon_list): # NEED TO CHANGE THIS TO ACCOUNT FOR MULTIPLE PMT HITS
 
             pmt, hit_distance, hit_angle = self.get_pmt(photon)
             
             pmt_list[i]          = pmt
             hit_distance_list[i] = hit_distance
-    
+            hit_angle_list[i]    = hit_angle
+
         probability_list = self.get_probabilities(photon_list, hit_distance_list)
 
         accepted_indices = np.logical_and(probability_list > 0.001, pmt_list != 100.)
