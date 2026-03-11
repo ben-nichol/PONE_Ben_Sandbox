@@ -347,8 +347,7 @@ class DOMSimulation(icetray.I3ConditionalModule):
         Apply the response of the PMT, including combining pulses
         that are too close together
         '''
-        mcpe_map = self.apply_dead_time(mcpe_map) # Will this work?
-        # mcpe_map = self.apply_dead_time(mcpe_map.copy())
+        mcpe_map = self.apply_dead_time(mcpe_map)
 
         output_pulse_map = dataclasses.I3RecoPulseSeriesMap()
         om_pulse_map     = dataclasses.I3RecoPulseSeriesMap()
