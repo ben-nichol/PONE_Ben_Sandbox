@@ -4,7 +4,7 @@ import numpy as np
 import scipy.constants as const
 from os.path import dirname, abspath
 
-from scipy.interpolate import CubicSpline, LinearNDInterpolator
+from scipy.interpolate import CubicSpline, RBFInterpolator
 
 from icecube import phys_services
 from icecube.icetray import I3Units
@@ -33,21 +33,21 @@ class POM:
         # indices in this array correspond to the
         # pmt number in the POM frame -1
         self.PMT_ANGLES = np.array([[  58.,0.  ],
- [  90., -32.  ],
- [ 122., 0.  ],
- [  90., 32.  ],
- [  51.37, 53.06],
- [  51.37, -53.06],
- [ 128.63, -53.06],
- [ 128.63, 53.06],
- [  58., 180.  ],
- [  90., 148.  ],
- [ 122., -180.  ],
- [  90., -148.  ],
- [  51.37, -126.94],
- [  51.37, 126.94],
- [ 128.63, 126.94],
- [ 128.63, -126.94]])
+                                    [  90., -32.  ],
+                                    [ 122., 0.  ],
+                                    [  90., 32.  ],
+                                    [  51.37, 53.06],
+                                    [  51.37, -53.06],
+                                    [ 128.63, -53.06],
+                                    [ 128.63, 53.06],
+                                    [  58., 180.  ],
+                                    [  90., 148.  ],
+                                    [ 122., -180.  ],
+                                    [  90., -148.  ],
+                                    [  51.37, -126.94],
+                                    [  51.37, 126.94],
+                                    [ 128.63, 126.94],
+                                    [ 128.63, -126.94]])
 
         # define xyz unit vectors for all PMT centres
         # PMTs 1-8 will be pointing in the +x direction and PMTs 9-16 will be pointing in the -x direction.
@@ -92,8 +92,8 @@ class POM:
         acceptance data
         '''
         aa_data     = np.loadtxt(aa_file, skiprows=1, delimiter=',')
-        points = list(zip(aa_data.T[0],aa_data.T[1]))
-        aa_function = LinearNDInterpolator(points, aa_data.T[2], fill_value=0)
+        points = np.column_stack([aa_data.T[0], aa_data.T[1]])
+        aa_function = RBFInterpolator(points, aa_data.T[2])
 
         return aa_function
     
@@ -129,12 +129,12 @@ class POM:
         for a given array of distances and angles between
         pmts and photons
         '''
-        distances    = np.hstack(pmt_distance_list)
-        angles       = np.hstack(pmt_angle_list)
-        efficiencies = np.nan_to_num(self.aa_function(distances, angles))
-
+        distances = np.atleast_1d(pmt_distance_list)
+        angles    = np.atleast_1d(pmt_angle_list)
+        points    = np.column_stack([distances, angles])  # shape (N, 2)
+        
+        efficiencies = np.nan_to_num(self.aa_function(points))
         return efficiencies
-
 
     def get_glass_efficiency(self, photon_list):
         '''
@@ -174,6 +174,7 @@ class POM:
         # check if the ditance at the module radius between the pmt vector
         # and the photon vector falls within the PMT size, if so, mark as a hit
         # return a list of indices that have been 'hit'
+        # THIS SHOULD BE THE DISTANCE THAT IS ORTHOGONAL TO THE PMT VECTOR
         pmt_vector_distances = self.MODULE_RADIUS_M * np.sin(np.arccos(pmt_photon_angles))
         # Determine if the angle between the photon direction and the vector from the PMT to the photon is positive or negative 
         
@@ -185,13 +186,13 @@ class POM:
             # Will return multiple hits, need to apply acceptance cut to determine which one is actually detected
             hit_angle    = np.rad2deg(np.arccos(cos_angle)) * angle_sign
             hit_distance = pmt_vector_distances[pmts_hit]
-            return [[pmts_hit[i]+1, hit_distance[i], hit_angle[i]] for i in range(len(pmts_hit))]
+            return np.array([[pmts_hit[i]+1, hit_distance[i], hit_angle[i]] for i in range(len(pmts_hit))])
         else:
             # no pmt hit return a PMT label 100 to mark an error
-            return [[100., 100., 100.]]
+            return np.array([[100., 100., 100.]])
 
 
-    def get_probabilities(self, photons, pmt_photon_distances):
+    def get_probabilities(self, photons, pmt_photon_distances,pmt_photon_angles):
         '''
         Returns a list of detection probabilities
         correspon to the given list of photons and
@@ -200,7 +201,7 @@ class POM:
         weights = np.array([p.weight for p in photons])
 
         quantum_efficiency    = self.get_quantum_efficiency(photons)
-        angular_acceptance    = self.get_angular_acceptance(pmt_photon_distances)
+        angular_acceptance    = self.get_angular_acceptance(pmt_photon_distances,pmt_photon_angles)
         glass_transmittance   = self.get_glass_efficiency(photons)
         collection_efficiency = self.get_collection_efficiency(photons)
 
@@ -217,14 +218,19 @@ class POM:
         hit_distance_list = np.zeros_like(photon_list, dtype=float)
         hit_angle_list    = np.zeros_like(photon_list, dtype=float)
         for i, photon in enumerate(photon_list): # NEED TO CHANGE THIS TO ACCOUNT FOR MULTIPLE PMT HITS
-
-            pmt, hit_distance, hit_angle = self.get_pmt(photon)
             
-            pmt_list[i]          = pmt
-            hit_distance_list[i] = hit_distance
-            hit_angle_list[i]    = hit_angle
+            hit_list = self.get_pmt(photon)
+            
+            angular_prob = self.get_angular_acceptance(hit_list.T[0], hit_list.T[1])
+            print(angular_prob)
+            print("done")
+            # pmt, hit_distance, hit_angle = self.get_pmt(photon)
+            best_hit = angular_prob==np.max(angular_prob)
+            pmt_list[i]          = hit_list[best_hit][0]
+            hit_distance_list[i] = hit_list[best_hit][1]
+            hit_angle_list[i]    = hit_list[best_hit][2]
 
-        probability_list = self.get_probabilities(photon_list, hit_distance_list)
+        probability_list = self.get_probabilities(photon_list, hit_distance_list,hit_angle_list)
 
         accepted_indices = np.logical_and(probability_list > 0.001, pmt_list != 100.)
 
