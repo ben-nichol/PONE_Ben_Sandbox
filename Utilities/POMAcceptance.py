@@ -222,13 +222,10 @@ class POM:
             hit_list = self.get_pmt(photon)
             
             angular_prob = self.get_angular_acceptance(hit_list.T[0], hit_list.T[1])
-            print(angular_prob)
-            print("done")
-            # pmt, hit_distance, hit_angle = self.get_pmt(photon)
             best_hit = angular_prob==np.max(angular_prob)
-            pmt_list[i]          = hit_list[best_hit][0]
-            hit_distance_list[i] = hit_list[best_hit][1]
-            hit_angle_list[i]    = hit_list[best_hit][2]
+            pmt_list[i]          = hit_list[best_hit][0][0]
+            hit_distance_list[i] = hit_list[best_hit][0][1]
+            hit_angle_list[i]    = hit_list[best_hit][0][2]
 
         probability_list = self.get_probabilities(photon_list, hit_distance_list,hit_angle_list)
 
