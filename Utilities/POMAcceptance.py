@@ -4,7 +4,7 @@ import numpy as np
 import scipy.constants as const
 from os.path import dirname, abspath
 
-from scipy.interpolate import CubicSpline, RBFInterpolator
+from scipy.interpolate import CubicSpline, LinearNDInterpolator
 
 from icecube import phys_services
 from icecube.icetray import I3Units
@@ -29,25 +29,25 @@ class POM:
         self.PMT_RADIUS_M         = 0.1 # CHANGED THIS TO MATCH THE ANGULAR ACCEPTANCE FILES
                                         # This now allows 2 PMTs to be hit as the same time
                                         # Can choose what one is hit based on acceptance probability
-        # DOUBLE CHECK IF THIS IS CORRECT, SHOULD BE THE SAME AS DEFINIED IN FULL DEPLOYMENT LAYOUT ON CONFLUENCE
+        # [Zenith, Azimuth] angles for each PMT
         # indices in this array correspond to the
         # pmt number in the POM frame -1
         self.PMT_ANGLES = np.array([[  58.,0.  ],
-                                    [  90., -32.  ],
+                                    [  90., 328.  ],
                                     [ 122., 0.  ],
                                     [  90., 32.  ],
                                     [  51.37, 53.06],
-                                    [  51.37, -53.06],
-                                    [ 128.63, -53.06],
+                                    [  51.37, 306.94],
+                                    [ 128.63, 306.94],
                                     [ 128.63, 53.06],
                                     [  58., 180.  ],
                                     [  90., 148.  ],
-                                    [ 122., -180.  ],
-                                    [  90., -148.  ],
-                                    [  51.37, -126.94],
+                                    [ 122., 180.  ],
+                                    [  90., 212.  ],
+                                    [  51.37, 233.06],
                                     [  51.37, 126.94],
                                     [ 128.63, 126.94],
-                                    [ 128.63, -126.94]])
+                                    [ 128.63, 233.06]])
 
         # define xyz unit vectors for all PMT centres
         # PMTs 1-8 will be pointing in the +x direction and PMTs 9-16 will be pointing in the -x direction.
@@ -93,7 +93,7 @@ class POM:
         '''
         aa_data     = np.loadtxt(aa_file, skiprows=1, delimiter=',')
         points = np.column_stack([aa_data.T[0], aa_data.T[1]])
-        aa_function = RBFInterpolator(points, aa_data.T[2])
+        aa_function = LinearNDInterpolator(points, aa_data.T[2])
 
         return aa_function
     
