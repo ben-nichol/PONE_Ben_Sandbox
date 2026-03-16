@@ -165,7 +165,7 @@ def AddPOM(geomap,position,string,om,separation=0.0785,pom_radius=0.2159):
     """
     npmts=16
     x,y,z = position
-    pmt_area = 2*np.pi * pcal_radius**2 #half sphere approx
+    pmt_area = 2*np.pi * pom_radius**2 #half sphere approx
     for k in range(2):
         omGeometry = dataclasses.I3OMGeo()
         omGeometry.omtype = dataclasses.I3OMGeo.OMType.mDOM
