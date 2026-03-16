@@ -11,6 +11,7 @@ parser.add_argument("-o","--output", type=str, default="out", help="i3 file name
 parser.add_argument("-d","--npoms",  type=int, default=20, help="OMs per string.")
 parser.add_argument("-r","--pomradius", type=float, default=0.2159, help='Radius of pom. Defaults to 0.2159 m')
 parser.add_argument("-l", "--mooringlength", type=int, default=1000, help="Length of the mooring")
+parser.add_argument("--spacing", type=float, default=None, help="optional override of automated spacing")
 parser.add_argument("-s", "--omsequence", type=list, default=['POM'], help="Repeating sequence of POM or PCAL going from the bottom of the line to the top. Default is all POMs")
 # The below sequence is the order that PONE-1 will have
 # parser.add_argument("-s", "--omsequence", type=list, default=['POM','POM','POM','POM','POM','PCAL','POM','POM','POM','POM','POM','POM','PCAL','POM','POM','POM','POM','POM','POM'], help="Repeating sequence of POM or PCAL going from the bottom of the line to the top. Default is all POMs")
@@ -26,9 +27,12 @@ outfileName = (
 outfile = dataio.I3File(outfileName, "w")
 
 #create list of depths for modules
-sp = args.mooringlength / args.npoms #spacing
-mid = args.mooringlength / 2.0 #middle of string
-depthlist = [(-mid + sp + sp * i) * I3Units.meter for i in range(args.npoms)] # from sp to mooringlength. 0 at middle of detector
+if args.spacing is not None:
+    sp = args.spacing
+else:
+    sp = args.mooringlength / args.npoms #spacing
+zero_z = 500 #0,0,0 500m above sea floor 
+depthlist = [(-zero_z + sp + sp * i) * I3Units.meter for i in range(args.npoms)] # from sp to mooringlength. 0 at middle of detector
 depth = np.array(depthlist) 
 
 #read x,y from csv file
@@ -37,7 +41,6 @@ ypositions = []
 
 with open(args.input, newline='') as csvfile:
     reader = csv.reader(csvfile)
-    next(reader)  # Skip header if there is one
     for row in reader:
         xpositions.append(float(row[0]))
         ypositions.append(float(row[1]))
