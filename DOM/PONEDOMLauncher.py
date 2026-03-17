@@ -274,7 +274,7 @@ class DOMSimulation(icetray.I3ConditionalModule):
             following = 1
             while following < len(pulse_time_list):
                 if (
-                    pulse_time_list[following][0] - pulse_time_list[leading][0]
+                    pulse_time_list[following].time - pulse_time_list[leading].time
                 ) < 3.0 and pulse_charge_list[leading] * pulse_charge_list[following] > 0.0:
                     pulse_charge_list[leading] += pulse_charge_list[following]
                     pulse_charge_list[following] = 0.0
@@ -285,9 +285,9 @@ class DOMSimulation(icetray.I3ConditionalModule):
             # needs to be better
             for i in range(1, len(pulse_time_list)):
                 if (
-                    pulse_time_list[i][0] - pulse_time_list[i - 1][0]
+                    pulse_time_list[i].time - pulse_time_list[i - 1].time
                 ) < min_gap and pulse_charge_list[i] * pulse_charge_list[i - 1] > 0.0:
-                    min_gap = pulse_time_list[i][0] - pulse_time_list[i - 1][0]
+                    min_gap = pulse_time_list[i].time - pulse_time_list[i - 1].time
                     min_index = i
             # If less than limit, combine pulses
             while min_gap <= self.min_time_sep:
@@ -302,9 +302,9 @@ class DOMSimulation(icetray.I3ConditionalModule):
                 # reestablish new min gap
                 for i in range(1, len(pulse_time_list)):
                     if (
-                        pulse_time_list[i][0] - pulse_time_list[i - 1][0]
+                        pulse_time_list[i].time - pulse_time_list[i - 1].time
                     ) < min_gap and pulse_charge_list[i] * pulse_charge_list[i - 1] > 0.0:
-                        min_gap = pulse_time_list[i][0] - pulse_time_list[i - 1][0]
+                        min_gap = pulse_time_list[i].time - pulse_time_list[i - 1].time
                         min_index = i
 
         pmt_in_list = []
@@ -347,8 +347,11 @@ class DOMSimulation(icetray.I3ConditionalModule):
         Apply the response of the PMT, including combining pulses
         that are too close together
         '''
-        mcpe_map = self.apply_dead_time(mcpe_map)
 
+        mcpe_map = self.apply_dead_time(mcpe_map) # Will this work?
+
+        # CHANGED SOMETHING SO NOW IT ALL RETURNS PMT 1
+        # NEED TO FIX THIS IMEDEATELY
         output_pulse_map = dataclasses.I3RecoPulseSeriesMap()
         om_pulse_map     = dataclasses.I3RecoPulseSeriesMap()
 
