@@ -287,9 +287,9 @@ class DOMSimulation(icetray.I3ConditionalModule):
             # needs to be better
             for i in range(1, len(pulse_time_list)):
                 if (
-                    pulse_time_list[i].time - pulse_time_list[i - 1].time
+                    pulse_time_list[i][0] - pulse_time_list[i - 1][0]
                 ) < min_gap and pulse_charge_list[i] * pulse_charge_list[i - 1] > 0.0:
-                    min_gap = pulse_time_list[i].time - pulse_time_list[i - 1].time
+                    min_gap = pulse_time_list[i][0] - pulse_time_list[i - 1][0]
                     min_index = i
             # If less than limit, combine pulses
             while min_gap <= self.min_time_sep:
@@ -304,9 +304,9 @@ class DOMSimulation(icetray.I3ConditionalModule):
                 # reestablish new min gap
                 for i in range(1, len(pulse_time_list)):
                     if (
-                        pulse_time_list[i].time - pulse_time_list[i - 1].time
+                        pulse_time_list[i][0] - pulse_time_list[i - 1][0]
                     ) < min_gap and pulse_charge_list[i] * pulse_charge_list[i - 1] > 0.0:
-                        min_gap = pulse_time_list[i].time - pulse_time_list[i - 1].time
+                        min_gap = pulse_time_list[i][0] - pulse_time_list[i - 1][0]
                         min_index = i
         pmt_in_list = []
         for i in range(len(pulse_time_list)):
