@@ -64,7 +64,7 @@ class POM:
         self.aa_function    = self.get_aa_function(aa_file)
         self.glass_function = self.get_glass_function(glass_file)
 
-        self.collection_efficiency = 0.9 # assume a fixed constant collection efficiency for now
+        self.collection_efficiency = 1. # assume a fixed constant collection efficiency for now. If PMT efficiency needs to be adjusted it can be done here.
 
         # ----------------------------------------------------------------------------
         # set up random service if using icetray (otherwise just uses numpy random)
