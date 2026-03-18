@@ -217,12 +217,11 @@ class POM:
         pmt_list          = np.zeros_like(photon_list, dtype=float)
         hit_distance_list = np.zeros_like(photon_list, dtype=float)
         hit_angle_list    = np.zeros_like(photon_list, dtype=float)
-        for i, photon in enumerate(photon_list): # NEED TO CHANGE THIS TO ACCOUNT FOR MULTIPLE PMT HITS
-            
+        for i, photon in enumerate(photon_list): # This now allows for multiple possible hits for a single photon
             hit_list = self.get_pmt(photon)
             
             angular_prob = self.get_angular_acceptance(hit_list.T[0], hit_list.T[1])
-            best_hit = angular_prob==np.max(angular_prob)
+            best_hit = angular_prob==np.max(angular_prob) # Just takes the maximum probability
             pmt_list[i]          = hit_list[best_hit][0][0]
             hit_distance_list[i] = hit_list[best_hit][0][1]
             hit_angle_list[i]    = hit_list[best_hit][0][2]
