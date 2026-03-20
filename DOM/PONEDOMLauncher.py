@@ -332,6 +332,8 @@ class DOMSimulation(icetray.I3ConditionalModule):
                 )
             else:
                 rpulse.charge = pulse_charge_list[-1 - i]
+            # The pulse width is being set to the PMT number. Don't know why that is.
+            # This will need to be changed in the future to be something more physical.
             rpulse.width = pulse_time_list[i][1]
             if not (om_pulse_map is None):
                 if omkey not in om_pulse_map.keys():
