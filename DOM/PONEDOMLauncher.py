@@ -190,7 +190,7 @@ class DOMSimulation(icetray.I3ConditionalModule):
         return combined_list, source_list
 
 
-    def apply_pmt_timing_characteristics(self, mcpe_map, late_pulses=True, after_pulses=True):
+    def apply_pmt_timing_characteristics(self, mcpe_map, pmt_num, late_pulses=True, after_pulses=True):
         '''
         Applies transit time and transit time spread
         to a given mcpe map
@@ -209,7 +209,6 @@ class DOMSimulation(icetray.I3ConditionalModule):
             # time shifted by tts
             # Changed to take proper MCPE object attributes
             time = self.random_service.gaus(pe.time, self.pmt_tts)
-
             # check if the pulse will be a late pulse based
             # on the late pulse probability
             if late_pulses:
@@ -217,9 +216,9 @@ class DOMSimulation(icetray.I3ConditionalModule):
                     time += self.random_service.gaus(self.pmt_ts * 2.0, np.sqrt(2.0) * self.pmt_tts)
 
             if len(pulse_time_list) < 1 or time > pulse_time_list[-1][0]:
-                pulse_time_list.append((time, pe.npe))
+                pulse_time_list.append((time, pmt_num))
             else:
-                pulse_out_of_order_time_list.append((time, pe.npe))
+                pulse_out_of_order_time_list.append((time, pmt_num))
 
         # if there are pulses out of order we need to combine the
         # two ordered lists into one
@@ -333,6 +332,8 @@ class DOMSimulation(icetray.I3ConditionalModule):
                 )
             else:
                 rpulse.charge = pulse_charge_list[-1 - i]
+            # The pulse width is being set to the PMT number. Don't know why that is.
+            # This will need to be changed in the future to be something more physical.
             rpulse.width = pulse_time_list[i][1]
             if not (om_pulse_map is None):
                 if omkey not in om_pulse_map.keys():
@@ -512,7 +513,7 @@ class DOMSimulation(icetray.I3ConditionalModule):
         # apply the pmt timing characteristics to each mcpe map
         # QUICK FIX, CLEAN THIS UP LATE, CHANGE apply_pmt_timing_characteristics TO RETURN A MCPE MAP?
         for omkey in simulation_mcpe_map.keys(): 
-            new_props = self.apply_pmt_timing_characteristics(simulation_mcpe_map[omkey])
+            new_props = self.apply_pmt_timing_characteristics(simulation_mcpe_map[omkey],omkey.pmt)
             new_series = simclasses.I3MCPESeries()
             for prop in new_props:
                 new_mcpe = simclasses.I3MCPE()
@@ -523,7 +524,7 @@ class DOMSimulation(icetray.I3ConditionalModule):
         
         if self.use_dark:
             for omkey in dark_mcpe_map.keys():
-                new_props = self.apply_pmt_timing_characteristics(dark_mcpe_map[omkey], late_pulses=False)
+                new_props = self.apply_pmt_timing_characteristics(dark_mcpe_map[omkey], omkey.pmt, late_pulses=False)
                 new_series = simclasses.I3MCPESeries()
                 for prop in new_props:
                     new_mcpe = simclasses.I3MCPE()
@@ -535,7 +536,7 @@ class DOMSimulation(icetray.I3ConditionalModule):
         
         if self.use_k40:
             for omkey in k40_mcpe_map.keys():
-                new_props = self.apply_pmt_timing_characteristics(k40_mcpe_map[omkey], late_pulses=False)
+                new_props = self.apply_pmt_timing_characteristics(k40_mcpe_map[omkey], omkey.pmt, late_pulses=False)
                 new_series = simclasses.I3MCPESeries()
                 for prop in new_props:
                     new_mcpe = simclasses.I3MCPE()
