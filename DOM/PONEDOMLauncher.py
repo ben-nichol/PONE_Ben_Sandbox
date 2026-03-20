@@ -314,11 +314,10 @@ class DOMSimulation(icetray.I3ConditionalModule):
                 continue
             if pulse_time_list[i][1] not in pmt_in_list:
                 pmt_in_list.append(pulse_time_list[i][1])
+
         pmt_in_list.sort()
         for i in range(len(pmt_in_list)):
-            # newomkey = AddPMTKey(omkey, pmt_in_list[i])
             newomkey = omkey
-
             output_pulse_map[newomkey] = dataclasses.I3RecoPulseSeries()
 
         for i in range(len(pulse_time_list)):
@@ -335,14 +334,14 @@ class DOMSimulation(icetray.I3ConditionalModule):
                 )
             else:
                 rpulse.charge = pulse_charge_list[-1 - i]
-            rpulse.width = pulse_time_list[i][1]
+            # Setting the pulse width to the PMT number. Don't know why this is.
+            # This needs to be changed to be physically accurate.
+            rpulse.width = pulse_time_list[i][1] 
             if not (om_pulse_map is None):
                 if omkey not in om_pulse_map.keys():
                     om_pulse_map[omkey] = dataclasses.I3RecoPulseSeries()
                 om_pulse_map[omkey].append(rpulse)
-            newomkey = omkey
-
-            # newomkey = AddPMTKey(omkey, pulse_time_list[i][1])
+            newomkey = omkey            
             output_pulse_map[newomkey].append(rpulse)
 
 
