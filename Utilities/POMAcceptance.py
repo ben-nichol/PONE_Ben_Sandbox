@@ -1,3 +1,5 @@
+
+
 import os
 import sys
 import numpy as np
@@ -24,7 +26,7 @@ class POM:
         # ----------------------------------------------------------------------------
         # set up pmt geometry
         # ----------------------------------------------------------------------------
-        self.MODULE_RADIUS_M      = 0.2159
+        self.MODULE_RADIUS_M      = 0.2159 # m
         # self.PMT_RADIUS_M         = 0.055
         self.PMT_RADIUS_M         = 0.1 # CHANGED THIS TO MATCH THE ANGULAR ACCEPTANCE FILES
                                         # This now allows 2 PMTs to be hit as the same time
@@ -174,7 +176,6 @@ class POM:
         # check if the ditance at the module radius between the pmt vector
         # and the photon vector falls within the PMT size, if so, mark as a hit
         # return a list of indices that have been 'hit'
-        # THIS SHOULD BE THE DISTANCE THAT IS ORTHOGONAL TO THE PMT VECTOR
         pmt_vector_distances = self.MODULE_RADIUS_M * np.sin(np.arccos(pmt_photon_angles))
         # Determine if the angle between the photon direction and the vector from the PMT to the photon is positive or negative 
         
@@ -186,6 +187,7 @@ class POM:
             # Will return multiple hits, need to apply acceptance cut to determine which one is actually detected
             hit_angle    = np.rad2deg(np.arccos(cos_angle)) * angle_sign
             hit_distance = pmt_vector_distances[pmts_hit]
+            # Returns array of [PMT number, distance from PMT centre, angle ]
             return np.array([[pmts_hit[i]+1, hit_distance[i], hit_angle[i]] for i in range(len(pmts_hit))])
         else:
             # no pmt hit return a PMT label 100 to mark an error
@@ -212,11 +214,17 @@ class POM:
         '''
         Returns a list of photons, hit PMTs, and
         hit probabilities based on the module
-        response to the given photon list
+        response to the given photon list.
+        Since the angular acceptance has overlap 
+        between PMTs, the PMT with the highest 
+        probability of acceptance is taken, and
+        the efficiency calculation goes forward.
         '''
+        # Setting arrays to fill
         pmt_list          = np.zeros_like(photon_list, dtype=float)
         hit_distance_list = np.zeros_like(photon_list, dtype=float)
         hit_angle_list    = np.zeros_like(photon_list, dtype=float)
+
         for i, photon in enumerate(photon_list): # This now allows for multiple possible hits for a single photon
             hit_list = self.get_pmt(photon)
             
@@ -227,9 +235,9 @@ class POM:
             hit_angle_list[i]    = hit_list[best_hit][0][2]
 
         probability_list = self.get_probabilities(photon_list, hit_distance_list,hit_angle_list)
-
+        # Setting the minimum probability of acceptance to be 0.001, and making sure that a PMT is actually hit
         accepted_indices = np.logical_and(probability_list > 0.001, pmt_list != 100.)
-
+        # Returning an array of the accepted photon, accociated PMT, and the acceptance probability
         return [photon_list[accepted_indices], pmt_list[accepted_indices], probability_list[accepted_indices]]
 
     
