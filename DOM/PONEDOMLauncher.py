@@ -5,7 +5,7 @@ from icecube.icetray import I3Units, OMKey, I3Frame
 from icecube.dataclasses import ModuleKey
 
 from Utilities.DOMUtility import NoPMTKey, AddPMTKey
-from Utilities.POMAcceptance import POM
+from Utilities.PMTAcceptance import POM
 from NoiseGenerators.NoiseUtility import get_mcpe_map
 
 
@@ -353,8 +353,6 @@ class DOMSimulation(icetray.I3ConditionalModule):
 
         mcpe_map = self.apply_dead_time(mcpe_map) # Will this work?
 
-        # CHANGED SOMETHING SO NOW IT ALL RETURNS PMT 1
-        # NEED TO FIX THIS IMEDEATELY
         output_pulse_map = dataclasses.I3RecoPulseSeriesMap()
         om_pulse_map     = dataclasses.I3RecoPulseSeriesMap()
         for omkey in mcpe_map.keys():
