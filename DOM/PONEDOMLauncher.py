@@ -317,8 +317,7 @@ class DOMSimulation(icetray.I3ConditionalModule):
 
         pmt_in_list.sort()
         for i in range(len(pmt_in_list)):
-            newomkey = omkey
-            output_pulse_map[newomkey] = dataclasses.I3RecoPulseSeries()
+            output_pulse_map[omkey] = dataclasses.I3RecoPulseSeries()
 
         for i in range(len(pulse_time_list)):
             # remove pulses with too low charge.
