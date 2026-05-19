@@ -340,8 +340,8 @@ class DOMSimulation(icetray.I3ConditionalModule):
                 if omkey not in om_pulse_map.keys():
                     om_pulse_map[omkey] = dataclasses.I3RecoPulseSeries()
                 om_pulse_map[omkey].append(rpulse)
-            newomkey = omkey            
-            output_pulse_map[newomkey].append(rpulse)
+
+            output_pulse_map[omkey].append(rpulse)
 
 
     def apply_pmt_response(self, mcpe_map):
