@@ -5,7 +5,7 @@ from icecube.icetray import I3Units, OMKey, I3Frame
 from icecube.dataclasses import ModuleKey
 
 from Utilities.DOMUtility import NoPMTKey, AddPMTKey
-from Utilities.POMModel import POM
+from Utilities.PMTAcceptance import POM
 from NoiseGenerators.NoiseUtility import get_mcpe_map
 
 
@@ -265,6 +265,8 @@ class DOMSimulation(icetray.I3ConditionalModule):
         Populates the output_pulse_map with an I3RecoPulseSeries
         based on the input pulse times and charges
         '''
+        # pulse_time_list [time, npe]
+        # pulse_charge_list []
         min_gap   = 4.0
         min_index = -1
 
@@ -273,7 +275,7 @@ class DOMSimulation(icetray.I3ConditionalModule):
             following = 1
             while following < len(pulse_time_list):
                 if (
-                    pulse_time_list[following][0] - pulse_time_list[leading][0]
+                    pulse_time_list[following].time - pulse_time_list[leading].time
                 ) < 3.0 and pulse_charge_list[leading] * pulse_charge_list[following] > 0.0:
                     pulse_charge_list[leading] += pulse_charge_list[following]
                     pulse_charge_list[following] = 0.0
@@ -305,18 +307,16 @@ class DOMSimulation(icetray.I3ConditionalModule):
                     ) < min_gap and pulse_charge_list[i] * pulse_charge_list[i - 1] > 0.0:
                         min_gap = pulse_time_list[i][0] - pulse_time_list[i - 1][0]
                         min_index = i
-
         pmt_in_list = []
         for i in range(len(pulse_time_list)):
             if pulse_charge_list[-1 - i] < self.pe_threshold:
                 continue
             if pulse_time_list[i][1] not in pmt_in_list:
                 pmt_in_list.append(pulse_time_list[i][1])
-        pmt_in_list.sort()
 
+        pmt_in_list.sort()
         for i in range(len(pmt_in_list)):
-            newomkey = AddPMTKey(omkey, pmt_in_list[i])
-            output_pulse_map[newomkey] = dataclasses.I3RecoPulseSeries()
+            output_pulse_map[omkey] = dataclasses.I3RecoPulseSeries()
 
         for i in range(len(pulse_time_list)):
             # remove pulses with too low charge.
@@ -339,8 +339,8 @@ class DOMSimulation(icetray.I3ConditionalModule):
                 if omkey not in om_pulse_map.keys():
                     om_pulse_map[omkey] = dataclasses.I3RecoPulseSeries()
                 om_pulse_map[omkey].append(rpulse)
-            newomkey = AddPMTKey(omkey, pulse_time_list[i][1])
-            output_pulse_map[newomkey].append(rpulse)
+
+            output_pulse_map[omkey].append(rpulse)
 
 
     def apply_pmt_response(self, mcpe_map):
@@ -348,24 +348,20 @@ class DOMSimulation(icetray.I3ConditionalModule):
         Apply the response of the PMT, including combining pulses
         that are too close together
         '''
+
         mcpe_map = self.apply_dead_time(mcpe_map) # Will this work?
-        # mcpe_map = self.apply_dead_time(mcpe_map.copy())
 
         output_pulse_map = dataclasses.I3RecoPulseSeriesMap()
         om_pulse_map     = dataclasses.I3RecoPulseSeriesMap()
-
         for omkey in mcpe_map.keys():
             pulse_charge_list = []
-
             # collect the charges associated with
             # each pulse time and them to the real
             # charge list if they are not from noise
             for i in range(len(mcpe_map[omkey])):
                 charge = self.random_service.gaus(self.charge_mean, self.charge_sigma)
                 pulse_charge_list.append(charge)
-            
             self.make_reco_pulse(mcpe_map[omkey], pulse_charge_list, omkey, output_pulse_map, om_pulse_map)
-        
         return output_pulse_map, om_pulse_map
 
 
@@ -531,7 +527,7 @@ class DOMSimulation(icetray.I3ConditionalModule):
                     new_mcpe.time   = prop[0]
                     new_mcpe.npe    = prop[1] # Number of MCPEs
                     new_series.append(new_mcpe)
-                dark_mcpe_map[omkey] = new_series
+
             noise_mcpe_maps.append(dark_mcpe_map)
         
         if self.use_k40:
@@ -553,10 +549,8 @@ class DOMSimulation(icetray.I3ConditionalModule):
 
         # merge the signal and noise
         total_mcpe_map = self.merge_mcpe_maps(simulation_mcpe_map, noise_mcpe_map)
-
         # apply the PMT pulse response without any noise
         (no_noise_output_pulses, _) = self.apply_pmt_response(simulation_mcpe_map)
-
         # apply the PMT pulse response to the combined signal and noise
         (output_pulses, om_pulses) = self.apply_pmt_response(total_mcpe_map)
 
