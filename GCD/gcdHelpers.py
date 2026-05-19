@@ -33,20 +33,23 @@ def makeCalibrationObject(geometry, empty=False):
     Returns:
         I3Calibration: An I3Calibration object to be used in the GCD file.
     """
-    # # THIS PASSES AN EMPTY I3Calibration FRAME, WORKS FOR ICETRAY V1.14
-    if(empty):
+    if empty:
         calib = dataclasses.I3Calibration()
         return calib
 
-    # THIS PASSES THE CALIBRATION FRAME TO THE OMKEY(0,0,0) FOR ICETRAY V1.14
-    # NEEDS SOME CLEANUP. Why OMKEY(0,0,0)?
+    # Populate dom_cal with an entry for every OMKey in the geometry.
+    # relative_dom_eff must be finite - clsim skips entries where it is NaN.
     domcal = dataclasses.Map_OMKey_I3DOMCalibration()
-    calibrationData = cdframe["I3Calibration"].dom_cal.popitem()[1]
-    domcal[OMKey(0,0,0)] = calibrationData
-    test = dataclasses.I3Calibration()
-    test = cdframe["I3Calibration"]
-    test.dom_cal = domcal
-    return test
+    template_cal = dataclasses.I3DOMCalibration()
+    template_cal.relative_dom_eff = 1.0
+    for omkey in geometry.omgeo.keys():
+        domcal[omkey] = template_cal
+
+    calib = dataclasses.I3Calibration()
+    calib.start_time = start_time
+    calib.end_time = end_time
+    calib.dom_cal = domcal
+    return calib
 
 
 def makeDSObject(geometry, empty=False):
@@ -162,10 +165,12 @@ def AddPOM(geomap,position,string,om,separation=0.0785,pom_radius=0.2159):
     """
     npmts=16
     x,y,z = position
+    pmt_area = 2*np.pi * pom_radius**2 #half sphere approx
     for k in range(2):
         omGeometry = dataclasses.I3OMGeo()
         omGeometry.omtype = dataclasses.I3OMGeo.OMType.mDOM
-        omGeometry.area = 4*np.pi*pom_radius**2
+        omGeometry.area = pmt_area
+        omGeometry.pmttype = dataclasses.I3OMGeo.PMTType.Unknown
         omGeometry.position = dataclasses.I3Position(
             x+separation*(-1)**(k), y, z
         )
@@ -193,10 +198,12 @@ def AddPCAL(geomap,position,string,om,separation=0.0785,pcal_radius=0.2159):
     """
     npmts=8
     x,y,z = position
+    pmt_area = 2*np.pi * pcal_radius**2 #half sphere approx
     for k in range(2):
         omGeometry = dataclasses.I3OMGeo()
         omGeometry.omtype = dataclasses.I3OMGeo.OMType.mDOM
-        omGeometry.area = 4*np.pi*pcal_radius**2
+        omGeometry.area = pmt_area
+        omGeometry.pmttype = dataclasses.I3OMGeo.PMTType.Unknown
         omGeometry.position = dataclasses.I3Position(
             x+separation*(-1)**(k+1), y, z
         )
@@ -253,6 +260,8 @@ def generateGFrame(xpositions, ypositions, depthlist, omsequence, domradius):
         I3Frame: An I3Frame object to be used as the G frame.
     """
     geometry = dataclasses.I3Geometry()
+    geometry.start_time = start_time
+    geometry.end_time = end_time
     geomap = generateGeometry(xpositions, ypositions, depthlist, omsequence)
     geometry.omgeo = geomap
 
@@ -285,7 +294,7 @@ def generateGFrame(xpositions, ypositions, depthlist, omsequence, domradius):
     subdetec = dataclasses.I3MapModuleKeyString()
     for dom in geomap.keys():
         mkey = dataclasses.ModuleKey(dom.string, dom.om)
-        subdetec[mkey] = omsequence[dom.om%len(omsequence)]
+        subdetec[mkey] = omsequence[(dom.om-1)%len(omsequence)]
     gframe["Subdetectors"] = subdetec
     
     # Add start and end times
