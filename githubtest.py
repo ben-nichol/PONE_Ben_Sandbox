@@ -5,7 +5,7 @@ from collections import defaultdict
 # -----------------------------
 # USER INPUT
 # -----------------------------
-filename = "your_file.i3"
+filename = "/project/6008051/pone_simulation/geometry_subselections/70String_default_geometry/000002/results/linefit_2304.i3.zst"
 
 # -----------------------------
 # STORAGE
@@ -43,7 +43,7 @@ while f.more():
 # BASIC SUMMARY
 # -----------------------------
 print("Total K40 pulses:", total_pulses)
-print("Number of OMs:", len(om_counts))
+print("Number of PMTs:", len(om_counts))
 
 # -----------------------------
 # COMPUTE SIMPLE RATES
@@ -61,13 +61,14 @@ livetime = t_max - t_min
 print(f"Estimated livetime: {livetime:.3f} s")
 
 om_rates = {}
+om_totals={}
 
 for omkey, count in om_counts.items():
     om_rates[omkey] = count / livetime
-
 # -----------------------------
 # PRINT TOP OMs
 # -----------------------------
-print("\nTop 10 OMs by rate:")
-for omkey, rate in sorted(om_rates.items(), key=lambda x: x[1], reverse=True)[:10]:
-    print(f"OM {omkey}: {rate:.2f} Hz")
+print("\nTop 10 PMTs by rate:")
+for omkey, count in sorted(om_counts.items(), key=lambda x: x[1], reverse=True)[:10]:
+    rate = om_rates.get(omkey, 0.0)
+    print(f"{omkey} | {count} hits | {rate:.3e} Hz")
