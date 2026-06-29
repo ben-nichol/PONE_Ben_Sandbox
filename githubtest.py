@@ -6,7 +6,7 @@ from collections import defaultdict
 # USER INPUT
 # -----------------------------
 filename = "/project/6008051/pone_simulation/geometry_subselections/70String_default_geometry/000002/results/linefit_2304.i3.zst"
-
+print("working")
 # -----------------------------
 # STORAGE
 # -----------------------------
