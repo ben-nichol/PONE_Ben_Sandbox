@@ -43,7 +43,7 @@ while f.more():
 # BASIC SUMMARY
 # -----------------------------
 print("Total K40 pulses:", total_pulses)
-print("Number of OMs:", len(om_counts))
+print("Number of :", len(om_counts))
 
 # -----------------------------
 # COMPUTE SIMPLE RATES
