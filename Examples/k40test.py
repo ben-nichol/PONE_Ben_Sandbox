@@ -17,11 +17,11 @@ from optparse import OptionParser
 usage = 'usage: %prog [options]'
 parser = OptionParser(usage)
 
-parser.add_option('-o', '--output_file',default='./test_output.i3.gz',
+parser.add_option('-o', '--output_file',default='./k40test.i3.gz',
                     dest='OUTPUT_FILE',help='Write output to OUTFILE (.i3{.gz} format')
 parser.add_option('-f', '--num_frames', type='int', default='2', dest='NUM_FRAMES',
                     help='Number of frames/MCTrees you would like to make')
-parser.add_option('-r', '--radius', type='float', default='50.0', dest='RADIUS',
+parser.add_option('-r', '--radius', type='float', default='20.0', dest='RADIUS',
                     help='World radius to generate electrons in')
 parser.add_option('-t', '--frame_length', type='float', default='1.0', dest='FRAME_LENGTH_MS',
                     help='Time length of 1 frame in milliseconds, default 1ms')
@@ -63,7 +63,7 @@ def GetElectronEnergies(number_of_electrons):
     Returns an array of energies [MeV] sampled from
     the decay electron energy spectrum
     '''
-    electron_data = np.genfromtxt('/home/jakubs/projects/def-mdanning/jakubs/k40/simulation/input/scripts/resources/electron-energy-distribution.csv', delimiter=',')
+    electron_data = np.genfromtxt('electron-energy-distribution.csv', delimiter=',')
     energies      = electron_data[:, 0]
     probabilities = electron_data[:, 1]
 
