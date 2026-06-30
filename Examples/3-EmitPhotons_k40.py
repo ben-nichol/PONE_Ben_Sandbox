@@ -69,7 +69,7 @@ infile = options.infile
 
 tray.AddModule("I3Reader", "reader", FilenameList=[infile])
 
-MCTreeName = "I3MCTree_postprop"
+MCTreeName = "I3DecayProducts"
 photonSeriesName = "I3Photons"
 
 # NEW THINGS TO MAKE WORK FOR 1.14

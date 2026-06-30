@@ -23,7 +23,7 @@ parser.add_argument(
     "-o",
     "--outfile",
     type=str,
-    default="dataio/POM_response.i3",
+    default="dataio/POM_response_k40.i3",
     help="Write output to OUTFILE (.i3{.gz} format)",
 )
 parser.add_argument(
