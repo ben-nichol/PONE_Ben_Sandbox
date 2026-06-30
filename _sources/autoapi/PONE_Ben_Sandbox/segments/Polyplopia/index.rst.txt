@@ -1,0 +1,52 @@
+PONE_Ben_Sandbox.segments.Polyplopia
+====================================
+
+.. py:module:: PONE_Ben_Sandbox.segments.Polyplopia
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.segments.Polyplopia.SetMultiplicity
+   PONE_Ben_Sandbox.segments.Polyplopia.PolyplopiaSegment
+   PONE_Ben_Sandbox.segments.Polyplopia.PolyplopiaPhotons
+   PONE_Ben_Sandbox.segments.Polyplopia.PolyplopiaMergePEs
+
+
+Module Contents
+---------------
+
+.. py:function:: SetMultiplicity(frame, mctreelist=[], weightmap='CorsikaWeightMap')
+
+.. py:function:: PolyplopiaSegment(tray, name, mctype='CORSIKA', RandomService=None, mctree_name='I3MCTree_preMuonProp', separate_coincident_mctree_name='', bgfile=None, timewindow=40.0 * I3Units.microsecond, rate=float('nan'), If=lambda f: True)
+
+   There are three scenarios for polyplopia:
+      1. bgfile: We are reading background MC from a separate file and
+      injecting events to signal (or weighted background) based on
+      a Poisson distribution within the given time window.
+
+      2. we are generating MuonGun bundles and
+      injecting events to signal (or weighted background) based on
+      a Poisson distribution within the given time window.
+
+
+.. py:function:: PolyplopiaPhotons(tray, name, mctype='CORSIKA', RandomService=None, RandomServiceForPropagators=None, mctree_name='I3MCTree', bgfile=None, GCDFile=None, IceModel='SpiceLea', IceModelLocation=os.path.expandvars('$I3_BUILD/clsim/resources/ice'), timewindow=40.0 * I3Units.microsecond, rate=float('nan'), GPU=None, UseGPUs=True, DOMOversizeFactor=5, HoleIceParameterization=expandvars('$I3_SRC/ice-models/resources/models/angsens/as.h2-50cm'), Efficiency=0.99, PhotonSeriesName='I3MCPESeriesMap', PROPOSALParams=dict(), UsePPC=False, If=lambda f: True)
+
+.. py:function:: PolyplopiaMergePEs(tray, name, mctype='CORSIKA', RandomService=None, mctree_name='I3MCTree', separate_coincident_mctree_name='', bgfile=None, timewindow=40.0 * I3Units.microsecond, rate=float('nan'), If=lambda f: True)
+
+   This segment can be used to merge background that already contains I3MCPEs. We are reading background MC from a separate file and
+   injecting events to signal (or weighted background) based on
+   a Poisson distribution within the given time window.
+
+   :param mctype: type of signal that we are injecting backgroun onto. Needed to avoid overcounting background.
+   :param RandomService: the name of a random service to be used by the tank response
+   :param mctree_name: Name of I3MCTree in background file
+   :param separate_coincident_mctree_name: Name of output bg tree. If empty, background will be added to main tree.
+   :param bgfile: Name of file containing background with I3MCPEs.
+   :param mctype: type of signal that we are injecting backgroun onto. Needed to avoid overcounting background.
+   :param timewindow: coincidence time window.
+   :param rate: rate of background muons cointained in file.
+
+

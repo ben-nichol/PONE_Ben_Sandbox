@@ -1,0 +1,41 @@
+PONE_Ben_Sandbox.NoiseGenerators.DarkNoise
+==========================================
+
+.. py:module:: PONE_Ben_Sandbox.NoiseGenerators.DarkNoise
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.NoiseGenerators.DarkNoise.DarkNoise
+
+
+Module Contents
+---------------
+
+.. py:class:: DarkNoise(context)
+
+   Bases: :py:obj:`icecube.icetray.I3ConditionalModule`
+
+
+   Icetray module that create a pulse map for
+   dark noise
+
+
+   .. py:method:: Configure()
+
+
+   .. py:method:: generate_dark_hits(lower_bound, upper_bound)
+
+      Add dark hits across all OMs (Adds I3MCPEs)
+
+
+
+   .. py:method:: Geometry(frame)
+
+
+   .. py:method:: DAQ(frame)
+
+

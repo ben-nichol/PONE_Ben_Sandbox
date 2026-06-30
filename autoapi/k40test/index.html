@@ -1,0 +1,348 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>k40test &mdash; PONE offline  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=fd3f3429" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="make_hdf" href="../make_hdf/index.html" />
+    <link rel="prev" title="frames" href="../frames/index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            PONE offline
+              <img src="../../_static/simple_logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../conf/index.html">conf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../stubs/index.html">stubs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pocam/index.html">pocam</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../frames/index.html">frames</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">k40test</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#attributes">Attributes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#functions">Functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-contents">Module Contents</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#k40test.usage"><code class="docutils literal notranslate"><span class="pre">usage</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#k40test.parser"><code class="docutils literal notranslate"><span class="pre">parser</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#k40test.GetMeanEventRate"><code class="docutils literal notranslate"><span class="pre">GetMeanEventRate()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#k40test.GetElectronEnergies"><code class="docutils literal notranslate"><span class="pre">GetElectronEnergies()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#k40test.GetDecayTimes"><code class="docutils literal notranslate"><span class="pre">GetDecayTimes()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#k40test.GetDecayPositions"><code class="docutils literal notranslate"><span class="pre">GetDecayPositions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#k40test.GetDecayDirection"><code class="docutils literal notranslate"><span class="pre">GetDecayDirection()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#k40test.BR_BETA"><code class="docutils literal notranslate"><span class="pre">BR_BETA</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#k40test.BR_EC"><code class="docutils literal notranslate"><span class="pre">BR_EC</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#k40test.EC_FRACTION"><code class="docutils literal notranslate"><span class="pre">EC_FRACTION</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#k40test.GAMMA_ENERGY_MEV"><code class="docutils literal notranslate"><span class="pre">GAMMA_ENERGY_MEV</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#k40test.CHERENKOV_THRESHOLD_MEV"><code class="docutils literal notranslate"><span class="pre">CHERENKOV_THRESHOLD_MEV</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#k40test.decay_rate_m_ms"><code class="docutils literal notranslate"><span class="pre">decay_rate_m_ms</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#k40test.world_volume_m"><code class="docutils literal notranslate"><span class="pre">world_volume_m</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#k40test.event_rate_ms"><code class="docutils literal notranslate"><span class="pre">event_rate_ms</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#k40test.expected_frame_events"><code class="docutils literal notranslate"><span class="pre">expected_frame_events</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#k40test.frame"><code class="docutils literal notranslate"><span class="pre">frame</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../make_hdf/index.html">make_hdf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../geometry/index.html">geometry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../3-AtmFlux/index.html">3-AtmFlux</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../TimingFit/index.html">TimingFit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../DOMTrigger/index.html">DOMTrigger</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../test-pocam/index.html">test-pocam</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../resolution/index.html">resolution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../PONE_Phase1/index.html">PONE_Phase1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../run_linefit/index.html">run_linefit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../4-GetWeights/index.html">4-GetWeights</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../test-flashers/index.html">test-flashers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../GenerateOneOM/index.html">GenerateOneOM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../4-POMResponse/index.html">4-POMResponse</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../3-EmitPhotons/index.html">3-EmitPhotons</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../1-GenSimpleMC/index.html">1-GenSimpleMC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../LeptonWeighter/index.html">LeptonWeighter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../GenerateEvents/index.html">GenerateEvents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../makeMediumSTRAW/index.html">makeMediumSTRAW</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generate_tables/index.html">generate_tables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../DetectorTrigger/index.html">DetectorTrigger</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Generate6String/index.html">Generate6String</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../1-GenerateMuons/index.html">1-GenerateMuons</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../PONE_Ben_Sandbox/index.html">PONE_Ben_Sandbox</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../submit-isotropic/index.html">submit-isotropic</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../2-PropagateMuons/index.html">2-PropagateMuons</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../3-EmitPhotons_k40/index.html">3-EmitPhotons_k40</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../4-POMResponse_k40/index.html">4-POMResponse_k40</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../3-GetEventWeights/index.html">3-GetEventWeights</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../TrackReco_leasesquare/index.html">TrackReco_leasesquare</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../2-WriteGeneratorConfig/index.html">2-WriteGeneratorConfig</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../changing_geometry_example/index.html">changing_geometry_example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../GenerateNStringGCD_Cluster/index.html">GenerateNStringGCD_Cluster</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../GenerateNSringGCD_Homogeneous/index.html">GenerateNSringGCD_Homogeneous</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../MakePoneMediumPropertiesBenchmark/index.html">MakePoneMediumPropertiesBenchmark</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../MakePoneMediumPropertiesSpeculative/index.html">MakePoneMediumPropertiesSpeculative</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../MakePoneMediumPropertiesConservative/index.html">MakePoneMediumPropertiesConservative</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../MakePoneMediumPropertiesSpeculativeExtendedRange/index.html">MakePoneMediumPropertiesSpeculativeExtendedRange</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../MakePoneMediumPropertiesConservativeExtendedRange/index.html">MakePoneMediumPropertiesConservativeExtendedRange</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">PONE offline</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">API Reference</a></li>
+      <li class="breadcrumb-item active">k40test</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/autoapi/k40test/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-k40test">
+<span id="k40test"></span><h1>k40test<a class="headerlink" href="#module-k40test" title="Link to this heading"></a></h1>
+<p>Script that generates an I3 file of input particles</p>
+<section id="attributes">
+<h2>Attributes<a class="headerlink" href="#attributes" title="Link to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#k40test.usage" title="k40test.usage"><code class="xref py py-obj docutils literal notranslate"><span class="pre">usage</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#k40test.parser" title="k40test.parser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parser</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#k40test.BR_BETA" title="k40test.BR_BETA"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BR_BETA</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#k40test.BR_EC" title="k40test.BR_EC"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BR_EC</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#k40test.EC_FRACTION" title="k40test.EC_FRACTION"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EC_FRACTION</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#k40test.GAMMA_ENERGY_MEV" title="k40test.GAMMA_ENERGY_MEV"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GAMMA_ENERGY_MEV</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#k40test.CHERENKOV_THRESHOLD_MEV" title="k40test.CHERENKOV_THRESHOLD_MEV"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CHERENKOV_THRESHOLD_MEV</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#k40test.decay_rate_m_ms" title="k40test.decay_rate_m_ms"><code class="xref py py-obj docutils literal notranslate"><span class="pre">decay_rate_m_ms</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#k40test.world_volume_m" title="k40test.world_volume_m"><code class="xref py py-obj docutils literal notranslate"><span class="pre">world_volume_m</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#k40test.event_rate_ms" title="k40test.event_rate_ms"><code class="xref py py-obj docutils literal notranslate"><span class="pre">event_rate_ms</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#k40test.expected_frame_events" title="k40test.expected_frame_events"><code class="xref py py-obj docutils literal notranslate"><span class="pre">expected_frame_events</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#k40test.frame" title="k40test.frame"><code class="xref py py-obj docutils literal notranslate"><span class="pre">frame</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Link to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#k40test.GetMeanEventRate" title="k40test.GetMeanEventRate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GetMeanEventRate</span></code></a>([salinity])</p></td>
+<td><p>Returns the expected K40 decay rate as a function of</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#k40test.GetElectronEnergies" title="k40test.GetElectronEnergies"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GetElectronEnergies</span></code></a>(number_of_electrons)</p></td>
+<td><p>Returns an array of energies [MeV] sampled from</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#k40test.GetDecayTimes" title="k40test.GetDecayTimes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GetDecayTimes</span></code></a>(frame_length_ms, event_rate, ...)</p></td>
+<td><p>Returns an array of times [ns] of decay events</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#k40test.GetDecayPositions" title="k40test.GetDecayPositions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GetDecayPositions</span></code></a>(number_of_decays[, radius])</p></td>
+<td><p>Returns an array of xyz coordinates corresponding to</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#k40test.GetDecayDirection" title="k40test.GetDecayDirection"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GetDecayDirection</span></code></a>(number_of_decays)</p></td>
+<td><p>Returns an array of xyz coordinates corresponding to</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
+<dl class="py data">
+<dt class="sig sig-object py" id="k40test.usage">
+<span class="sig-prename descclassname"><span class="pre">k40test.</span></span><span class="sig-name descname"><span class="pre">usage</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'usage:</span> <span class="pre">%prog</span> <span class="pre">[options]'</span></em><a class="headerlink" href="#k40test.usage" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="k40test.parser">
+<span class="sig-prename descclassname"><span class="pre">k40test.</span></span><span class="sig-name descname"><span class="pre">parser</span></span><a class="headerlink" href="#k40test.parser" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="k40test.GetMeanEventRate">
+<span class="sig-prename descclassname"><span class="pre">k40test.</span></span><span class="sig-name descname"><span class="pre">GetMeanEventRate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">salinity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3.482</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#k40test.GetMeanEventRate" title="Link to this definition"></a></dt>
+<dd><p>Returns the expected K40 decay rate as a function of
+ocean salinity %.</p>
+<p>The returned rate is in [decays / ms / m3]</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="k40test.GetElectronEnergies">
+<span class="sig-prename descclassname"><span class="pre">k40test.</span></span><span class="sig-name descname"><span class="pre">GetElectronEnergies</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">number_of_electrons</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#k40test.GetElectronEnergies" title="Link to this definition"></a></dt>
+<dd><p>Returns an array of energies [MeV] sampled from
+the decay electron energy spectrum</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="k40test.GetDecayTimes">
+<span class="sig-prename descclassname"><span class="pre">k40test.</span></span><span class="sig-name descname"><span class="pre">GetDecayTimes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame_length_ms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected_total_events</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#k40test.GetDecayTimes" title="Link to this definition"></a></dt>
+<dd><p>Returns an array of times [ns] of decay events
+within the given frame length [ms] according to the
+given event rate and expected total number of events.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="k40test.GetDecayPositions">
+<span class="sig-prename descclassname"><span class="pre">k40test.</span></span><span class="sig-name descname"><span class="pre">GetDecayPositions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">number_of_decays</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">options.RADIUS</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#k40test.GetDecayPositions" title="Link to this definition"></a></dt>
+<dd><p>Returns an array of xyz coordinates corresponding to
+decay positions. There are sampled uniformly through
+a spherical volume with the given radius [m].</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="k40test.GetDecayDirection">
+<span class="sig-prename descclassname"><span class="pre">k40test.</span></span><span class="sig-name descname"><span class="pre">GetDecayDirection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">number_of_decays</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#k40test.GetDecayDirection" title="Link to this definition"></a></dt>
+<dd><p>Returns an array of xyz coordinates corresponding to
+decay direction unit vectors sampled uniformly in 3 space.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="k40test.BR_BETA">
+<span class="sig-prename descclassname"><span class="pre">k40test.</span></span><span class="sig-name descname"><span class="pre">BR_BETA</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.8928</span></em><a class="headerlink" href="#k40test.BR_BETA" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="k40test.BR_EC">
+<span class="sig-prename descclassname"><span class="pre">k40test.</span></span><span class="sig-name descname"><span class="pre">BR_EC</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.1067</span></em><a class="headerlink" href="#k40test.BR_EC" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="k40test.EC_FRACTION">
+<span class="sig-prename descclassname"><span class="pre">k40test.</span></span><span class="sig-name descname"><span class="pre">EC_FRACTION</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.10675337668834417</span></em><a class="headerlink" href="#k40test.EC_FRACTION" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="k40test.GAMMA_ENERGY_MEV">
+<span class="sig-prename descclassname"><span class="pre">k40test.</span></span><span class="sig-name descname"><span class="pre">GAMMA_ENERGY_MEV</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.46083</span></em><a class="headerlink" href="#k40test.GAMMA_ENERGY_MEV" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="k40test.CHERENKOV_THRESHOLD_MEV">
+<span class="sig-prename descclassname"><span class="pre">k40test.</span></span><span class="sig-name descname"><span class="pre">CHERENKOV_THRESHOLD_MEV</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.7</span></em><a class="headerlink" href="#k40test.CHERENKOV_THRESHOLD_MEV" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="k40test.decay_rate_m_ms">
+<span class="sig-prename descclassname"><span class="pre">k40test.</span></span><span class="sig-name descname"><span class="pre">decay_rate_m_ms</span></span><a class="headerlink" href="#k40test.decay_rate_m_ms" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="k40test.world_volume_m">
+<span class="sig-prename descclassname"><span class="pre">k40test.</span></span><span class="sig-name descname"><span class="pre">world_volume_m</span></span><a class="headerlink" href="#k40test.world_volume_m" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="k40test.event_rate_ms">
+<span class="sig-prename descclassname"><span class="pre">k40test.</span></span><span class="sig-name descname"><span class="pre">event_rate_ms</span></span><a class="headerlink" href="#k40test.event_rate_ms" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="k40test.expected_frame_events">
+<span class="sig-prename descclassname"><span class="pre">k40test.</span></span><span class="sig-name descname"><span class="pre">expected_frame_events</span></span><a class="headerlink" href="#k40test.expected_frame_events" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="k40test.frame">
+<span class="sig-prename descclassname"><span class="pre">k40test.</span></span><span class="sig-name descname"><span class="pre">frame</span></span><a class="headerlink" href="#k40test.frame" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../frames/index.html" class="btn btn-neutral float-left" title="frames" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../make_hdf/index.html" class="btn btn-neutral float-right" title="make_hdf" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, PONE Collaboration.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

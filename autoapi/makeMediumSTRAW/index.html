@@ -1,0 +1,577 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>makeMediumSTRAW &mdash; PONE offline  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=fd3f3429" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="generate_tables" href="../generate_tables/index.html" />
+    <link rel="prev" title="GenerateEvents" href="../GenerateEvents/index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            PONE offline
+              <img src="../../_static/simple_logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../conf/index.html">conf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../stubs/index.html">stubs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pocam/index.html">pocam</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../frames/index.html">frames</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../k40test/index.html">k40test</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../make_hdf/index.html">make_hdf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../geometry/index.html">geometry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../3-AtmFlux/index.html">3-AtmFlux</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../TimingFit/index.html">TimingFit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../DOMTrigger/index.html">DOMTrigger</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../test-pocam/index.html">test-pocam</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../resolution/index.html">resolution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../PONE_Phase1/index.html">PONE_Phase1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../run_linefit/index.html">run_linefit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../4-GetWeights/index.html">4-GetWeights</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../test-flashers/index.html">test-flashers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../GenerateOneOM/index.html">GenerateOneOM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../4-POMResponse/index.html">4-POMResponse</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../3-EmitPhotons/index.html">3-EmitPhotons</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../1-GenSimpleMC/index.html">1-GenSimpleMC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../LeptonWeighter/index.html">LeptonWeighter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../GenerateEvents/index.html">GenerateEvents</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">makeMediumSTRAW</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#attributes">Attributes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-contents">Module Contents</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#makeMediumSTRAW.outfilepath"><code class="docutils literal notranslate"><span class="pre">outfilepath</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#makeMediumSTRAW.edaVals"><code class="docutils literal notranslate"><span class="pre">edaVals</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#makeMediumSTRAW.eda"><code class="docutils literal notranslate"><span class="pre">eda</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#makeMediumSTRAW.scatteringL"><code class="docutils literal notranslate"><span class="pre">scatteringL</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#makeMediumSTRAW.averageAngle"><code class="docutils literal notranslate"><span class="pre">averageAngle</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#makeMediumSTRAW.effectiveScatteringL"><code class="docutils literal notranslate"><span class="pre">effectiveScatteringL</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#makeMediumSTRAW.effScatteringCoeff"><code class="docutils literal notranslate"><span class="pre">effScatteringCoeff</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#makeMediumSTRAW.absorptionCoeff"><code class="docutils literal notranslate"><span class="pre">absorptionCoeff</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#makeMediumSTRAW.wavelengths"><code class="docutils literal notranslate"><span class="pre">wavelengths</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#makeMediumSTRAW.header"><code class="docutils literal notranslate"><span class="pre">header</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#makeMediumSTRAW.domRadius"><code class="docutils literal notranslate"><span class="pre">domRadius</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#makeMediumSTRAW.efficiencyCorr"><code class="docutils literal notranslate"><span class="pre">efficiencyCorr</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#makeMediumSTRAW.functionShape"><code class="docutils literal notranslate"><span class="pre">functionShape</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id0"><code class="docutils literal notranslate"><span class="pre">averageAngle</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#makeMediumSTRAW.configArray"><code class="docutils literal notranslate"><span class="pre">configArray</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#makeMediumSTRAW.outfile"><code class="docutils literal notranslate"><span class="pre">outfile</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#makeMediumSTRAW.scatLSS"><code class="docutils literal notranslate"><span class="pre">scatLSS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#makeMediumSTRAW.absLSS"><code class="docutils literal notranslate"><span class="pre">absLSS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#makeMediumSTRAW.alpha"><code class="docutils literal notranslate"><span class="pre">alpha</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#makeMediumSTRAW.kappa"><code class="docutils literal notranslate"><span class="pre">kappa</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#makeMediumSTRAW.b_e_400"><code class="docutils literal notranslate"><span class="pre">b_e_400</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#makeMediumSTRAW.a_e_400"><code class="docutils literal notranslate"><span class="pre">a_e_400</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#makeMediumSTRAW.x"><code class="docutils literal notranslate"><span class="pre">x</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#makeMediumSTRAW.y"><code class="docutils literal notranslate"><span class="pre">y</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id1"><code class="docutils literal notranslate"><span class="pre">x</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id2"><code class="docutils literal notranslate"><span class="pre">y</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#makeMediumSTRAW.A"><code class="docutils literal notranslate"><span class="pre">A</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#makeMediumSTRAW.B"><code class="docutils literal notranslate"><span class="pre">B</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id3"><code class="docutils literal notranslate"><span class="pre">configArray</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id4"><code class="docutils literal notranslate"><span class="pre">outfile</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#makeMediumSTRAW.min_depth"><code class="docutils literal notranslate"><span class="pre">min_depth</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#makeMediumSTRAW.max_depth"><code class="docutils literal notranslate"><span class="pre">max_depth</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#makeMediumSTRAW.spacing"><code class="docutils literal notranslate"><span class="pre">spacing</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#makeMediumSTRAW.num_elements"><code class="docutils literal notranslate"><span class="pre">num_elements</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#makeMediumSTRAW.depth"><code class="docutils literal notranslate"><span class="pre">depth</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#makeMediumSTRAW.b_e"><code class="docutils literal notranslate"><span class="pre">b_e</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#makeMediumSTRAW.a_e"><code class="docutils literal notranslate"><span class="pre">a_e</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#makeMediumSTRAW.dT"><code class="docutils literal notranslate"><span class="pre">dT</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id5"><code class="docutils literal notranslate"><span class="pre">outfile</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#makeMediumSTRAW.line"><code class="docutils literal notranslate"><span class="pre">line</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../generate_tables/index.html">generate_tables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../DetectorTrigger/index.html">DetectorTrigger</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Generate6String/index.html">Generate6String</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../1-GenerateMuons/index.html">1-GenerateMuons</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../PONE_Ben_Sandbox/index.html">PONE_Ben_Sandbox</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../submit-isotropic/index.html">submit-isotropic</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../2-PropagateMuons/index.html">2-PropagateMuons</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../3-EmitPhotons_k40/index.html">3-EmitPhotons_k40</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../4-POMResponse_k40/index.html">4-POMResponse_k40</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../3-GetEventWeights/index.html">3-GetEventWeights</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../TrackReco_leasesquare/index.html">TrackReco_leasesquare</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../2-WriteGeneratorConfig/index.html">2-WriteGeneratorConfig</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../changing_geometry_example/index.html">changing_geometry_example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../GenerateNStringGCD_Cluster/index.html">GenerateNStringGCD_Cluster</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../GenerateNSringGCD_Homogeneous/index.html">GenerateNSringGCD_Homogeneous</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../MakePoneMediumPropertiesBenchmark/index.html">MakePoneMediumPropertiesBenchmark</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../MakePoneMediumPropertiesSpeculative/index.html">MakePoneMediumPropertiesSpeculative</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../MakePoneMediumPropertiesConservative/index.html">MakePoneMediumPropertiesConservative</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../MakePoneMediumPropertiesSpeculativeExtendedRange/index.html">MakePoneMediumPropertiesSpeculativeExtendedRange</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../MakePoneMediumPropertiesConservativeExtendedRange/index.html">MakePoneMediumPropertiesConservativeExtendedRange</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">PONE offline</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">API Reference</a></li>
+      <li class="breadcrumb-item active">makeMediumSTRAW</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/autoapi/makeMediumSTRAW/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-makeMediumSTRAW">
+<span id="makemediumstraw"></span><h1>makeMediumSTRAW<a class="headerlink" href="#module-makeMediumSTRAW" title="Link to this heading"></a></h1>
+<p>uses properties from “Transmission of light in deep sea water at the
+site of the Antares neutrino telescope” Paper (in
+propagationMediumModels/documentation/ANTARTESWaterProperties.pdf)
+to create the files clsim takes to construct the propagation medium</p>
+<section id="attributes">
+<h2>Attributes<a class="headerlink" href="#attributes" title="Link to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#makeMediumSTRAW.outfilepath" title="makeMediumSTRAW.outfilepath"><code class="xref py py-obj docutils literal notranslate"><span class="pre">outfilepath</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#makeMediumSTRAW.edaVals" title="makeMediumSTRAW.edaVals"><code class="xref py py-obj docutils literal notranslate"><span class="pre">edaVals</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#makeMediumSTRAW.eda" title="makeMediumSTRAW.eda"><code class="xref py py-obj docutils literal notranslate"><span class="pre">eda</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#makeMediumSTRAW.scatteringL" title="makeMediumSTRAW.scatteringL"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scatteringL</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#id0" title="makeMediumSTRAW.averageAngle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">averageAngle</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#makeMediumSTRAW.effectiveScatteringL" title="makeMediumSTRAW.effectiveScatteringL"><code class="xref py py-obj docutils literal notranslate"><span class="pre">effectiveScatteringL</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#makeMediumSTRAW.effScatteringCoeff" title="makeMediumSTRAW.effScatteringCoeff"><code class="xref py py-obj docutils literal notranslate"><span class="pre">effScatteringCoeff</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#makeMediumSTRAW.absorptionCoeff" title="makeMediumSTRAW.absorptionCoeff"><code class="xref py py-obj docutils literal notranslate"><span class="pre">absorptionCoeff</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#makeMediumSTRAW.wavelengths" title="makeMediumSTRAW.wavelengths"><code class="xref py py-obj docutils literal notranslate"><span class="pre">wavelengths</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#makeMediumSTRAW.header" title="makeMediumSTRAW.header"><code class="xref py py-obj docutils literal notranslate"><span class="pre">header</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#makeMediumSTRAW.domRadius" title="makeMediumSTRAW.domRadius"><code class="xref py py-obj docutils literal notranslate"><span class="pre">domRadius</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#makeMediumSTRAW.efficiencyCorr" title="makeMediumSTRAW.efficiencyCorr"><code class="xref py py-obj docutils literal notranslate"><span class="pre">efficiencyCorr</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#makeMediumSTRAW.functionShape" title="makeMediumSTRAW.functionShape"><code class="xref py py-obj docutils literal notranslate"><span class="pre">functionShape</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#id0" title="makeMediumSTRAW.averageAngle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">averageAngle</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#id3" title="makeMediumSTRAW.configArray"><code class="xref py py-obj docutils literal notranslate"><span class="pre">configArray</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#id5" title="makeMediumSTRAW.outfile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">outfile</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#makeMediumSTRAW.scatLSS" title="makeMediumSTRAW.scatLSS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scatLSS</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#makeMediumSTRAW.absLSS" title="makeMediumSTRAW.absLSS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">absLSS</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#makeMediumSTRAW.alpha" title="makeMediumSTRAW.alpha"><code class="xref py py-obj docutils literal notranslate"><span class="pre">alpha</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#makeMediumSTRAW.kappa" title="makeMediumSTRAW.kappa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">kappa</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#makeMediumSTRAW.b_e_400" title="makeMediumSTRAW.b_e_400"><code class="xref py py-obj docutils literal notranslate"><span class="pre">b_e_400</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#makeMediumSTRAW.a_e_400" title="makeMediumSTRAW.a_e_400"><code class="xref py py-obj docutils literal notranslate"><span class="pre">a_e_400</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#id1" title="makeMediumSTRAW.x"><code class="xref py py-obj docutils literal notranslate"><span class="pre">x</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#id2" title="makeMediumSTRAW.y"><code class="xref py py-obj docutils literal notranslate"><span class="pre">y</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#id1" title="makeMediumSTRAW.x"><code class="xref py py-obj docutils literal notranslate"><span class="pre">x</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#id2" title="makeMediumSTRAW.y"><code class="xref py py-obj docutils literal notranslate"><span class="pre">y</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#makeMediumSTRAW.A" title="makeMediumSTRAW.A"><code class="xref py py-obj docutils literal notranslate"><span class="pre">A</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#makeMediumSTRAW.B" title="makeMediumSTRAW.B"><code class="xref py py-obj docutils literal notranslate"><span class="pre">B</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#id3" title="makeMediumSTRAW.configArray"><code class="xref py py-obj docutils literal notranslate"><span class="pre">configArray</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#id5" title="makeMediumSTRAW.outfile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">outfile</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#makeMediumSTRAW.min_depth" title="makeMediumSTRAW.min_depth"><code class="xref py py-obj docutils literal notranslate"><span class="pre">min_depth</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#makeMediumSTRAW.max_depth" title="makeMediumSTRAW.max_depth"><code class="xref py py-obj docutils literal notranslate"><span class="pre">max_depth</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#makeMediumSTRAW.spacing" title="makeMediumSTRAW.spacing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">spacing</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#makeMediumSTRAW.num_elements" title="makeMediumSTRAW.num_elements"><code class="xref py py-obj docutils literal notranslate"><span class="pre">num_elements</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#makeMediumSTRAW.depth" title="makeMediumSTRAW.depth"><code class="xref py py-obj docutils literal notranslate"><span class="pre">depth</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#makeMediumSTRAW.b_e" title="makeMediumSTRAW.b_e"><code class="xref py py-obj docutils literal notranslate"><span class="pre">b_e</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#makeMediumSTRAW.a_e" title="makeMediumSTRAW.a_e"><code class="xref py py-obj docutils literal notranslate"><span class="pre">a_e</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#makeMediumSTRAW.dT" title="makeMediumSTRAW.dT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dT</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#id5" title="makeMediumSTRAW.outfile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">outfile</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#makeMediumSTRAW.line" title="makeMediumSTRAW.line"><code class="xref py py-obj docutils literal notranslate"><span class="pre">line</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
+<dl class="py data">
+<dt class="sig sig-object py" id="makeMediumSTRAW.outfilepath">
+<span class="sig-prename descclassname"><span class="pre">makeMediumSTRAW.</span></span><span class="sig-name descname"><span class="pre">outfilepath</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'/home/users/akatil/P-ONE/medium/STRAW_Andy_20200328_MattewEta_VB/'</span></em><a class="headerlink" href="#makeMediumSTRAW.outfilepath" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="makeMediumSTRAW.edaVals">
+<span class="sig-prename descclassname"><span class="pre">makeMediumSTRAW.</span></span><span class="sig-name descname"><span class="pre">edaVals</span></span><a class="headerlink" href="#makeMediumSTRAW.edaVals" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="makeMediumSTRAW.eda">
+<span class="sig-prename descclassname"><span class="pre">makeMediumSTRAW.</span></span><span class="sig-name descname"><span class="pre">eda</span></span><a class="headerlink" href="#makeMediumSTRAW.eda" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="makeMediumSTRAW.scatteringL">
+<span class="sig-prename descclassname"><span class="pre">makeMediumSTRAW.</span></span><span class="sig-name descname"><span class="pre">scatteringL</span></span><a class="headerlink" href="#makeMediumSTRAW.scatteringL" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="makeMediumSTRAW.averageAngle">
+<span class="sig-prename descclassname"><span class="pre">makeMediumSTRAW.</span></span><span class="sig-name descname"><span class="pre">averageAngle</span></span><a class="headerlink" href="#makeMediumSTRAW.averageAngle" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="makeMediumSTRAW.effectiveScatteringL">
+<span class="sig-prename descclassname"><span class="pre">makeMediumSTRAW.</span></span><span class="sig-name descname"><span class="pre">effectiveScatteringL</span></span><a class="headerlink" href="#makeMediumSTRAW.effectiveScatteringL" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="makeMediumSTRAW.effScatteringCoeff">
+<span class="sig-prename descclassname"><span class="pre">makeMediumSTRAW.</span></span><span class="sig-name descname"><span class="pre">effScatteringCoeff</span></span><a class="headerlink" href="#makeMediumSTRAW.effScatteringCoeff" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="makeMediumSTRAW.absorptionCoeff">
+<span class="sig-prename descclassname"><span class="pre">makeMediumSTRAW.</span></span><span class="sig-name descname"><span class="pre">absorptionCoeff</span></span><a class="headerlink" href="#makeMediumSTRAW.absorptionCoeff" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="makeMediumSTRAW.wavelengths">
+<span class="sig-prename descclassname"><span class="pre">makeMediumSTRAW.</span></span><span class="sig-name descname"><span class="pre">wavelengths</span></span><a class="headerlink" href="#makeMediumSTRAW.wavelengths" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="makeMediumSTRAW.header">
+<span class="sig-prename descclassname"><span class="pre">makeMediumSTRAW.</span></span><span class="sig-name descname"><span class="pre">header</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Multiline-String</span></em><a class="headerlink" href="#makeMediumSTRAW.header" title="Link to this definition"></a></dt>
+<dd><details><summary>Show Value</summary><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;# configuration file</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</details></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="makeMediumSTRAW.domRadius">
+<span class="sig-prename descclassname"><span class="pre">makeMediumSTRAW.</span></span><span class="sig-name descname"><span class="pre">domRadius</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Multiline-String</span></em><a class="headerlink" href="#makeMediumSTRAW.domRadius" title="Link to this definition"></a></dt>
+<dd><details><summary>Show Value</summary><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;       # over-R: DOM radius &quot;oversize&quot; scaling factor</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</details></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="makeMediumSTRAW.efficiencyCorr">
+<span class="sig-prename descclassname"><span class="pre">makeMediumSTRAW.</span></span><span class="sig-name descname"><span class="pre">efficiencyCorr</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Multiline-String</span></em><a class="headerlink" href="#makeMediumSTRAW.efficiencyCorr" title="Link to this definition"></a></dt>
+<dd><details><summary>Show Value</summary><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;       # overall DOM efficiency correction</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</details></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="makeMediumSTRAW.functionShape">
+<span class="sig-prename descclassname"><span class="pre">makeMediumSTRAW.</span></span><span class="sig-name descname"><span class="pre">functionShape</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Multiline-String</span></em><a class="headerlink" href="#makeMediumSTRAW.functionShape" title="Link to this definition"></a></dt>
+<dd><details><summary>Show Value</summary><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;       # 0=HG; 1=SAM (scattering function shape parameter)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</details></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="id0">
+<span class="sig-prename descclassname"><span class="pre">makeMediumSTRAW.</span></span><span class="sig-name descname"><span class="pre">averageAngle</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Multiline-String</span></em><a class="headerlink" href="#id0" title="Link to this definition"></a></dt>
+<dd><details><summary>Show Value</summary><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;       # g=&lt;cos(theta)&gt; (formula from ANTARES paper)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</details></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="makeMediumSTRAW.configArray">
+<span class="sig-prename descclassname"><span class="pre">makeMediumSTRAW.</span></span><span class="sig-name descname"><span class="pre">configArray</span></span><a class="headerlink" href="#makeMediumSTRAW.configArray" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="makeMediumSTRAW.outfile">
+<span class="sig-prename descclassname"><span class="pre">makeMediumSTRAW.</span></span><span class="sig-name descname"><span class="pre">outfile</span></span><a class="headerlink" href="#makeMediumSTRAW.outfile" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="makeMediumSTRAW.scatLSS">
+<span class="sig-prename descclassname"><span class="pre">makeMediumSTRAW.</span></span><span class="sig-name descname"><span class="pre">scatLSS</span></span><a class="headerlink" href="#makeMediumSTRAW.scatLSS" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="makeMediumSTRAW.absLSS">
+<span class="sig-prename descclassname"><span class="pre">makeMediumSTRAW.</span></span><span class="sig-name descname"><span class="pre">absLSS</span></span><a class="headerlink" href="#makeMediumSTRAW.absLSS" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="makeMediumSTRAW.alpha">
+<span class="sig-prename descclassname"><span class="pre">makeMediumSTRAW.</span></span><span class="sig-name descname"><span class="pre">alpha</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Multiline-String</span></em><a class="headerlink" href="#makeMediumSTRAW.alpha" title="Link to this definition"></a></dt>
+<dd><details><summary>Show Value</summary><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;               # scattering wavelength dependence power law exponent</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</details></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="makeMediumSTRAW.kappa">
+<span class="sig-prename descclassname"><span class="pre">makeMediumSTRAW.</span></span><span class="sig-name descname"><span class="pre">kappa</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Multiline-String</span></em><a class="headerlink" href="#makeMediumSTRAW.kappa" title="Link to this definition"></a></dt>
+<dd><details><summary>Show Value</summary><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;               # absorption wavelength dependence power law exponent</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</details></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="makeMediumSTRAW.b_e_400">
+<span class="sig-prename descclassname"><span class="pre">makeMediumSTRAW.</span></span><span class="sig-name descname"><span class="pre">b_e_400</span></span><a class="headerlink" href="#makeMediumSTRAW.b_e_400" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="makeMediumSTRAW.a_e_400">
+<span class="sig-prename descclassname"><span class="pre">makeMediumSTRAW.</span></span><span class="sig-name descname"><span class="pre">a_e_400</span></span><a class="headerlink" href="#makeMediumSTRAW.a_e_400" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="makeMediumSTRAW.x">
+<span class="sig-prename descclassname"><span class="pre">makeMediumSTRAW.</span></span><span class="sig-name descname"><span class="pre">x</span></span><a class="headerlink" href="#makeMediumSTRAW.x" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="makeMediumSTRAW.y">
+<span class="sig-prename descclassname"><span class="pre">makeMediumSTRAW.</span></span><span class="sig-name descname"><span class="pre">y</span></span><a class="headerlink" href="#makeMediumSTRAW.y" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="id1">
+<span class="sig-prename descclassname"><span class="pre">makeMediumSTRAW.</span></span><span class="sig-name descname"><span class="pre">x</span></span><a class="headerlink" href="#id1" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="id2">
+<span class="sig-prename descclassname"><span class="pre">makeMediumSTRAW.</span></span><span class="sig-name descname"><span class="pre">y</span></span><a class="headerlink" href="#id2" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="makeMediumSTRAW.A">
+<span class="sig-prename descclassname"><span class="pre">makeMediumSTRAW.</span></span><span class="sig-name descname"><span class="pre">A</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Multiline-String</span></em><a class="headerlink" href="#makeMediumSTRAW.A" title="Link to this definition"></a></dt>
+<dd><details><summary>Show Value</summary><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;               # absorption exponential component multiple - ignored</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</details></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="makeMediumSTRAW.B">
+<span class="sig-prename descclassname"><span class="pre">makeMediumSTRAW.</span></span><span class="sig-name descname"><span class="pre">B</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Multiline-String</span></em><a class="headerlink" href="#makeMediumSTRAW.B" title="Link to this definition"></a></dt>
+<dd><details><summary>Show Value</summary><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;               # absorption exponential component exponent multiple - ignored</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</details></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="id3">
+<span class="sig-prename descclassname"><span class="pre">makeMediumSTRAW.</span></span><span class="sig-name descname"><span class="pre">configArray</span></span><a class="headerlink" href="#id3" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="id4">
+<span class="sig-prename descclassname"><span class="pre">makeMediumSTRAW.</span></span><span class="sig-name descname"><span class="pre">outfile</span></span><a class="headerlink" href="#id4" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="makeMediumSTRAW.min_depth">
+<span class="sig-prename descclassname"><span class="pre">makeMediumSTRAW.</span></span><span class="sig-name descname"><span class="pre">min_depth</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1000</span></em><a class="headerlink" href="#makeMediumSTRAW.min_depth" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="makeMediumSTRAW.max_depth">
+<span class="sig-prename descclassname"><span class="pre">makeMediumSTRAW.</span></span><span class="sig-name descname"><span class="pre">max_depth</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2800</span></em><a class="headerlink" href="#makeMediumSTRAW.max_depth" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="makeMediumSTRAW.spacing">
+<span class="sig-prename descclassname"><span class="pre">makeMediumSTRAW.</span></span><span class="sig-name descname"><span class="pre">spacing</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10</span></em><a class="headerlink" href="#makeMediumSTRAW.spacing" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="makeMediumSTRAW.num_elements">
+<span class="sig-prename descclassname"><span class="pre">makeMediumSTRAW.</span></span><span class="sig-name descname"><span class="pre">num_elements</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#makeMediumSTRAW.num_elements" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="makeMediumSTRAW.depth">
+<span class="sig-prename descclassname"><span class="pre">makeMediumSTRAW.</span></span><span class="sig-name descname"><span class="pre">depth</span></span><a class="headerlink" href="#makeMediumSTRAW.depth" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="makeMediumSTRAW.b_e">
+<span class="sig-prename descclassname"><span class="pre">makeMediumSTRAW.</span></span><span class="sig-name descname"><span class="pre">b_e</span></span><a class="headerlink" href="#makeMediumSTRAW.b_e" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="makeMediumSTRAW.a_e">
+<span class="sig-prename descclassname"><span class="pre">makeMediumSTRAW.</span></span><span class="sig-name descname"><span class="pre">a_e</span></span><a class="headerlink" href="#makeMediumSTRAW.a_e" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="makeMediumSTRAW.dT">
+<span class="sig-prename descclassname"><span class="pre">makeMediumSTRAW.</span></span><span class="sig-name descname"><span class="pre">dT</span></span><a class="headerlink" href="#makeMediumSTRAW.dT" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="id5">
+<span class="sig-prename descclassname"><span class="pre">makeMediumSTRAW.</span></span><span class="sig-name descname"><span class="pre">outfile</span></span><a class="headerlink" href="#id5" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="makeMediumSTRAW.line">
+<span class="sig-prename descclassname"><span class="pre">makeMediumSTRAW.</span></span><span class="sig-name descname"><span class="pre">line</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Multiline-String</span></em><a class="headerlink" href="#makeMediumSTRAW.line" title="Link to this definition"></a></dt>
+<dd><details><summary>Show Value</summary><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</details></dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../GenerateEvents/index.html" class="btn btn-neutral float-left" title="GenerateEvents" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../generate_tables/index.html" class="btn btn-neutral float-right" title="generate_tables" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, PONE Collaboration.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

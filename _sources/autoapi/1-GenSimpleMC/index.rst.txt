@@ -1,0 +1,27 @@
+1-GenSimpleMC
+=============
+
+.. py:module:: 1-GenSimpleMC
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   1-GenSimpleMC.tray
+   1-GenSimpleMC.randomService
+   1-GenSimpleMC.injector_list
+
+
+Module Contents
+---------------
+
+.. py:data:: tray
+
+.. py:data:: randomService
+
+.. py:data:: injector_list
+   :value: []
+
+

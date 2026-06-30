@@ -1,0 +1,38 @@
+PONE_Ben_Sandbox.segments.HybridPhotonicsCLSim
+==============================================
+
+.. py:module:: PONE_Ben_Sandbox.segments.HybridPhotonicsCLSim
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.segments.HybridPhotonicsCLSim.taskset
+   PONE_Ben_Sandbox.segments.HybridPhotonicsCLSim.tasksetInUse
+   PONE_Ben_Sandbox.segments.HybridPhotonicsCLSim.resetTasksetThreads
+   PONE_Ben_Sandbox.segments.HybridPhotonicsCLSim.LoadCascadeTables
+   PONE_Ben_Sandbox.segments.HybridPhotonicsCLSim.PropagatePhotons
+
+
+Module Contents
+---------------
+
+.. py:function:: taskset(pid, tt=None)
+
+.. py:function:: tasksetInUse()
+
+.. py:function:: resetTasksetThreads(main_pid)
+
+.. py:function:: LoadCascadeTables(IceModel='SpiceMie', TablePath='/data/sim/sim-new/spline-tables')
+
+.. py:function:: PropagatePhotons(tray, name, GCDFile, If=lambda f: True, RandomService=None, KeepIndividualMaps=False, HybridMode=False, IgnoreMuons=False, IgnoreCascades=False, UseGPUs=False, UseAllCPUCores=False, KeepSlicedMCTree=False, IceModel='spice_3.2', CascadeService=None, IceModelLocation=None, UseCascadeExtension=True, UseGeant4=False, CrossoverEnergyEM=None, CrossoverEnergyHadron=None, UnshadowedFraction=1.0, DOMOversizeFactor=5.0, HoleIceParameterization=expandvars('$I3_SRC/ice-models/resources/models/angsens/as.h2-50cm'), InputMCTree='I3MCTree', UseI3PropagatorService=False, OutputPESeriesMapName='I3MCPESeriesMap', OutputPhotonSeriesName=None)
+
+   This traysegment offers multiple tweaks for adapted processing in different energy ranges,
+   for example GEANT4 in conjunction with Parametrizations for the treatment for lowest energies
+   and a HybridMode with the use of tables for the treatment of high energies.
+   In any case, please refer to the documentation of clsim to find suitable settings for your
+   simulation needs
+
+

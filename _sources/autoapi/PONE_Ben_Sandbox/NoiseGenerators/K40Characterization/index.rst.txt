@@ -1,0 +1,36 @@
+PONE_Ben_Sandbox.NoiseGenerators.K40Characterization
+====================================================
+
+.. py:module:: PONE_Ben_Sandbox.NoiseGenerators.K40Characterization
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.NoiseGenerators.K40Characterization.K40Characterization
+
+
+Module Contents
+---------------
+
+.. py:class:: K40Characterization(characterization_file_path)
+
+   Class that stores the characterization information so we can
+   access it easily. This class loads all the data from the
+   k40 characterization hdf5 file
+
+   combinations        - array of pmt coincidence combinations
+   probabilities       - array of corresponding probabilities
+   multifold_rate      - rate (Hz) of multi-fold coincidences
+   single_rate         - rate (Hz) of single-fold coincidences
+   arrival_time_spread - array of the difference in photon
+                         arrival times(ns) [column 0] and the
+                         corresponding probability [column 1]
+
+   single_fraction     - fraction of coincidences that are single-fold
+   multi_fraction      - fraction of coincidences that are multi-fold
+   total_rate_ns       - the rate of all coincidences in 1/ns
+
+

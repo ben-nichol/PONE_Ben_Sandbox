@@ -1,0 +1,78 @@
+3-EmitPhotons_k40
+=================
+
+.. py:module:: 3-EmitPhotons_k40
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   3-EmitPhotons_k40.usage
+   3-EmitPhotons_k40.parser
+   3-EmitPhotons_k40.options
+   3-EmitPhotons_k40.dom_properties
+   3-EmitPhotons_k40.tray
+   3-EmitPhotons_k40.randomService
+   3-EmitPhotons_k40.outfile
+   3-EmitPhotons_k40.infile
+   3-EmitPhotons_k40.MCTreeName
+   3-EmitPhotons_k40.photonSeriesName
+   3-EmitPhotons_k40.WavelengthAcceptance
+   3-EmitPhotons_k40.GCDFile
+   3-EmitPhotons_k40.infile
+   3-EmitPhotons_k40.frames
+   3-EmitPhotons_k40.calib_frame
+   3-EmitPhotons_k40.rde
+   3-EmitPhotons_k40.domAcceptance
+   3-EmitPhotons_k40.kwargs
+
+
+Module Contents
+---------------
+
+.. py:data:: usage
+   :value: 'usage: %prog [options] inputfile'
+
+
+.. py:data:: parser
+
+.. py:data:: options
+
+.. py:data:: dom_properties
+
+.. py:data:: tray
+
+.. py:data:: randomService
+
+.. py:data:: outfile
+
+.. py:data:: infile
+
+.. py:data:: MCTreeName
+   :value: 'I3DecayProducts'
+
+
+.. py:data:: photonSeriesName
+   :value: 'I3Photons'
+
+
+.. py:data:: WavelengthAcceptance
+
+.. py:data:: GCDFile
+
+.. py:data:: infile
+
+.. py:data:: frames
+   :value: []
+
+
+.. py:data:: calib_frame
+
+.. py:data:: rde
+
+.. py:data:: domAcceptance
+
+.. py:data:: kwargs
+

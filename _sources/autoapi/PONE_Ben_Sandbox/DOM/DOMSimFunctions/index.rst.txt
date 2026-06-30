@@ -1,0 +1,37 @@
+PONE_Ben_Sandbox.DOM.DOMSimFunctions
+====================================
+
+.. py:module:: PONE_Ben_Sandbox.DOM.DOMSimFunctions
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.DOM.DOMSimFunctions.getSurvivalProbability
+   PONE_Ben_Sandbox.DOM.DOMSimFunctions.survived
+   PONE_Ben_Sandbox.DOM.DOMSimFunctions.generateMCPEList
+   PONE_Ben_Sandbox.DOM.DOMSimFunctions.selectStartTime
+   PONE_Ben_Sandbox.DOM.DOMSimFunctions.addHits
+   PONE_Ben_Sandbox.DOM.DOMSimFunctions.generateNoiseMCPEList
+   PONE_Ben_Sandbox.DOM.DOMSimFunctions.generateRecoPulses
+
+
+Module Contents
+---------------
+
+.. py:function:: getSurvivalProbability(geoMap, photon, omkey, angularAcceptance, domAcceptance, relativeEfficieny)
+
+.. py:function:: survived(geoMap, photon, omkey, angularAcceptance, domAcceptance, relativeEfficieny)
+
+.. py:function:: generateMCPEList(geoMap, photons, modkey, angularAcceptance, domAcceptance, relativeEfficieny)
+
+.. py:function:: selectStartTime(timestamps)
+
+.. py:function:: addHits(timestamps)
+
+.. py:function:: generateNoiseMCPEList(modkey, medVal, timestamps)
+
+.. py:function:: generateRecoPulses(omkey, hits)
+

@@ -1,0 +1,22 @@
+PONE_Ben_Sandbox.makeenv
+========================
+
+.. py:module:: PONE_Ben_Sandbox.makeenv
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.makeenv.envfile
+   PONE_Ben_Sandbox.makeenv.basedir
+
+
+Module Contents
+---------------
+
+.. py:data:: envfile
+
+.. py:data:: basedir
+

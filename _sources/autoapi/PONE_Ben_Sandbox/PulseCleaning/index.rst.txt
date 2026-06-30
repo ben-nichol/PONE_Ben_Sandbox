@@ -1,0 +1,19 @@
+PONE_Ben_Sandbox.PulseCleaning
+==============================
+
+.. py:module:: PONE_Ben_Sandbox.PulseCleaning
+
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /autoapi/PONE_Ben_Sandbox/PulseCleaning/CausalHits/index
+   /autoapi/PONE_Ben_Sandbox/PulseCleaning/ClusterSelect/index
+   /autoapi/PONE_Ben_Sandbox/PulseCleaning/RecoPulseGenerator/index
+   /autoapi/PONE_Ben_Sandbox/PulseCleaning/SignificantHitPulseCleaning/index
+   /autoapi/PONE_Ben_Sandbox/PulseCleaning/TimeShifted/index
+
+

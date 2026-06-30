@@ -1,0 +1,95 @@
+GenerateEvents
+==============
+
+.. py:module:: GenerateEvents
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   GenerateEvents.parser
+   GenerateEvents.args
+   GenerateEvents.typeString
+   GenerateEvents.ratioString
+   GenerateEvents.typevec
+   GenerateEvents.ratiostvec
+   GenerateEvents.ratiovec
+   GenerateEvents.emin
+   GenerateEvents.emax
+   GenerateEvents.numEvents
+   GenerateEvents.runNum
+   GenerateEvents.cylinder
+   GenerateEvents.zenithMin
+   GenerateEvents.zenithMax
+   GenerateEvents.azimuthMin
+   GenerateEvents.azimuthMax
+   GenerateEvents.gcd
+   GenerateEvents.tray
+   GenerateEvents.randomService
+   GenerateEvents.injector_list
+   GenerateEvents.event_id
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   GenerateEvents.get_header
+
+
+Module Contents
+---------------
+
+.. py:data:: parser
+
+.. py:data:: args
+
+.. py:data:: typeString
+
+.. py:data:: ratioString
+
+.. py:data:: typevec
+
+.. py:data:: ratiostvec
+
+.. py:data:: ratiovec
+   :value: []
+
+
+.. py:data:: emin
+
+.. py:data:: emax
+
+.. py:data:: numEvents
+
+.. py:data:: runNum
+
+.. py:data:: cylinder
+
+.. py:data:: zenithMin
+
+.. py:data:: zenithMax
+
+.. py:data:: azimuthMin
+
+.. py:data:: azimuthMax
+
+.. py:data:: gcd
+
+.. py:data:: tray
+
+.. py:data:: randomService
+
+.. py:data:: injector_list
+   :value: []
+
+
+.. py:data:: event_id
+   :value: 1
+
+
+.. py:function:: get_header(frame)
+

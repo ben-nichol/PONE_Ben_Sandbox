@@ -1,0 +1,46 @@
+TimingFit
+=========
+
+.. py:module:: TimingFit
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   TimingFit.TimingFit
+
+
+Module Contents
+---------------
+
+.. py:class:: TimingFit(context)
+
+   Bases: :py:obj:`icecube.icetray.I3Module`
+
+
+   .. py:method:: gamma_t_only(direct, origin)
+
+
+   .. py:method:: module_data(photons)
+
+
+   .. py:method:: quality_function1(t2)
+
+
+   .. py:method:: quality_function2(t2)
+
+
+   .. py:method:: Configure()
+
+
+   .. py:method:: Fit(pulse_time, pulse_pos, quality_function, guesstrack)
+
+
+   .. py:method:: Geometry(frame)
+
+
+   .. py:method:: Physics(frame)
+
+

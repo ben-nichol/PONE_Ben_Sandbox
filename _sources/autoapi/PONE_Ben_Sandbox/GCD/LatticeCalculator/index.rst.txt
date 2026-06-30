@@ -1,0 +1,29 @@
+PONE_Ben_Sandbox.GCD.LatticeCalculator
+======================================
+
+.. py:module:: PONE_Ben_Sandbox.GCD.LatticeCalculator
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.GCD.LatticeCalculator.parser
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.GCD.LatticeCalculator.generateLatticeSpots
+
+
+Module Contents
+---------------
+
+.. py:function:: generateLatticeSpots(nstrings=10)
+
+.. py:data:: parser
+

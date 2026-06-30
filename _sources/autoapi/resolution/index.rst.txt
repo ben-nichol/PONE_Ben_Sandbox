@@ -1,0 +1,47 @@
+resolution
+==========
+
+.. py:module:: resolution
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   resolution.infile
+   resolution.outfile
+   resolution.hdf_filename
+   resolution.all_i3_files
+   resolution.tray
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   resolution.MyFunction
+
+
+Module Contents
+---------------
+
+.. py:data:: infile
+   :value: '/project/6061446/cmiller/example_data/jp_linefit.i3.zst'
+
+
+.. py:data:: outfile
+   :value: '/scratch/jpyanez/test_newlinefit.i3.zst'
+
+
+.. py:data:: hdf_filename
+   :value: '/scratch/jpyanez/test.hdf'
+
+
+.. py:data:: all_i3_files
+
+.. py:data:: tray
+
+.. py:function:: MyFunction(frame, RecoKey, ResultKey='RecoAngleError')
+

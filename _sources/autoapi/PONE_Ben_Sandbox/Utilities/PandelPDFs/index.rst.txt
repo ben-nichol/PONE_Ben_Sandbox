@@ -1,0 +1,64 @@
+PONE_Ben_Sandbox.Utilities.PandelPDFs
+=====================================
+
+.. py:module:: PONE_Ben_Sandbox.Utilities.PandelPDFs
+
+.. autoapi-nested-parse::
+
+   A single place to keep all PDFs that have been coded in the process of attempting to create a muon track reconstruction for P-ONE.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.Utilities.PandelPDFs.c
+   PONE_Ben_Sandbox.Utilities.PandelPDFs.n
+   PONE_Ben_Sandbox.Utilities.PandelPDFs.c_m
+   PONE_Ben_Sandbox.Utilities.PandelPDFs.theta_c
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.Utilities.PandelPDFs.pandel
+   PONE_Ben_Sandbox.Utilities.PandelPDFs.cpandel
+   PONE_Ben_Sandbox.Utilities.PandelPDFs.log_cpandel
+   PONE_Ben_Sandbox.Utilities.PandelPDFs.pandel2
+   PONE_Ben_Sandbox.Utilities.PandelPDFs.mod_logcpandel
+   PONE_Ben_Sandbox.Utilities.PandelPDFs.gaussWindow
+
+
+Module Contents
+---------------
+
+.. py:data:: c
+   :value: 299792458.0
+
+
+.. py:data:: n
+   :value: 1.34
+
+
+.. py:data:: c_m
+   :value: 223725714.9253731
+
+
+.. py:data:: theta_c
+
+.. py:function:: pandel(t, d, lambda_a=15.0, lambda_s=120.0, tau=5.57e-07)
+
+.. py:function:: cpandel(t, d, sigma, lambda_s, rho)
+
+.. py:function:: log_cpandel(t, d, sigma=10, lambda_s=120.0, rho=0.004)
+
+.. py:function:: pandel2(t, d, lambda_s=120.0, rho=0.004)
+
+.. py:function:: mod_logcpandel(t, d, sigma=10.0, lambda_s=120.0, rho=0.004)
+
+.. py:function:: gaussWindow(xData, yData, stdDev)
+

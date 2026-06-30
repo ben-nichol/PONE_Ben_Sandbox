@@ -1,0 +1,89 @@
+PONE_Ben_Sandbox.Flasher.Isotropic.isotropic
+============================================
+
+.. py:module:: PONE_Ben_Sandbox.Flasher.Isotropic.isotropic
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.Flasher.Isotropic.isotropic.usage
+   PONE_Ben_Sandbox.Flasher.Isotropic.isotropic.parser
+   PONE_Ben_Sandbox.Flasher.Isotropic.isotropic.geometry
+   PONE_Ben_Sandbox.Flasher.Isotropic.isotropic.gframe
+   PONE_Ben_Sandbox.Flasher.Isotropic.isotropic.geo
+   PONE_Ben_Sandbox.Flasher.Isotropic.isotropic.fkey
+   PONE_Ben_Sandbox.Flasher.Isotropic.isotropic.flasher_key
+   PONE_Ben_Sandbox.Flasher.Isotropic.isotropic.module_key
+   PONE_Ben_Sandbox.Flasher.Isotropic.isotropic.flasher_position
+   PONE_Ben_Sandbox.Flasher.Isotropic.isotropic.pulse_types
+   PONE_Ben_Sandbox.Flasher.Isotropic.isotropic.flasher_wavelength
+   PONE_Ben_Sandbox.Flasher.Isotropic.isotropic.flasher_pulse_type
+   PONE_Ben_Sandbox.Flasher.Isotropic.isotropic.flasher_photons
+   PONE_Ben_Sandbox.Flasher.Isotropic.isotropic.flasher_width
+   PONE_Ben_Sandbox.Flasher.Isotropic.isotropic.dom_properties
+   PONE_Ben_Sandbox.Flasher.Isotropic.isotropic.wl_acceptance_max
+   PONE_Ben_Sandbox.Flasher.Isotropic.isotropic.wl_acceptance
+   PONE_Ben_Sandbox.Flasher.Isotropic.isotropic.ang_acceptance
+   PONE_Ben_Sandbox.Flasher.Isotropic.isotropic.dom_radius
+   PONE_Ben_Sandbox.Flasher.Isotropic.isotropic.dom_oversize
+   PONE_Ben_Sandbox.Flasher.Isotropic.isotropic.optical_medium
+   PONE_Ben_Sandbox.Flasher.Isotropic.isotropic.randomService
+   PONE_Ben_Sandbox.Flasher.Isotropic.isotropic.tray
+
+
+Module Contents
+---------------
+
+.. py:data:: usage
+   :value: 'usage: %prog [options]'
+
+
+.. py:data:: parser
+
+.. py:data:: geometry
+
+.. py:data:: gframe
+
+.. py:data:: geo
+
+.. py:data:: fkey
+
+.. py:data:: flasher_key
+
+.. py:data:: module_key
+
+.. py:data:: flasher_position
+
+.. py:data:: pulse_types
+
+.. py:data:: flasher_wavelength
+
+.. py:data:: flasher_pulse_type
+
+.. py:data:: flasher_photons
+
+.. py:data:: flasher_width
+
+.. py:data:: dom_properties
+
+.. py:data:: wl_acceptance_max
+   :value: 0.0
+
+
+.. py:data:: wl_acceptance
+
+.. py:data:: ang_acceptance
+
+.. py:data:: dom_radius
+
+.. py:data:: dom_oversize
+
+.. py:data:: optical_medium
+
+.. py:data:: randomService
+
+.. py:data:: tray
+

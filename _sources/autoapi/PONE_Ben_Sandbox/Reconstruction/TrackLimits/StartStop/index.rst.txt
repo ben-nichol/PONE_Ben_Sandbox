@@ -1,0 +1,41 @@
+PONE_Ben_Sandbox.Reconstruction.TrackLimits.StartStop
+=====================================================
+
+.. py:module:: PONE_Ben_Sandbox.Reconstruction.TrackLimits.StartStop
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.Reconstruction.TrackLimits.StartStop.StartStopFit
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.Reconstruction.TrackLimits.StartStop.LikelihoodFunctor
+
+
+Module Contents
+---------------
+
+.. py:function:: LikelihoodFunctor(data, domsUsed, track)
+
+.. py:class:: StartStopFit(context)
+
+   Bases: :py:obj:`icecube.icetray.I3ConditionalModule`
+
+
+   .. py:method:: Configure()
+
+
+   .. py:method:: Geometry(frame)
+
+
+   .. py:method:: Physics(frame)
+
+

@@ -1,0 +1,37 @@
+LeptonWeighter
+==============
+
+.. py:module:: LeptonWeighter
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   LeptonWeighter.LeptonWeighter
+
+
+Module Contents
+---------------
+
+.. py:class:: LeptonWeighter(context)
+
+   Bases: :py:obj:`icecube.icetray.I3ConditionalModule`
+
+
+   Wrapper to the opensource lepton weighter.
+
+
+   .. py:method:: Configure()
+
+
+   .. py:method:: Simulation(frame)
+
+
+   .. py:method:: GetnuSQUiDSIndex(primary_type)
+
+
+   .. py:method:: DAQ(frame)
+
+

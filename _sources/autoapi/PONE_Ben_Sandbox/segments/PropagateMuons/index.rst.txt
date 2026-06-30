@@ -1,0 +1,74 @@
+PONE_Ben_Sandbox.segments.PropagateMuons
+========================================
+
+.. py:module:: PONE_Ben_Sandbox.segments.PropagateMuons
+
+.. autoapi-nested-parse::
+
+   Tray segments for muon propagation
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.segments.PropagateMuons.default_media_definition
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.segments.PropagateMuons.PropagateMuons
+   PONE_Ben_Sandbox.segments.PropagateMuons.make_standard_propagators
+
+
+Module Contents
+---------------
+
+.. py:data:: default_media_definition
+
+.. py:function:: PropagateMuons(tray, name, RandomService=None, CylinderRadius=None, CylinderLength=None, SaveState=True, InputMCTreeName='I3MCTree_preMuonProp', OutputMCTreeName='I3MCTree', **kwargs)
+
+   This segment propagates muons through ice with ``PROPOSAL``; it
+   simulates lepton decays and energy losses due to ionization,
+   bremsstrahlung, photonuclear interactions, and pair production.
+
+   :param I3RandomService RandomService:
+       Random number generator service
+   :param float CylinderRadius:
+       Radius of the target volume in m
+       (this param is now depricated, use the config file in the detector configuration)
+   :param float CylinderLength:
+       Full height of the target volume in m
+       (this param is now depricated, use the config file in the detector configuration)
+   :param bool SaveState:
+       If set to `True`, store the state of the supplied RNG.
+   :param str InputMCTree:
+       Name of input :cpp:class:`I3MCTree` frame object
+   :param str OutputMCTree:
+       Name of output :cpp:class:`I3MCTree` frame object
+   :param \**kwargs:
+       Additional keyword arguments are passed to
+       :func:`icecube.simprod.segments.make_propagator`.
+
+
+
+.. py:function:: make_standard_propagators(SplitSubPeVCascades=True, EmitTrackSegments=True, MaxMuons=10, PROPOSAL_config_file=default_media_definition)
+
+   Set up standard propagators (PROPOSAL for muons and taus, CMC for cascades)
+
+       :param bool SplitSubPeVCascades:
+       Split cascades into segments above 1 TeV. Otherwise, split only above 1 PeV.
+   :param bool EmitTrackSegments:
+       Emit constant-energy track slices in addition to stochastic losses
+       (similar to the output of I3MuonSlicer)
+   :param str PROPOSAL_config_file:
+       Path to PROPOSAL config file
+   Keyword arguments will be passed to I3PropagatorServicePROPOSAL
+
+
+

@@ -1,0 +1,34 @@
+PONE_Ben_Sandbox.Reconstruction.NuTau.TauCurveFit
+=================================================
+
+.. py:module:: PONE_Ben_Sandbox.Reconstruction.NuTau.TauCurveFit
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.Reconstruction.NuTau.TauCurveFit.curveFit
+
+
+Module Contents
+---------------
+
+.. py:class:: curveFit(context)
+
+   Bases: :py:obj:`icecube.icetray.I3ConditionalModule`
+
+
+   Fitting single and double bifurcated gaussian
+
+
+   .. py:method:: Configure()
+
+
+   .. py:method:: Geometry(frame)
+
+
+   .. py:method:: DAQ(frame)
+
+

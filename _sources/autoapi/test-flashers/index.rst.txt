@@ -1,0 +1,52 @@
+test-flashers
+=============
+
+.. py:module:: test-flashers
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   test-flashers.usage
+   test-flashers.parser
+   test-flashers.dom_properties
+   test-flashers.wl_acceptance_max
+   test-flashers.wl_acceptance
+   test-flashers.dom_radius
+   test-flashers.dom_oversize
+   test-flashers.optical_medium
+   test-flashers.randomService
+   test-flashers.tray
+
+
+Module Contents
+---------------
+
+.. py:data:: usage
+   :value: 'usage: %prog [options] inputfile'
+
+
+.. py:data:: parser
+
+.. py:data:: dom_properties
+
+.. py:data:: wl_acceptance_max
+   :value: 0.0
+
+
+.. py:data:: wl_acceptance
+
+.. py:data:: dom_radius
+
+.. py:data:: dom_oversize
+   :value: 1.0
+
+
+.. py:data:: optical_medium
+
+.. py:data:: randomService
+
+.. py:data:: tray
+

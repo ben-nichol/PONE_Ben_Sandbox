@@ -1,0 +1,69 @@
+PONE_Ben_Sandbox.GCD.Generate_GCD
+=================================
+
+.. py:module:: PONE_Ben_Sandbox.GCD.Generate_GCD
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.GCD.Generate_GCD.parser
+   PONE_Ben_Sandbox.GCD.Generate_GCD.args
+   PONE_Ben_Sandbox.GCD.Generate_GCD.outfileName
+   PONE_Ben_Sandbox.GCD.Generate_GCD.outfile
+   PONE_Ben_Sandbox.GCD.Generate_GCD.sp
+   PONE_Ben_Sandbox.GCD.Generate_GCD.zero_z
+   PONE_Ben_Sandbox.GCD.Generate_GCD.depthlist
+   PONE_Ben_Sandbox.GCD.Generate_GCD.depth
+   PONE_Ben_Sandbox.GCD.Generate_GCD.xpositions
+   PONE_Ben_Sandbox.GCD.Generate_GCD.ypositions
+   PONE_Ben_Sandbox.GCD.Generate_GCD.reader
+   PONE_Ben_Sandbox.GCD.Generate_GCD.gframe
+   PONE_Ben_Sandbox.GCD.Generate_GCD.geometry
+   PONE_Ben_Sandbox.GCD.Generate_GCD.cframe
+   PONE_Ben_Sandbox.GCD.Generate_GCD.dframe
+
+
+Module Contents
+---------------
+
+.. py:data:: parser
+
+.. py:data:: args
+
+.. py:data:: outfileName
+   :value: 'PONE_.i3.gz'
+
+
+.. py:data:: outfile
+
+.. py:data:: sp
+
+.. py:data:: zero_z
+   :value: 500
+
+
+.. py:data:: depthlist
+
+.. py:data:: depth
+
+.. py:data:: xpositions
+   :value: []
+
+
+.. py:data:: ypositions
+   :value: []
+
+
+.. py:data:: reader
+
+.. py:data:: gframe
+
+.. py:data:: geometry
+
+.. py:data:: cframe
+
+.. py:data:: dframe
+

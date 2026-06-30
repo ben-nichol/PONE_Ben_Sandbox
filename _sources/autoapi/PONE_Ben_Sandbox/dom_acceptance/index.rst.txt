@@ -1,0 +1,174 @@
+PONE_Ben_Sandbox.dom_acceptance
+===============================
+
+.. py:module:: PONE_Ben_Sandbox.dom_acceptance
+
+.. autoapi-nested-parse::
+
+   Test script for comparing the old and new PMT acceptance code.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.dom_acceptance.dom_properties
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.dom_acceptance.Position
+   PONE_Ben_Sandbox.dom_acceptance.Photon
+   PONE_Ben_Sandbox.dom_acceptance.POM
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.dom_acceptance.GetPMT
+   PONE_Ben_Sandbox.dom_acceptance.k40_acceptance
+   PONE_Ben_Sandbox.dom_acceptance.compare_acceptance_codes
+   PONE_Ben_Sandbox.dom_acceptance.plot_acceptance_prob_map
+   PONE_Ben_Sandbox.dom_acceptance.analyze_k40
+
+
+Module Contents
+---------------
+
+.. py:data:: dom_properties
+
+.. py:class:: Position
+
+   .. py:attribute:: x
+      :type:  float
+
+
+   .. py:attribute:: y
+      :type:  float
+
+
+   .. py:attribute:: z
+      :type:  float
+
+
+   .. py:property:: magnitude
+      :type: float
+
+
+
+.. py:class:: Photon
+
+   .. py:attribute:: pos
+      :type:  Position
+
+
+   .. py:attribute:: wavelength
+      :type:  float
+
+
+.. py:class:: POM(data_path)
+
+   Class characterizing the P-OM. COPY OF JAKUB's K40 code
+
+
+   .. py:attribute:: MODULE_RADIUS_M
+      :value: 0.2159
+
+
+
+   .. py:attribute:: PMT_RADIUS_M
+      :value: 0.055
+
+
+
+   .. py:attribute:: PMT_MATRIX
+
+
+   .. py:attribute:: COLLECTION_EFFICIENCY
+      :value: 0.9
+
+
+
+   .. py:attribute:: TRANSIT_TIME_SPREAD
+
+
+   .. py:attribute:: QUANTUM_EFFICIENCY
+
+
+   .. py:attribute:: TRANSMITTANCE
+
+
+   .. py:attribute:: ANGULAR_ACCEPTANCE_0
+
+
+   .. py:attribute:: QE_FUNCTION
+
+
+   .. py:attribute:: T_FUNCTION
+
+
+   .. py:attribute:: AA_FUNCTION
+
+
+   .. py:method:: PMTHit(photon)
+
+      Function that return a list of PMTs on the
+      P-OM that were hit by a given photon
+
+
+
+   .. py:method:: CollectionEfficiency(photon_list)
+
+      Returns an array of collection efficiencies for
+      a passed array of photons
+
+
+
+   .. py:method:: TransitTimeSpread(photon_list)
+
+      Returns an array of transit time spreads
+      for a passed array of photons
+
+
+
+   .. py:method:: QuantumEfficiency(photon_list)
+
+      Returns an array of quantum efficiencies for
+      a passed array of photons
+
+
+
+   .. py:method:: Transmittance(photon_list)
+
+      Returns an array of transmittance efficiencies
+      for a passed array of photons
+
+
+
+   .. py:method:: AngularAcceptanceSimple(pmt_info_list)
+
+      Returns an array of angular acceptances
+      for a passed array of pmt information
+
+
+
+.. py:function:: GetPMT(photonDir, wl, weight)
+
+.. py:function:: k40_acceptance(module, photon_list)
+
+   Copied from https://github.com/pone-software/k40/blob/cf7804c3d25d6039bcdc06ca89629e0d7cf9c558/simulation/utilities/scripts/EventBuilder.py#L338
+
+
+.. py:function:: compare_acceptance_codes(n=1000000)
+
+.. py:function:: plot_acceptance_prob_map()
+
+.. py:function:: analyze_k40(file)
+

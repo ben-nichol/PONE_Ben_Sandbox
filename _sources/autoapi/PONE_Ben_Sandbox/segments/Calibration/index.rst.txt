@@ -1,0 +1,19 @@
+PONE_Ben_Sandbox.segments.Calibration
+=====================================
+
+.. py:module:: PONE_Ben_Sandbox.segments.Calibration
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.segments.Calibration.Calibration
+
+
+Module Contents
+---------------
+
+.. py:function:: Calibration(tray, name, BadDOMsHLC=None, BadDOMsSLC=None)
+

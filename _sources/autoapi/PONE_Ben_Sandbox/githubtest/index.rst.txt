@@ -1,0 +1,58 @@
+PONE_Ben_Sandbox.githubtest
+===========================
+
+.. py:module:: PONE_Ben_Sandbox.githubtest
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.githubtest.filename
+   PONE_Ben_Sandbox.githubtest.om_counts
+   PONE_Ben_Sandbox.githubtest.om_times
+   PONE_Ben_Sandbox.githubtest.total_pulses
+   PONE_Ben_Sandbox.githubtest.f
+   PONE_Ben_Sandbox.githubtest.frame
+   PONE_Ben_Sandbox.githubtest.all_times
+   PONE_Ben_Sandbox.githubtest.t_min
+   PONE_Ben_Sandbox.githubtest.t_max
+   PONE_Ben_Sandbox.githubtest.livetime
+   PONE_Ben_Sandbox.githubtest.om_rates
+   PONE_Ben_Sandbox.githubtest.rate
+
+
+Module Contents
+---------------
+
+.. py:data:: filename
+   :value: '/project/6008051/pone_simulation/geometry_subselections/70String_default_geometry/000002/results...
+
+
+.. py:data:: om_counts
+
+.. py:data:: om_times
+
+.. py:data:: total_pulses
+   :value: 0
+
+
+.. py:data:: f
+
+.. py:data:: frame
+
+.. py:data:: all_times
+   :value: []
+
+
+.. py:data:: t_min
+
+.. py:data:: t_max
+
+.. py:data:: livetime
+
+.. py:data:: om_rates
+
+.. py:data:: rate
+

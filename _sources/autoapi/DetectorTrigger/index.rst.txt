@@ -1,0 +1,40 @@
+DetectorTrigger
+===============
+
+.. py:module:: DetectorTrigger
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   DetectorTrigger.DetectorTrigger
+
+
+Module Contents
+---------------
+
+.. py:class:: DetectorTrigger(context)
+
+   Bases: :py:obj:`icecube.icetray.I3ConditionalModule`
+
+
+   Simple Implementation of the PMT response.
+
+
+   .. py:method:: Configure()
+
+
+   .. py:method:: Geometry(frame)
+
+
+   .. py:method:: DetectorStatus(frame)
+
+
+   .. py:method:: GetOMTriggers(OMCoincidence_time, OMCoincidence_ncoin, OMCoincidence_pmts, ncoincidence)
+
+
+   .. py:method:: DAQ(frame)
+
+

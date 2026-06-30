@@ -1,0 +1,66 @@
+conf
+====
+
+.. py:module:: conf
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   conf.project
+   conf.copyright
+   conf.author
+   conf.extensions
+   conf.autoapi_dirs
+   conf.autodoc_mock_imports
+   conf.templates_path
+   conf.exclude_patterns
+   conf.html_theme
+   conf.html_logo
+
+
+Module Contents
+---------------
+
+.. py:data:: project
+   :value: 'PONE offline'
+
+
+.. py:data:: copyright
+   :value: '2023, PONE Collaboration'
+
+
+.. py:data:: author
+   :value: 'PONE Collaboration'
+
+
+.. py:data:: extensions
+   :value: ['autoapi.extension', 'sphinx.ext.napoleon']
+
+
+.. py:data:: autoapi_dirs
+   :value: ['../']
+
+
+.. py:data:: autodoc_mock_imports
+   :value: ['icecube', 'I3Tray', 'I3Constants', 'I3Units']
+
+
+.. py:data:: templates_path
+   :value: ['_templates']
+
+
+.. py:data:: exclude_patterns
+   :value: []
+
+
+.. py:data:: html_theme
+   :value: 'sphinx_rtd_theme'
+
+
+.. py:data:: html_logo
+   :value: 'simple_logo.png'
+
+

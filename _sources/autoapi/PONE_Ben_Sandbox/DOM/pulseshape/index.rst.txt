@@ -1,0 +1,73 @@
+PONE_Ben_Sandbox.DOM.pulseshape
+===============================
+
+.. py:module:: PONE_Ben_Sandbox.DOM.pulseshape
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.DOM.pulseshape.pulseshape
+   PONE_Ben_Sandbox.DOM.pulseshape.minvoltage
+   PONE_Ben_Sandbox.DOM.pulseshape.minvoltage
+   PONE_Ben_Sandbox.DOM.pulseshape.resampledpulseshape
+   PONE_Ben_Sandbox.DOM.pulseshape.dt
+   PONE_Ben_Sandbox.DOM.pulseshape.tmin
+   PONE_Ben_Sandbox.DOM.pulseshape.time
+   PONE_Ben_Sandbox.DOM.pulseshape.lowbin
+   PONE_Ben_Sandbox.DOM.pulseshape.timescale
+   PONE_Ben_Sandbox.DOM.pulseshape.value
+   PONE_Ben_Sandbox.DOM.pulseshape.specharge
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.DOM.pulseshape.pulsewave
+
+
+Module Contents
+---------------
+
+.. py:data:: pulseshape
+
+.. py:data:: minvoltage
+   :value: 0.0
+
+
+.. py:data:: minvoltage
+
+.. py:data:: resampledpulseshape
+   :value: []
+
+
+.. py:data:: dt
+   :value: 0.1
+
+
+.. py:data:: tmin
+   :value: -10.0
+
+
+.. py:data:: time
+   :value: -10.0
+
+
+.. py:data:: lowbin
+   :value: 1
+
+
+.. py:data:: timescale
+   :value: 2.0
+
+
+.. py:data:: value
+
+.. py:data:: specharge
+
+.. py:function:: pulsewave(time)
+

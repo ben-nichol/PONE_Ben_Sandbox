@@ -1,0 +1,63 @@
+changing_geometry_example
+=========================
+
+.. py:module:: changing_geometry_example
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   changing_geometry_example.tray
+   changing_geometry_example.cm
+   changing_geometry_example.s
+   changing_geometry_example.randomService
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   changing_geometry_example.WrapCLSim
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   changing_geometry_example.createEvents
+   changing_geometry_example.checkPhotons
+
+
+Module Contents
+---------------
+
+.. py:data:: tray
+
+.. py:function:: createEvents(frame)
+
+   Just some dummy events to have a detector response
+
+
+.. py:data:: cm
+
+.. py:data:: s
+
+.. py:data:: randomService
+
+.. py:class:: WrapCLSim(context)
+
+   Bases: :py:obj:`AcousticFrame.frames.CreateSeparateGCD`
+
+
+   To use this module, define your own module that inherits from this module and defines it's own InsertModule function, where the module to be wrapped is inserted into the wrapper tray.
+
+
+   .. py:method:: InsertModule(wrapper_tray, gcdfile)
+
+
+.. py:function:: checkPhotons(frame)
+

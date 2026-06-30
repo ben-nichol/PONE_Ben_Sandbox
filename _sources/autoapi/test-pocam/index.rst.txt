@@ -1,0 +1,78 @@
+test-pocam
+==========
+
+.. py:module:: test-pocam
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   test-pocam.usage
+   test-pocam.parser
+   test-pocam.geometry
+   test-pocam.gframe
+   test-pocam.geo
+   test-pocam.flasher_key
+   test-pocam.flasher_position
+   test-pocam.flasher_photons
+   test-pocam.flasher_width
+   test-pocam.flasher_pulse_type
+   test-pocam.dom_properties
+   test-pocam.wl_acceptance_max
+   test-pocam.wl_acceptance
+   test-pocam.dom_radius
+   test-pocam.dom_oversize
+   test-pocam.optical_medium
+   test-pocam.randomService
+   test-pocam.tray
+
+
+Module Contents
+---------------
+
+.. py:data:: usage
+   :value: 'usage: %prog [options] inputfile'
+
+
+.. py:data:: parser
+
+.. py:data:: geometry
+
+.. py:data:: gframe
+
+.. py:data:: geo
+
+.. py:data:: flasher_key
+
+.. py:data:: flasher_position
+
+.. py:data:: flasher_photons
+   :value: 10000000.0
+
+
+.. py:data:: flasher_width
+
+.. py:data:: flasher_pulse_type
+
+.. py:data:: dom_properties
+
+.. py:data:: wl_acceptance_max
+   :value: 0.0
+
+
+.. py:data:: wl_acceptance
+
+.. py:data:: dom_radius
+
+.. py:data:: dom_oversize
+   :value: 1.0
+
+
+.. py:data:: optical_medium
+
+.. py:data:: randomService
+
+.. py:data:: tray
+

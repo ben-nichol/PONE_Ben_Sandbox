@@ -1,0 +1,42 @@
+PONE_Ben_Sandbox.PulseCleaning.CausalHits
+=========================================
+
+.. py:module:: PONE_Ben_Sandbox.PulseCleaning.CausalHits
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.PulseCleaning.CausalHits.CausalPulseCleaning
+
+
+Module Contents
+---------------
+
+.. py:class:: CausalPulseCleaning(context)
+
+   Bases: :py:obj:`icecube.icetray.I3ConditionalModule`
+
+
+   Causal Pulse Cleaning looks at the brightest DOM and assigns a time and location such that all other
+   hits must be within a loose causality window. This Window is based on the travel of the particle at
+   c + at most 50m of photon travel time at velocity c/n.
+
+
+   .. py:method:: Configure()
+
+
+   .. py:method:: getBaseTimeandPosition(mcpeMap)
+
+
+   .. py:method:: getCausalMCPEs(pos1, pos2, mcpeList, coincetime)
+
+
+   .. py:method:: Geometry(frame)
+
+
+   .. py:method:: Physics(frame)
+
+

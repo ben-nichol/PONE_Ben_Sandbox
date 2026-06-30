@@ -1,0 +1,25 @@
+MakePoneMediumPropertiesSpeculativeExtendedRange
+================================================
+
+.. py:module:: MakePoneMediumPropertiesSpeculativeExtendedRange
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   MakePoneMediumPropertiesSpeculativeExtendedRange.GetPetzoldScatteringCosAngleDistribution
+   MakePoneMediumPropertiesSpeculativeExtendedRange.GetPoneScatteringCosAngleDistribution
+   MakePoneMediumPropertiesSpeculativeExtendedRange.MakePoneMediumProperties
+
+
+Module Contents
+---------------
+
+.. py:function:: GetPetzoldScatteringCosAngleDistribution()
+
+.. py:function:: GetPoneScatteringCosAngleDistribution()
+
+.. py:function:: MakePoneMediumProperties()
+

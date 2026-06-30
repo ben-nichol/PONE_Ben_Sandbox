@@ -1,0 +1,298 @@
+PONE_Ben_Sandbox.segments
+=========================
+
+.. py:module:: PONE_Ben_Sandbox.segments
+
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /autoapi/PONE_Ben_Sandbox/segments/Calibration/index
+   /autoapi/PONE_Ben_Sandbox/segments/DetectorSim/index
+   /autoapi/PONE_Ben_Sandbox/segments/GenerateAirShowers/index
+   /autoapi/PONE_Ben_Sandbox/segments/GenerateCosmicRayMuons/index
+   /autoapi/PONE_Ben_Sandbox/segments/GenerateFlashers/index
+   /autoapi/PONE_Ben_Sandbox/segments/GenerateIceTopShowers/index
+   /autoapi/PONE_Ben_Sandbox/segments/GenerateNeutrinos/index
+   /autoapi/PONE_Ben_Sandbox/segments/GenerateNoiseTriggers/index
+   /autoapi/PONE_Ben_Sandbox/segments/HybridPhotonicsCLSim/index
+   /autoapi/PONE_Ben_Sandbox/segments/MultiDomEffSample/index
+   /autoapi/PONE_Ben_Sandbox/segments/Polyplopia/index
+   /autoapi/PONE_Ben_Sandbox/segments/PropagateMuons/index
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.segments.default_media_definition
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.segments.Calibration
+   PONE_Ben_Sandbox.segments.MultiDomEffSample
+   PONE_Ben_Sandbox.segments.ConvertToLinearizedMCTree
+   PONE_Ben_Sandbox.segments.DetectorSim
+   PONE_Ben_Sandbox.segments.DetectorSegment
+   PONE_Ben_Sandbox.segments.GenerateNeutrinos
+   PONE_Ben_Sandbox.segments.SelectNeutrino
+   PONE_Ben_Sandbox.segments.GenerateAtmosphericNeutrinos
+   PONE_Ben_Sandbox.segments.GenerateIceTopShowers
+   PONE_Ben_Sandbox.segments.GenerateAirShowers
+   PONE_Ben_Sandbox.segments.ProduceNoiseTriggers
+   PONE_Ben_Sandbox.segments.NoiseWeight
+   PONE_Ben_Sandbox.segments.CheckEventTime
+   PONE_Ben_Sandbox.segments.PropagateMuons
+   PONE_Ben_Sandbox.segments.make_standard_propagators
+   PONE_Ben_Sandbox.segments.taskset
+   PONE_Ben_Sandbox.segments.tasksetInUse
+   PONE_Ben_Sandbox.segments.resetTasksetThreads
+   PONE_Ben_Sandbox.segments.LoadCascadeTables
+   PONE_Ben_Sandbox.segments.PropagatePhotons
+   PONE_Ben_Sandbox.segments.SetMultiplicity
+   PONE_Ben_Sandbox.segments.PolyplopiaSegment
+   PONE_Ben_Sandbox.segments.PolyplopiaPhotons
+   PONE_Ben_Sandbox.segments.PolyplopiaMergePEs
+   PONE_Ben_Sandbox.segments.GenerateFlashers
+
+
+Package Contents
+----------------
+
+.. py:function:: Calibration(tray, name, BadDOMsHLC=None, BadDOMsSLC=None)
+
+.. py:function:: MultiDomEffSample(tray, name, RandomService=None, GeneratedEfficiency=None, SampleEfficiencies=[0.9, 0.95, 0.99, 1.089, 1.1979], InputSeriesName='I3MCPESeriesMap', DeleteOriginalSeries=True, OverwriteOriginalSeries=False)
+
+   This tray segment allows the downsampling of MCPE maps
+   to perform mutliple dom efficiency simulations
+
+
+.. py:function:: ConvertToLinearizedMCTree(frame)
+
+.. py:function:: DetectorSim(tray, name, RandomService=None, RunID=None, GCDFile=None, KeepMCHits=False, KeepPropagatedMCTree=False, KeepMCPulses=False, SkipNoiseGenerator=False, LowMem=False, InputPESeriesMapName='I3MCPESeriesMap', BeaconLaunches=True, TimeShiftSkipKeys=[], FilterTrigger=True)
+
+   Read photon-propagated (MCPE) files, simulate noise, PTM response, DOMLaunches, and trigger.
+
+   :param RandomService: the name of a random service to be used by the tank response
+   :param RunID: Number of run that will be writtend to I3EventHeader
+   :param GCDFile: path to GCD file to read first
+   :param KeepMCHits: keep MCPEs in frame
+   :param KeepPropagatedMCTree: keep MCTree with all in-ice propagated secondaries. These take a lot of space compared un propagated tree.
+   :param KeepMCPulses: keep I3MCPulseSeriesMap in frame.
+   :param SkipNoiseGenerator: do not run Vuvuzela.
+   :param LowMem: reduce peak memory use by repeatedly merging hits as they are generated.  WARNING: Use of this option may slightly reduce precision and drastically increase running time. It is potentially useful for very bright events, and probably harmful for very long events.
+   :param InputPESeriesMapName: name of input I3MCPESeriesMap object.
+   :param BeaconLaunches: add beacon lauches.
+   :param TimeShiftSkipKeys: list of keys that should be time-shifted. Default: shift all Time-like objects.
+   :param FilterTrigger: remove events that don't pass any trigger.
+
+
+.. py:function:: DetectorSegment(tray, name, If=lambda f: True, gcdfile='', mctype='corsika_weighted', MCPESeriesMapName='I3MCPESeriesMap', detector_label='IC86:2012', runtrigger=True, filtertrigger=True, stats={}, basicHisto=False, icetop=False, genie=False, prescale=1, uselineartree=True, lowmem=False, BeaconLaunches=True, TimeShiftSkipKeys=[], GeneratedEfficiency=0.0, SampleEfficiency=0.0, RunID=None, KeepMCHits=False, KeepPropagatedMCTree=False, KeepMCPulses=False)
+
+   Run IC86 detector simulation
+
+
+.. py:function:: GenerateNeutrinos(tray, name, RandomService=None, RunID=None, NumEvents=100, SimMode='Full', VTXGenMode='NuGen', InjectionMode='Surface', CylinderParams=[0, 0, 0, 0, 0], AutoExtendMuonVolume=True, Flavor='', NuTypes=['NuMu', 'NuMuBar'], PrimaryTypeRatio=[1, 1], GammaIndex=2.0, FromEnergy=1.0 * I3Units.TeV, ToEnergy=10.0 * I3Units.PeV, ZenithRange=[0, 180 * I3Units.degree], AzimuthRange=[0, 360 * I3Units.degree], UseDifferentialXsection=True, CrossSections='csms_differential_v1.0', CrossSectionsPath=None, ZenithSamplingMode='ANGEMU', ParamsMap=dict())
+
+.. py:function:: SelectNeutrino(tray, name, Propagators=None, AutoExtendMuonVolume=False, EnergyBiasPower=1, FlavorBias=[30, 1, 1], CylinderRadius=600 * I3Units.m, CylinderHeight=1200 * I3Units.m, CrossSections='csms')
+
+   Select a neutrino to interact, and add neutrino propagators to the context.
+
+   :param AutoExtendMuonVolume: allow :math:`\nu_{\mu}` to interact far before they reach the detector
+   :param EnergyBiasPower: select a neutrino from the bundle with probability proportional to E^power
+   :param FlavorBias: scale selection probability for :math:`\nu_{e}/\nu_{\mu}/\nu_{\tau}`
+                      by these factors. The default value is appropriate for equal sampling
+                      of conventional atmospheric :math:`\nu_{e}/\nu_{\mu}`.
+   :param CylinderRadius: radius of upright-cylinder target volume
+   :param CylinderHeight: full height of simulation volume
+   :param CrossSections: cross-section tables to use ('cteq5', 'css', or 'csms')
+
+
+.. py:function:: GenerateAtmosphericNeutrinos(tray, name, Files, GCDFile='', AutoExtendMuonVolume=False, EnergyBiasPower=1, FlavorBias=[30, 1, 1], CylinderRadius=600 * I3Units.m, CylinderHeight=1200 * I3Units.m, CrossSections='csms', NEvents=-1, MakeNeutrino=True)
+
+   Read CORSIKA showers containing neutrinos, and force exactly one neutrino to interact.
+
+   NB: this segment is deprecated. Use GenerateAirShowers, SelectNeutrino, and PropagateMuons instead.
+
+   :param Files: a list of CORSIKA files to read
+   :param GCDFile: I3 file with GCD information to read in before the CORSIKA files
+   :param AutoExtendMuonVolume: allow :math:`\nu_{\mu}` to interact far before they reach the detector
+   :param EnergyBiasPower: select a neutrino from the bundle with probability proportional to E^power
+   :param FlavorBias: scale selection probability for :math:`\nu_{e}/\nu_{\mu}/\nu_{\tau}`
+                      by these factors. The default value is appropriate for equal sampling
+                      of conventional atmospheric :math:`\nu_{e}/\nu_{\mu}`.
+   :param CylinderRadius: radius of upright-cylinder target volume
+   :param CylinderHeight: full height of simulation volume
+   :param CrossSections: cross-section tables to use ('cteq5', 'css', or 'csms')
+
+
+.. py:function:: GenerateIceTopShowers(tray, name, Files=None, GCDFile=None, NSamples=1, TankResponse='g4', KeepMCHits=False, x=0, y=0, r=0, ResponseRandomService='I3RandomService', InjectorRandomService='I3RandomService', UnthinRadius=0, TankSamplingRadius=25 * I3Units.m, RunID=0, RaiseObservationLevel=0)
+
+   Read CORSIKA files, simulate IceTop response, and populate I3MCTree with penetrating components (neutrinos and muons) using topsimulator's injector.
+
+   :param Files: list of CORSIKA files to read
+   :param GCDFile: path to GCD file to read first
+   :param NSampless: Number of samples of a single CORSIKA shower
+   :param TankResponse: Method used to simulate IceTop response: 'param' for parameterization, 'g4' for GEANT4
+   :param KeepMCHits: keep IceTop MCHits (needed only for the PMTSimulator-based simulation)
+   :param x: x-coordinate of the point around which the CORSIKA origin is randomly placed
+   :param y: y-coordinate of the point around which the CORSIKA origin is randomly placed
+   :param r: radius of the circle in which the CORSIKA origin is randomly placed
+   :param ResponseRandomService: name of the I3RandomService used for tank response
+   :param InjectorRandomService: name of the I3RandomService used for particle injection
+   :param UnthinRadius: radius of unthinning sampling area
+   :param TankSamplingRadius: the radius around tanks where all particles are considered for propagation (>=UnthinRadius)
+   :param RunID: the ID to store in the header (normally that of the corsika run)
+
+
+.. py:function:: GenerateAirShowers(tray, name, Files=None, GCDFile=None, NEvents=1, OverSampling=1, LegacyOverSampling=False, SimulateIceTop=True, TankResponse='param', KeepMCHits=False, RandomService='I3RandomService')
+
+   Read CORSIKA files, simulate IceTop response, and populate I3MCTree with penetrating components (neutrinos and muons)
+
+   :param Files: list of CORSIKA files to read
+   :param GCDFile: path to GCD file to read first
+   :param NEvents: passed to I3CORSIKAReader (and ignored for CORSIKA files >= v74000, where it is part of the run header)
+   :param OverSampling: Number of times each shower will be read (each with a different impact location)
+   :param SimulateIceTop: simulate IceTop response
+   :param TankResponse: how to simulate IceTop response: 'param' for parameterization, 'g4' for GEANT4
+   :param KeepMCHits: keep IceTop MCHits
+   :param RandomService: the name of a random service to be used by the tank response
+
+
+.. py:function:: ProduceNoiseTriggers(tray, name, gcd_file, nevents=1, run_id=None)
+
+   ProduceNoiseTriggers: Create events containing only noise and no simulated particle interactions. These
+   are needed for low-energy DeepCore and PINGU simulation due to a lower detector threshold. There
+   are some nuances to this. All events must be long in order to avoid problems at the edge of simulated
+   events where expanding around the triggers could include unsimulated regions in time. All frames are
+   initially 100 ms long. These are triggered, then cut down by CoincidenceAfterProcessing to be more
+   reasonable lengths.
+
+   :param name: Name to add to all of the modules.
+   :param gcd_file: The location and name of the GCD file to use
+   :param mjd: Modified Julian Date to put into the I3EventHeader. Start of IC86-1 by default.
+   :param runID: The run number to put into the I3EventHeader.
+   :param nevents: The number of events to simulate.
+
+
+.. py:function:: NoiseWeight(frame, NEvents)
+
+   Write a weightmap to the frame for the noise triggers. REQUIRED for the CoincidenceAfterProcessing module. This
+   should only depend on the number of events, since there's no physics or flux models to worry about to first order.
+   There is also a "time buffer", which is meant to take into account edge effects of triggers near the frame edges.
+
+   :param NumEvents: Number of events being produced for this file
+
+
+.. py:function:: CheckEventTime(frame, TriggerHierarchy='I3TriggerHierarchy', MCPESeriesMap='I3MCPESeriesMap')
+
+   If the trigger exists within 20 microseconds of the first or last hit, then we need
+   to remove that trigger. Otherwise events will include a non-simulated region in the
+   event window and things will just be wrong.
+
+   :param TriggerHierarchy: Name of the I3TriggerHierarchy in the frame.
+   :param MCPESeriesMap: Name of the I3MCPESeriesMap to check for earliest/latest hits.
+
+
+.. py:data:: default_media_definition
+
+.. py:function:: PropagateMuons(tray, name, RandomService=None, CylinderRadius=None, CylinderLength=None, SaveState=True, InputMCTreeName='I3MCTree_preMuonProp', OutputMCTreeName='I3MCTree', **kwargs)
+
+   This segment propagates muons through ice with ``PROPOSAL``; it
+   simulates lepton decays and energy losses due to ionization,
+   bremsstrahlung, photonuclear interactions, and pair production.
+
+   :param I3RandomService RandomService:
+       Random number generator service
+   :param float CylinderRadius:
+       Radius of the target volume in m
+       (this param is now depricated, use the config file in the detector configuration)
+   :param float CylinderLength:
+       Full height of the target volume in m
+       (this param is now depricated, use the config file in the detector configuration)
+   :param bool SaveState:
+       If set to `True`, store the state of the supplied RNG.
+   :param str InputMCTree:
+       Name of input :cpp:class:`I3MCTree` frame object
+   :param str OutputMCTree:
+       Name of output :cpp:class:`I3MCTree` frame object
+   :param \**kwargs:
+       Additional keyword arguments are passed to
+       :func:`icecube.simprod.segments.make_propagator`.
+
+
+
+.. py:function:: make_standard_propagators(SplitSubPeVCascades=True, EmitTrackSegments=True, MaxMuons=10, PROPOSAL_config_file=default_media_definition)
+
+   Set up standard propagators (PROPOSAL for muons and taus, CMC for cascades)
+
+       :param bool SplitSubPeVCascades:
+       Split cascades into segments above 1 TeV. Otherwise, split only above 1 PeV.
+   :param bool EmitTrackSegments:
+       Emit constant-energy track slices in addition to stochastic losses
+       (similar to the output of I3MuonSlicer)
+   :param str PROPOSAL_config_file:
+       Path to PROPOSAL config file
+   Keyword arguments will be passed to I3PropagatorServicePROPOSAL
+
+
+
+.. py:function:: taskset(pid, tt=None)
+
+.. py:function:: tasksetInUse()
+
+.. py:function:: resetTasksetThreads(main_pid)
+
+.. py:function:: LoadCascadeTables(IceModel='SpiceMie', TablePath='/data/sim/sim-new/spline-tables')
+
+.. py:function:: PropagatePhotons(tray, name, GCDFile, If=lambda f: True, RandomService=None, KeepIndividualMaps=False, HybridMode=False, IgnoreMuons=False, IgnoreCascades=False, UseGPUs=False, UseAllCPUCores=False, KeepSlicedMCTree=False, IceModel='spice_3.2', CascadeService=None, IceModelLocation=None, UseCascadeExtension=True, UseGeant4=False, CrossoverEnergyEM=None, CrossoverEnergyHadron=None, UnshadowedFraction=1.0, DOMOversizeFactor=5.0, HoleIceParameterization=expandvars('$I3_SRC/ice-models/resources/models/angsens/as.h2-50cm'), InputMCTree='I3MCTree', UseI3PropagatorService=False, OutputPESeriesMapName='I3MCPESeriesMap', OutputPhotonSeriesName=None)
+
+   This traysegment offers multiple tweaks for adapted processing in different energy ranges,
+   for example GEANT4 in conjunction with Parametrizations for the treatment for lowest energies
+   and a HybridMode with the use of tables for the treatment of high energies.
+   In any case, please refer to the documentation of clsim to find suitable settings for your
+   simulation needs
+
+
+.. py:function:: SetMultiplicity(frame, mctreelist=[], weightmap='CorsikaWeightMap')
+
+.. py:function:: PolyplopiaSegment(tray, name, mctype='CORSIKA', RandomService=None, mctree_name='I3MCTree_preMuonProp', separate_coincident_mctree_name='', bgfile=None, timewindow=40.0 * I3Units.microsecond, rate=float('nan'), If=lambda f: True)
+
+   There are three scenarios for polyplopia:
+      1. bgfile: We are reading background MC from a separate file and
+      injecting events to signal (or weighted background) based on
+      a Poisson distribution within the given time window.
+
+      2. we are generating MuonGun bundles and
+      injecting events to signal (or weighted background) based on
+      a Poisson distribution within the given time window.
+
+
+.. py:function:: PolyplopiaPhotons(tray, name, mctype='CORSIKA', RandomService=None, RandomServiceForPropagators=None, mctree_name='I3MCTree', bgfile=None, GCDFile=None, IceModel='SpiceLea', IceModelLocation=os.path.expandvars('$I3_BUILD/clsim/resources/ice'), timewindow=40.0 * I3Units.microsecond, rate=float('nan'), GPU=None, UseGPUs=True, DOMOversizeFactor=5, HoleIceParameterization=expandvars('$I3_SRC/ice-models/resources/models/angsens/as.h2-50cm'), Efficiency=0.99, PhotonSeriesName='I3MCPESeriesMap', PROPOSALParams=dict(), UsePPC=False, If=lambda f: True)
+
+.. py:function:: PolyplopiaMergePEs(tray, name, mctype='CORSIKA', RandomService=None, mctree_name='I3MCTree', separate_coincident_mctree_name='', bgfile=None, timewindow=40.0 * I3Units.microsecond, rate=float('nan'), If=lambda f: True)
+
+   This segment can be used to merge background that already contains I3MCPEs. We are reading background MC from a separate file and
+   injecting events to signal (or weighted background) based on
+   a Poisson distribution within the given time window.
+
+   :param mctype: type of signal that we are injecting backgroun onto. Needed to avoid overcounting background.
+   :param RandomService: the name of a random service to be used by the tank response
+   :param mctree_name: Name of I3MCTree in background file
+   :param separate_coincident_mctree_name: Name of output bg tree. If empty, background will be added to main tree.
+   :param bgfile: Name of file containing background with I3MCPEs.
+   :param mctype: type of signal that we are injecting backgroun onto. Needed to avoid overcounting background.
+   :param timewindow: coincidence time window.
+   :param rate: rate of background muons cointained in file.
+
+
+.. py:function:: GenerateFlashers(frame, FlashString=63, FlashDOM=20, FlashBrightness=127, FlashWidth=124, FlashTime=0, FlashMask=1, FlasherInfoName='I3FlasherInfo')
+

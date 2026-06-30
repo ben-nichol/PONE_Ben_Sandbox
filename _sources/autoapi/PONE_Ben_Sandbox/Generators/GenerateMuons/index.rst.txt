@@ -1,0 +1,82 @@
+PONE_Ben_Sandbox.Generators.GenerateMuons
+=========================================
+
+.. py:module:: PONE_Ben_Sandbox.Generators.GenerateMuons
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.Generators.GenerateMuons.MuonGenerator
+
+
+Module Contents
+---------------
+
+.. py:class:: MuonGenerator(_cylR, _minenergy, _maxenergy, seed=0)
+
+   muon generator class header example, tobe flushed out with details of generator use
+
+
+   .. py:method:: ReadFluxTable()
+
+      test
+
+
+
+   .. py:method:: GetArea()
+
+
+   .. py:method:: ComputeAcceptanceRange(injectR)
+
+
+   .. py:method:: GetZenithCDF(injectR)
+
+
+   .. py:method:: MakeEnergyCDFs()
+
+
+   .. py:method:: GetEnergyde(e)
+
+
+   .. py:method:: MakeZenithCDF()
+
+
+   .. py:method:: GetZenithBin(zenith)
+
+
+   .. py:method:: GetZenithCDFvalue(rbin, maxzenith)
+
+
+   .. py:method:: ComputeRadialWeights()
+
+
+   .. py:attribute:: cylR
+
+
+   .. py:attribute:: cylH
+      :value: 1400.0
+
+
+
+   .. py:attribute:: d_cdf
+      :value: 0
+
+
+
+   .. py:attribute:: mingenenergy
+
+
+   .. py:attribute:: maxgenenergy
+
+
+   .. py:attribute:: maxinjectionR
+      :value: 7000.0
+
+
+
+   .. py:method:: GenerateRandomEvent()
+
+

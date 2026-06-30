@@ -1,0 +1,39 @@
+geometry
+========
+
+.. py:module:: geometry
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   geometry.tilt_coefficients
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   geometry.tilt_delta_x
+   geometry.createTiltedGeometry
+
+
+Module Contents
+---------------
+
+.. py:data:: tilt_coefficients
+
+.. py:function:: tilt_delta_x(v_x, z)
+
+   Calculates the horizontal offset due to currents, based on current speed v_x, and height z
+
+
+.. py:function:: createTiltedGeometry(current_speed=0, current_angle=0, string_positions=[[0, 0]])
+
+   Takes a current speed, an angle [0, 2pi] of the current, and a list of 2D string positions [[x1,y1],...].
+   Returns an I3Geometry with tilted strings.
+
+

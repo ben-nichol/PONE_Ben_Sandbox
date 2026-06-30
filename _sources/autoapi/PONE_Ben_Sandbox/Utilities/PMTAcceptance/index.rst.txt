@@ -1,0 +1,145 @@
+PONE_Ben_Sandbox.Utilities.PMTAcceptance
+========================================
+
+.. py:module:: PONE_Ben_Sandbox.Utilities.PMTAcceptance
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.Utilities.PMTAcceptance.POM
+
+
+Module Contents
+---------------
+
+.. py:class:: POM(qe_file=os.getenv('PONESRCDIR') + '/data/qe.csv', aa_file=os.getenv('PONESRCDIR') + '/data/Angular_Acceptance.txt', glass_file=os.getenv('PONESRCDIR') + '/data/glass.csv', random_service=None)
+
+   Simple model of the POM
+
+
+   .. py:attribute:: MODULE_RADIUS_M
+      :value: 0.2159
+
+
+
+   .. py:attribute:: PMT_RADIUS_M
+      :value: 0.1
+
+
+
+   .. py:attribute:: PMT_ANGLES
+
+
+   .. py:attribute:: PMT_MATRIX
+
+
+   .. py:attribute:: qe_function
+
+
+   .. py:attribute:: aa_function
+
+
+   .. py:attribute:: glass_function
+
+
+   .. py:attribute:: collection_efficiency
+      :value: 1.0
+
+
+
+   .. py:attribute:: random_service
+      :value: None
+
+
+
+   .. py:method:: get_qe_function(qe_file)
+
+      Function that loads QE data
+
+
+
+   .. py:method:: get_aa_function(aa_file)
+
+      Function that loads single PMT angular
+      acceptance data
+
+
+
+   .. py:method:: get_glass_function(glass_file)
+
+      Function that loads glass transmission
+      data
+
+
+
+   .. py:method:: get_quantum_efficiency(photon_list)
+
+      Returns an array of quantum efficiencies for
+      a given array of photons
+
+
+
+   .. py:method:: get_angular_acceptance(pmt_distance_list, pmt_angle_list)
+
+      Returns an array of angular acceptances
+      for a given array of distances and angles between
+      pmts and photons
+
+
+
+   .. py:method:: get_glass_efficiency(photon_list)
+
+      Returns an array of glass transmittance efficiencies
+      for a given array of photons
+
+
+
+   .. py:method:: get_collection_efficiency(photon_list)
+
+      Returns an array of collection efficiencies
+      for a given array of photons
+
+
+
+   .. py:method:: get_pmt(photon)
+
+      Returns the PMTs that are hit by a given
+      photon based on geometry along with the
+      distance and angle relative to the
+      corresponding PMT direction.
+
+
+
+   .. py:method:: get_probabilities(photons, pmt_photon_distances, pmt_photon_angles)
+
+      Returns a list of detection probabilities
+      correspon to the given list of photons and
+      distances between photons and PMTs
+
+
+
+   .. py:method:: module_acceptance(photon_list)
+
+      Returns a list of photons, hit PMTs, and
+      hit probabilities based on the module
+      response to the given photon list.
+      Since the angular acceptance has overlap
+      between PMTs, the PMT with the highest
+      probability of acceptance is taken, and
+      the efficiency calculation goes forward.
+
+
+
+   .. py:method:: apply_acceptance_cut(photon_list)
+
+      Uses the module_acceptance function to
+      attribute photons to PMT but also applies
+      a cut based on the detection probability
+      of each PMT. Returns a list of of surviving
+      photons and PMT ids after the cut is applied
+
+
+

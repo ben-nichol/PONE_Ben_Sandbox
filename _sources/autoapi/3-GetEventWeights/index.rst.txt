@@ -1,0 +1,60 @@
+3-GetEventWeights
+=================
+
+.. py:module:: 3-GetEventWeights
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   3-GetEventWeights.parser
+   3-GetEventWeights.args
+   3-GetEventWeights.flux_params
+   3-GetEventWeights.liveTime
+   3-GetEventWeights.xs
+   3-GetEventWeights.flux
+   3-GetEventWeights.generators
+   3-GetEventWeights.weight_event
+   3-GetEventWeights.data_file
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   3-GetEventWeights.get_weight
+
+
+Module Contents
+---------------
+
+.. py:data:: parser
+
+.. py:data:: args
+
+.. py:data:: flux_params
+
+.. py:data:: liveTime
+   :value: 31536000.0
+
+
+.. py:data:: xs
+
+.. py:data:: flux
+
+.. py:function:: get_weight(props, weight_event)
+
+   Accepts the properties list of an event and returns the weight
+
+
+.. py:data:: generators
+   :value: []
+
+
+.. py:data:: weight_event
+
+.. py:data:: data_file
+

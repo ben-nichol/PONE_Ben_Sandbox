@@ -1,0 +1,37 @@
+PONE_Ben_Sandbox.Generators.MUPAGEImporter
+==========================================
+
+.. py:module:: PONE_Ben_Sandbox.Generators.MUPAGEImporter
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.Generators.MUPAGEImporter.MUPAGEImporter
+
+
+Module Contents
+---------------
+
+.. py:class:: MUPAGEImporter(context)
+
+   Bases: :py:obj:`icecube.icetray.I3ConditionalModule`
+
+
+   import the output from MUPAGE to i3 files
+
+
+   .. py:method:: Configure()
+
+
+   .. py:method:: GetData(filename)
+
+
+   .. py:method:: DAQ(frame)
+
+
+   .. py:method:: Finish()
+
+

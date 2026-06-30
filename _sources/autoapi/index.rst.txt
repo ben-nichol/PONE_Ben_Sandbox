@@ -1,0 +1,53 @@
+API Reference
+=============
+
+This page contains auto-generated API reference documentation [#f1]_.
+
+.. toctree::
+   :titlesonly:
+
+   /autoapi/conf/index
+   /autoapi/stubs/index
+   /autoapi/pocam/index
+   /autoapi/frames/index
+   /autoapi/k40test/index
+   /autoapi/make_hdf/index
+   /autoapi/geometry/index
+   /autoapi/3-AtmFlux/index
+   /autoapi/TimingFit/index
+   /autoapi/DOMTrigger/index
+   /autoapi/test-pocam/index
+   /autoapi/resolution/index
+   /autoapi/PONE_Phase1/index
+   /autoapi/run_linefit/index
+   /autoapi/4-GetWeights/index
+   /autoapi/test-flashers/index
+   /autoapi/GenerateOneOM/index
+   /autoapi/4-POMResponse/index
+   /autoapi/3-EmitPhotons/index
+   /autoapi/1-GenSimpleMC/index
+   /autoapi/LeptonWeighter/index
+   /autoapi/GenerateEvents/index
+   /autoapi/makeMediumSTRAW/index
+   /autoapi/generate_tables/index
+   /autoapi/DetectorTrigger/index
+   /autoapi/Generate6String/index
+   /autoapi/1-GenerateMuons/index
+   /autoapi/PONE_Ben_Sandbox/index
+   /autoapi/submit-isotropic/index
+   /autoapi/2-PropagateMuons/index
+   /autoapi/3-EmitPhotons_k40/index
+   /autoapi/4-POMResponse_k40/index
+   /autoapi/3-GetEventWeights/index
+   /autoapi/TrackReco_leasesquare/index
+   /autoapi/2-WriteGeneratorConfig/index
+   /autoapi/changing_geometry_example/index
+   /autoapi/GenerateNStringGCD_Cluster/index
+   /autoapi/GenerateNSringGCD_Homogeneous/index
+   /autoapi/MakePoneMediumPropertiesBenchmark/index
+   /autoapi/MakePoneMediumPropertiesSpeculative/index
+   /autoapi/MakePoneMediumPropertiesConservative/index
+   /autoapi/MakePoneMediumPropertiesSpeculativeExtendedRange/index
+   /autoapi/MakePoneMediumPropertiesConservativeExtendedRange/index
+
+.. [#f1] Created with `sphinx-autoapi <https://github.com/readthedocs/sphinx-autoapi>`_

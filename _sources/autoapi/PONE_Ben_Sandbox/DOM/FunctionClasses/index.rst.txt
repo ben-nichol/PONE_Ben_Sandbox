@@ -1,0 +1,46 @@
+PONE_Ben_Sandbox.DOM.FunctionClasses
+====================================
+
+.. py:module:: PONE_Ben_Sandbox.DOM.FunctionClasses
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.DOM.FunctionClasses.FunctionFromTable
+   PONE_Ben_Sandbox.DOM.FunctionClasses.Polynomial
+
+
+Module Contents
+---------------
+
+.. py:class:: FunctionFromTable(inputs, outputs)
+
+   .. py:attribute:: inputs
+
+
+   .. py:attribute:: outputs
+
+
+   .. py:method:: getValue(inputVal)
+
+
+.. py:class:: Polynomial(coefficients, xmin, xmax)
+
+   .. py:attribute:: coefficients
+
+
+   .. py:attribute:: xmin
+
+
+   .. py:attribute:: xmax
+
+
+   .. py:method:: normalize()
+
+
+   .. py:method:: getValue(inputVal)
+
+

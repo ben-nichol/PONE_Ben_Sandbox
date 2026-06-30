@@ -1,0 +1,329 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>3-AtmFlux &mdash; PONE offline  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=fd3f3429" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="TimingFit" href="../TimingFit/index.html" />
+    <link rel="prev" title="geometry" href="../geometry/index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            PONE offline
+              <img src="../../_static/simple_logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../conf/index.html">conf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../stubs/index.html">stubs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pocam/index.html">pocam</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../frames/index.html">frames</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../k40test/index.html">k40test</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../make_hdf/index.html">make_hdf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../geometry/index.html">geometry</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">3-AtmFlux</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#attributes">Attributes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-contents">Module Contents</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#AtmFlux.units"><code class="docutils literal notranslate"><span class="pre">units</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#AtmFlux.NUM_NEUTRINOS"><code class="docutils literal notranslate"><span class="pre">NUM_NEUTRINOS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#AtmFlux.E_MIN_GEV"><code class="docutils literal notranslate"><span class="pre">E_MIN_GEV</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#AtmFlux.E_MAX_GEV"><code class="docutils literal notranslate"><span class="pre">E_MAX_GEV</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#AtmFlux.FLUX_SPECTRUM_INDEX"><code class="docutils literal notranslate"><span class="pre">FLUX_SPECTRUM_INDEX</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#AtmFlux.NEUTRINO_TYPE"><code class="docutils literal notranslate"><span class="pre">NEUTRINO_TYPE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#AtmFlux.INCLUDE_INTERACTIONS"><code class="docutils literal notranslate"><span class="pre">INCLUDE_INTERACTIONS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#AtmFlux.THETA_12"><code class="docutils literal notranslate"><span class="pre">THETA_12</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#AtmFlux.THETA_13"><code class="docutils literal notranslate"><span class="pre">THETA_13</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#AtmFlux.THETA_23"><code class="docutils literal notranslate"><span class="pre">THETA_23</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#AtmFlux.DM2_21"><code class="docutils literal notranslate"><span class="pre">DM2_21</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#AtmFlux.DM2_31"><code class="docutils literal notranslate"><span class="pre">DM2_31</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#AtmFlux.H_MAX_KM"><code class="docutils literal notranslate"><span class="pre">H_MAX_KM</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#AtmFlux.GSL_STEP"><code class="docutils literal notranslate"><span class="pre">GSL_STEP</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#AtmFlux.REL_ERROR"><code class="docutils literal notranslate"><span class="pre">REL_ERROR</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#AtmFlux.ABS_ERROR"><code class="docutils literal notranslate"><span class="pre">ABS_ERROR</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#AtmFlux.N0"><code class="docutils literal notranslate"><span class="pre">N0</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#AtmFlux.OUTPUT_FILE"><code class="docutils literal notranslate"><span class="pre">OUTPUT_FILE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#AtmFlux.E_min"><code class="docutils literal notranslate"><span class="pre">E_min</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#AtmFlux.E_max"><code class="docutils literal notranslate"><span class="pre">E_max</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#AtmFlux.E_nodes"><code class="docutils literal notranslate"><span class="pre">E_nodes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#AtmFlux.Z_nodes"><code class="docutils literal notranslate"><span class="pre">Z_nodes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#AtmFlux.nus"><code class="docutils literal notranslate"><span class="pre">nus</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#AtmFlux.E_range"><code class="docutils literal notranslate"><span class="pre">E_range</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#AtmFlux.Z_range"><code class="docutils literal notranslate"><span class="pre">Z_range</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#AtmFlux.inistate"><code class="docutils literal notranslate"><span class="pre">inistate</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../TimingFit/index.html">TimingFit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../DOMTrigger/index.html">DOMTrigger</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../test-pocam/index.html">test-pocam</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../resolution/index.html">resolution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../PONE_Phase1/index.html">PONE_Phase1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../run_linefit/index.html">run_linefit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../4-GetWeights/index.html">4-GetWeights</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../test-flashers/index.html">test-flashers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../GenerateOneOM/index.html">GenerateOneOM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../4-POMResponse/index.html">4-POMResponse</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../3-EmitPhotons/index.html">3-EmitPhotons</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../1-GenSimpleMC/index.html">1-GenSimpleMC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../LeptonWeighter/index.html">LeptonWeighter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../GenerateEvents/index.html">GenerateEvents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../makeMediumSTRAW/index.html">makeMediumSTRAW</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generate_tables/index.html">generate_tables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../DetectorTrigger/index.html">DetectorTrigger</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Generate6String/index.html">Generate6String</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../1-GenerateMuons/index.html">1-GenerateMuons</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../PONE_Ben_Sandbox/index.html">PONE_Ben_Sandbox</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../submit-isotropic/index.html">submit-isotropic</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../2-PropagateMuons/index.html">2-PropagateMuons</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../3-EmitPhotons_k40/index.html">3-EmitPhotons_k40</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../4-POMResponse_k40/index.html">4-POMResponse_k40</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../3-GetEventWeights/index.html">3-GetEventWeights</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../TrackReco_leasesquare/index.html">TrackReco_leasesquare</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../2-WriteGeneratorConfig/index.html">2-WriteGeneratorConfig</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../changing_geometry_example/index.html">changing_geometry_example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../GenerateNStringGCD_Cluster/index.html">GenerateNStringGCD_Cluster</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../GenerateNSringGCD_Homogeneous/index.html">GenerateNSringGCD_Homogeneous</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../MakePoneMediumPropertiesBenchmark/index.html">MakePoneMediumPropertiesBenchmark</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../MakePoneMediumPropertiesSpeculative/index.html">MakePoneMediumPropertiesSpeculative</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../MakePoneMediumPropertiesConservative/index.html">MakePoneMediumPropertiesConservative</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../MakePoneMediumPropertiesSpeculativeExtendedRange/index.html">MakePoneMediumPropertiesSpeculativeExtendedRange</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../MakePoneMediumPropertiesConservativeExtendedRange/index.html">MakePoneMediumPropertiesConservativeExtendedRange</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">PONE offline</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">API Reference</a></li>
+      <li class="breadcrumb-item active">3-AtmFlux</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/autoapi/3-AtmFlux/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-3-AtmFlux">
+<span id="atmflux"></span><h1>3-AtmFlux<a class="headerlink" href="#module-3-AtmFlux" title="Link to this heading"></a></h1>
+<section id="attributes">
+<h2>Attributes<a class="headerlink" href="#attributes" title="Link to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+</tbody>
+</table>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
+<dl class="py data">
+<dt class="sig sig-object py" id="AtmFlux.units">
+<span class="sig-prename descclassname"><span class="pre">3-AtmFlux.</span></span><span class="sig-name descname"><span class="pre">units</span></span><a class="headerlink" href="#AtmFlux.units" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="AtmFlux.NUM_NEUTRINOS">
+<span class="sig-prename descclassname"><span class="pre">3-AtmFlux.</span></span><span class="sig-name descname"><span class="pre">NUM_NEUTRINOS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></em><a class="headerlink" href="#AtmFlux.NUM_NEUTRINOS" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="AtmFlux.E_MIN_GEV">
+<span class="sig-prename descclassname"><span class="pre">3-AtmFlux.</span></span><span class="sig-name descname"><span class="pre">E_MIN_GEV</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">100.0</span></em><a class="headerlink" href="#AtmFlux.E_MIN_GEV" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="AtmFlux.E_MAX_GEV">
+<span class="sig-prename descclassname"><span class="pre">3-AtmFlux.</span></span><span class="sig-name descname"><span class="pre">E_MAX_GEV</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1000000.0</span></em><a class="headerlink" href="#AtmFlux.E_MAX_GEV" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="AtmFlux.FLUX_SPECTRUM_INDEX">
+<span class="sig-prename descclassname"><span class="pre">3-AtmFlux.</span></span><span class="sig-name descname"><span class="pre">FLUX_SPECTRUM_INDEX</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">-2.0</span></em><a class="headerlink" href="#AtmFlux.FLUX_SPECTRUM_INDEX" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="AtmFlux.NEUTRINO_TYPE">
+<span class="sig-prename descclassname"><span class="pre">3-AtmFlux.</span></span><span class="sig-name descname"><span class="pre">NEUTRINO_TYPE</span></span><a class="headerlink" href="#AtmFlux.NEUTRINO_TYPE" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="AtmFlux.INCLUDE_INTERACTIONS">
+<span class="sig-prename descclassname"><span class="pre">3-AtmFlux.</span></span><span class="sig-name descname"><span class="pre">INCLUDE_INTERACTIONS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#AtmFlux.INCLUDE_INTERACTIONS" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="AtmFlux.THETA_12">
+<span class="sig-prename descclassname"><span class="pre">3-AtmFlux.</span></span><span class="sig-name descname"><span class="pre">THETA_12</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.563942</span></em><a class="headerlink" href="#AtmFlux.THETA_12" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="AtmFlux.THETA_13">
+<span class="sig-prename descclassname"><span class="pre">3-AtmFlux.</span></span><span class="sig-name descname"><span class="pre">THETA_13</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.154085</span></em><a class="headerlink" href="#AtmFlux.THETA_13" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="AtmFlux.THETA_23">
+<span class="sig-prename descclassname"><span class="pre">3-AtmFlux.</span></span><span class="sig-name descname"><span class="pre">THETA_23</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.785398</span></em><a class="headerlink" href="#AtmFlux.THETA_23" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="AtmFlux.DM2_21">
+<span class="sig-prename descclassname"><span class="pre">3-AtmFlux.</span></span><span class="sig-name descname"><span class="pre">DM2_21</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">7.65e-05</span></em><a class="headerlink" href="#AtmFlux.DM2_21" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="AtmFlux.DM2_31">
+<span class="sig-prename descclassname"><span class="pre">3-AtmFlux.</span></span><span class="sig-name descname"><span class="pre">DM2_31</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.00247</span></em><a class="headerlink" href="#AtmFlux.DM2_31" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="AtmFlux.H_MAX_KM">
+<span class="sig-prename descclassname"><span class="pre">3-AtmFlux.</span></span><span class="sig-name descname"><span class="pre">H_MAX_KM</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">500.0</span></em><a class="headerlink" href="#AtmFlux.H_MAX_KM" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="AtmFlux.GSL_STEP">
+<span class="sig-prename descclassname"><span class="pre">3-AtmFlux.</span></span><span class="sig-name descname"><span class="pre">GSL_STEP</span></span><a class="headerlink" href="#AtmFlux.GSL_STEP" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="AtmFlux.REL_ERROR">
+<span class="sig-prename descclassname"><span class="pre">3-AtmFlux.</span></span><span class="sig-name descname"><span class="pre">REL_ERROR</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1e-05</span></em><a class="headerlink" href="#AtmFlux.REL_ERROR" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="AtmFlux.ABS_ERROR">
+<span class="sig-prename descclassname"><span class="pre">3-AtmFlux.</span></span><span class="sig-name descname"><span class="pre">ABS_ERROR</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1e-05</span></em><a class="headerlink" href="#AtmFlux.ABS_ERROR" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="AtmFlux.N0">
+<span class="sig-prename descclassname"><span class="pre">3-AtmFlux.</span></span><span class="sig-name descname"><span class="pre">N0</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1e+18</span></em><a class="headerlink" href="#AtmFlux.N0" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="AtmFlux.OUTPUT_FILE">
+<span class="sig-prename descclassname"><span class="pre">3-AtmFlux.</span></span><span class="sig-name descname"><span class="pre">OUTPUT_FILE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'AtmFlux_output.h5'</span></em><a class="headerlink" href="#AtmFlux.OUTPUT_FILE" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="AtmFlux.E_min">
+<span class="sig-prename descclassname"><span class="pre">3-AtmFlux.</span></span><span class="sig-name descname"><span class="pre">E_min</span></span><a class="headerlink" href="#AtmFlux.E_min" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="AtmFlux.E_max">
+<span class="sig-prename descclassname"><span class="pre">3-AtmFlux.</span></span><span class="sig-name descname"><span class="pre">E_max</span></span><a class="headerlink" href="#AtmFlux.E_max" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="AtmFlux.E_nodes">
+<span class="sig-prename descclassname"><span class="pre">3-AtmFlux.</span></span><span class="sig-name descname"><span class="pre">E_nodes</span></span><a class="headerlink" href="#AtmFlux.E_nodes" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="AtmFlux.Z_nodes">
+<span class="sig-prename descclassname"><span class="pre">3-AtmFlux.</span></span><span class="sig-name descname"><span class="pre">Z_nodes</span></span><a class="headerlink" href="#AtmFlux.Z_nodes" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="AtmFlux.nus">
+<span class="sig-prename descclassname"><span class="pre">3-AtmFlux.</span></span><span class="sig-name descname"><span class="pre">nus</span></span><a class="headerlink" href="#AtmFlux.nus" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="AtmFlux.E_range">
+<span class="sig-prename descclassname"><span class="pre">3-AtmFlux.</span></span><span class="sig-name descname"><span class="pre">E_range</span></span><a class="headerlink" href="#AtmFlux.E_range" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="AtmFlux.Z_range">
+<span class="sig-prename descclassname"><span class="pre">3-AtmFlux.</span></span><span class="sig-name descname"><span class="pre">Z_range</span></span><a class="headerlink" href="#AtmFlux.Z_range" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="AtmFlux.inistate">
+<span class="sig-prename descclassname"><span class="pre">3-AtmFlux.</span></span><span class="sig-name descname"><span class="pre">inistate</span></span><a class="headerlink" href="#AtmFlux.inistate" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../geometry/index.html" class="btn btn-neutral float-left" title="geometry" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../TimingFit/index.html" class="btn btn-neutral float-right" title="TimingFit" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, PONE Collaboration.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

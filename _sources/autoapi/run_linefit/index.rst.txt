@@ -1,0 +1,37 @@
+run_linefit
+===========
+
+.. py:module:: run_linefit
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   run_linefit.infile
+   run_linefit.outfile
+   run_linefit.hdf_filename
+   run_linefit.all_i3_files
+   run_linefit.tray
+
+
+Module Contents
+---------------
+
+.. py:data:: infile
+   :value: '/project/6061446/cmiller/example_data/jp_linefit.i3.zst'
+
+
+.. py:data:: outfile
+   :value: '/scratch/jpyanez/test_newlinefit.i3.zst'
+
+
+.. py:data:: hdf_filename
+   :value: '/scratch/jpyanez/test.hdf'
+
+
+.. py:data:: all_i3_files
+
+.. py:data:: tray
+

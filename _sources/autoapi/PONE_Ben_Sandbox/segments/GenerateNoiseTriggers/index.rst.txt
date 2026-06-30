@@ -1,0 +1,54 @@
+PONE_Ben_Sandbox.segments.GenerateNoiseTriggers
+===============================================
+
+.. py:module:: PONE_Ben_Sandbox.segments.GenerateNoiseTriggers
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.segments.GenerateNoiseTriggers.ProduceNoiseTriggers
+   PONE_Ben_Sandbox.segments.GenerateNoiseTriggers.NoiseWeight
+   PONE_Ben_Sandbox.segments.GenerateNoiseTriggers.CheckEventTime
+
+
+Module Contents
+---------------
+
+.. py:function:: ProduceNoiseTriggers(tray, name, gcd_file, nevents=1, run_id=None)
+
+   ProduceNoiseTriggers: Create events containing only noise and no simulated particle interactions. These
+   are needed for low-energy DeepCore and PINGU simulation due to a lower detector threshold. There
+   are some nuances to this. All events must be long in order to avoid problems at the edge of simulated
+   events where expanding around the triggers could include unsimulated regions in time. All frames are
+   initially 100 ms long. These are triggered, then cut down by CoincidenceAfterProcessing to be more
+   reasonable lengths.
+
+   :param name: Name to add to all of the modules.
+   :param gcd_file: The location and name of the GCD file to use
+   :param mjd: Modified Julian Date to put into the I3EventHeader. Start of IC86-1 by default.
+   :param runID: The run number to put into the I3EventHeader.
+   :param nevents: The number of events to simulate.
+
+
+.. py:function:: NoiseWeight(frame, NEvents)
+
+   Write a weightmap to the frame for the noise triggers. REQUIRED for the CoincidenceAfterProcessing module. This
+   should only depend on the number of events, since there's no physics or flux models to worry about to first order.
+   There is also a "time buffer", which is meant to take into account edge effects of triggers near the frame edges.
+
+   :param NumEvents: Number of events being produced for this file
+
+
+.. py:function:: CheckEventTime(frame, TriggerHierarchy='I3TriggerHierarchy', MCPESeriesMap='I3MCPESeriesMap')
+
+   If the trigger exists within 20 microseconds of the first or last hit, then we need
+   to remove that trigger. Otherwise events will include a non-simulated region in the
+   event window and things will just be wrong.
+
+   :param TriggerHierarchy: Name of the I3TriggerHierarchy in the frame.
+   :param MCPESeriesMap: Name of the I3MCPESeriesMap to check for earliest/latest hits.
+
+

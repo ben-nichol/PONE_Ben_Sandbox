@@ -1,0 +1,52 @@
+PONE_Ben_Sandbox.GCD.grid_snap
+==============================
+
+.. py:module:: PONE_Ben_Sandbox.GCD.grid_snap
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.GCD.grid_snap.rotate
+   PONE_Ben_Sandbox.GCD.grid_snap.clust
+   PONE_Ben_Sandbox.GCD.grid_snap.clustering
+   PONE_Ben_Sandbox.GCD.grid_snap.distance
+   PONE_Ben_Sandbox.GCD.grid_snap.snap
+   PONE_Ben_Sandbox.GCD.grid_snap.cluster_builder
+   PONE_Ben_Sandbox.GCD.grid_snap.anchoring
+   PONE_Ben_Sandbox.GCD.grid_snap.translation
+   PONE_Ben_Sandbox.GCD.grid_snap.fit
+   PONE_Ben_Sandbox.GCD.grid_snap.group
+   PONE_Ben_Sandbox.GCD.grid_snap.create_grid
+   PONE_Ben_Sandbox.GCD.grid_snap.flatten
+
+
+Module Contents
+---------------
+
+.. py:function:: rotate(cluster, n)
+
+.. py:function:: clust(temp, point, spacing)
+
+.. py:function:: clustering(pos, nstring, spacing)
+
+.. py:function:: distance(displacement)
+
+.. py:function:: snap(grid, point, new_pos, used)
+
+.. py:function:: cluster_builder(idxs, grid)
+
+.. py:function:: anchoring(clusters, grid, index, idxs, tolerance, gamma1, gamma2, gamma3)
+
+.. py:function:: translation(cluster, grid, gamma1, gamma2, gamma3, tolerance)
+
+.. py:function:: fit(grid, pos, nstring, gamma1=1, gamma2=10, gamma3=0, tolerance=40, spacing=40)
+
+.. py:function:: group(x, y)
+
+.. py:function:: create_grid(grid_path)
+
+.. py:function:: flatten(clusters)
+

@@ -1,0 +1,34 @@
+pocam.generatePOCAM
+===================
+
+.. py:module:: pocam.generatePOCAM
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   pocam.generatePOCAM.GeneratePOCAM
+
+
+Module Contents
+---------------
+
+.. py:class:: GeneratePOCAM(context)
+
+   Bases: :py:obj:`icecube.icetray.I3Module`
+
+
+   Generate a POCAM Flash into a DAQ Frame.
+
+
+   .. py:method:: Configure()
+
+
+   .. py:method:: generate_pulse(photon_position, photon_direction, number_of_photons, pulse_width, isotropy)
+
+
+   .. py:method:: DAQ(frame)
+
+

@@ -1,0 +1,41 @@
+PONE_Ben_Sandbox.DOM.WaveformBuilder
+====================================
+
+.. py:module:: PONE_Ben_Sandbox.DOM.WaveformBuilder
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.DOM.WaveformBuilder.WaveformBuilder
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.DOM.WaveformBuilder.GenerateWaveform
+
+
+Module Contents
+---------------
+
+.. py:function:: GenerateWaveform(time, pulsetimes, pulsecharge, mv_to_adc)
+
+.. py:class:: WaveformBuilder(context)
+
+   Bases: :py:obj:`icecube.icetray.I3ConditionalModule`
+
+
+   Simple Implementation of the PMT response.
+
+
+   .. py:method:: Configure()
+
+
+   .. py:method:: DAQ(frame)
+
+

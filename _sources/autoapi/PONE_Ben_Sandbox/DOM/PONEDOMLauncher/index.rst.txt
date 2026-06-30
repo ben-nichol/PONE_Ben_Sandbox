@@ -1,0 +1,98 @@
+PONE_Ben_Sandbox.DOM.PONEDOMLauncher
+====================================
+
+.. py:module:: PONE_Ben_Sandbox.DOM.PONEDOMLauncher
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.DOM.PONEDOMLauncher.DOMSimulation
+
+
+Module Contents
+---------------
+
+.. py:class:: DOMSimulation(context)
+
+   Bases: :py:obj:`icecube.icetray.I3ConditionalModule`
+
+
+   Simple implementation of the POM response.
+
+   This version uses a slightly more detailed POM
+   acceptance model initially used for K40 studies
+
+
+   .. py:method:: Configure()
+
+
+   .. py:method:: combine_ordered_lists(list_1, order_1, list_2, order_2)
+
+      Combines two ALREADY ORDERED lists into a single
+      ordered list preserving the total order. Pass the
+      lists with the objects you want to order along with
+      arrays of what they need to be ordered by.
+
+      Also returns an array of the same size as the final
+      combined list filled with 1s and 2s corresponding
+      to which list each element in the final list came from
+
+
+
+   .. py:method:: apply_pmt_timing_characteristics(mcpe_map, pmt_num, late_pulses=True, after_pulses=True)
+
+      Applies transit time and transit time spread
+      to a given mcpe map
+
+      late_pulses and after_pulses are two booleans
+      which toggle including late pulses and afterpulses
+
+
+
+   .. py:method:: make_reco_pulse(pulse_time_list, pulse_charge_list, omkey, output_pulse_map, om_pulse_map=None)
+
+      Populates the output_pulse_map with an I3RecoPulseSeries
+      based on the input pulse times and charges
+
+
+
+   .. py:method:: apply_pmt_response(mcpe_map)
+
+      Apply the response of the PMT, including combining pulses
+      that are too close together
+
+
+
+   .. py:method:: apply_dead_time(mcpe_map)
+
+      Removes successive hits on the same PMT
+      based on the PMT dead time
+
+
+
+   .. py:method:: collect_unique_items(item_lists)
+
+      Combines all items the given lists
+      and returns a list of unique items
+
+
+
+   .. py:method:: merge_mcpe_maps(mcpe_map_1, mcpe_map_2)
+
+      Combines two mcpe maps into one
+      keeping the mcpes time ordered
+
+
+
+   .. py:method:: Geometry(frame)
+
+
+   .. py:method:: Simulation(frame)
+
+
+   .. py:method:: DAQ(frame)
+
+

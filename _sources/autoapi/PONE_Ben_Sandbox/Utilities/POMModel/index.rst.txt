@@ -1,0 +1,197 @@
+PONE_Ben_Sandbox.Utilities.POMModel
+===================================
+
+.. py:module:: PONE_Ben_Sandbox.Utilities.POMModel
+
+.. autoapi-nested-parse::
+
+   Class defining an acceptance model for the POM
+   used for the K40 analysis and maybe other simulation
+   in the future
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.Utilities.POMModel.POM
+
+
+Module Contents
+---------------
+
+.. py:class:: POM(qe_file=os.getenv('PONESRCDIR') + '/data/qe.csv', aa_file=os.getenv('PONESRCDIR') + '/data/aa-0.csv', glass_file=os.getenv('PONESRCDIR') + '/data/glass.csv', random_service=None)
+
+   Simple model of the POM
+
+
+   .. py:attribute:: MODULE_RADIUS_M
+      :value: 0.2159
+
+
+
+   .. py:attribute:: PMT_RADIUS_M
+      :value: 0.055
+
+
+
+   .. py:attribute:: PMT_ANGLES
+
+
+   .. py:attribute:: TOP_PMTS
+
+
+   .. py:attribute:: UPPER_RING
+
+
+   .. py:attribute:: UPPER_HOME_INDEX
+      :value: 0
+
+
+
+   .. py:attribute:: LOWER_HOME_INDEX
+      :value: 4
+
+
+
+   .. py:attribute:: UPPER_RING_HOME
+
+
+   .. py:attribute:: LOWER_RING_HOME
+
+
+   .. py:attribute:: ANGLE_SUMS
+
+
+   .. py:attribute:: PMT_MATRIX
+
+
+   .. py:attribute:: qe_function
+
+
+   .. py:attribute:: aa_function
+
+
+   .. py:attribute:: glass_function
+
+
+   .. py:attribute:: collection_efficiency
+      :value: 0.9
+
+
+
+   .. py:attribute:: random_service
+      :value: None
+
+
+
+   .. py:method:: get_pmt_pair_angle(pmt_1, pmt_2)
+
+      Returns the angle in degrees separating two PMTs
+
+
+
+   .. py:method:: get_qe_function(qe_file)
+
+      Function that loads QE data
+
+
+
+   .. py:method:: get_aa_function(aa_file)
+
+      Function that loads single PMT angular
+      acceptance data
+
+
+
+   .. py:method:: get_glass_function(glass_file)
+
+      Function that loads glass transmission
+      data
+
+
+
+   .. py:method:: get_quantum_efficiency(photon_list)
+
+      Returns an array of quantum efficiencies for
+      a given array of photons
+
+
+
+   .. py:method:: get_angular_acceptance(pmt_distance_list)
+
+      Returns an array of angular acceptances
+      for a given array of distances between
+      pmts and photons
+
+
+
+   .. py:method:: get_glass_efficiency(photon_list)
+
+      Returns an array of glass transmittance efficiencies
+      for a given array of photons
+
+
+
+   .. py:method:: get_collection_efficiency(photon_list)
+
+      Returns an array of collection efficiencies
+      for a given array of photons
+
+
+
+   .. py:method:: get_pmt(photon)
+
+      Returns the PMT that is hit by a given
+      photon based on geometry along with the
+      distance and angle to that PMT which
+      can eventually be used for applying
+      angular acceptance
+
+
+
+   .. py:method:: get_probabilities(photons, pmt_photon_distances)
+
+      Returns a list of detection probabilities
+      correspon to the given list of photons and
+      distances between photons and PMTs
+
+
+
+   .. py:method:: module_acceptance(photon_list)
+
+      Returns a list of photons, hit PMTs, and
+      hit probabilities based on the module
+      response to the given photon list
+
+
+
+   .. py:method:: apply_acceptance_cut(photon_list)
+
+      Uses the module_acceptance function to
+      attribute photons to PMT but also applies
+      a cut based on the detection probability
+      of each PMT. Returns a list of of surviving
+      photons and PMT ids after the cut is applied
+
+
+
+   .. py:method:: rotate_pmts_home(hit_pmts)
+
+      Returns an array of PMTs that have been
+      rotated/vertically flipped to include the
+      home PMT. Used to merge symmetrically
+      identical PMT combinations
+
+
+
+   .. py:method:: horizontal_symmetric_pmts(hit_pmts)
+
+      Returns an array of PMTs flipped horizontally
+      across the home PMT. Used to further compress
+      symmetrically identical PMT combinations
+
+
+

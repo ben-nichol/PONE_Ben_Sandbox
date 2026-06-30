@@ -1,0 +1,31 @@
+PONE_Ben_Sandbox.DOM.NoiseGenerator
+===================================
+
+.. py:module:: PONE_Ben_Sandbox.DOM.NoiseGenerator
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.DOM.NoiseGenerator.addNoise
+
+
+Module Contents
+---------------
+
+.. py:class:: addNoise(context)
+
+   Bases: :py:obj:`icecube.icetray.I3ConditionalModule`
+
+
+   Add Noise to the simulation as PEs
+
+
+   .. py:method:: Configure()
+
+
+   .. py:method:: DAQ(frame)
+
+

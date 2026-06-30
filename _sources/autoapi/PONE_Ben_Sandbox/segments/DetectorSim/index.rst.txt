@@ -1,0 +1,44 @@
+PONE_Ben_Sandbox.segments.DetectorSim
+=====================================
+
+.. py:module:: PONE_Ben_Sandbox.segments.DetectorSim
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.segments.DetectorSim.ConvertToLinearizedMCTree
+   PONE_Ben_Sandbox.segments.DetectorSim.DetectorSim
+   PONE_Ben_Sandbox.segments.DetectorSim.DetectorSegment
+
+
+Module Contents
+---------------
+
+.. py:function:: ConvertToLinearizedMCTree(frame)
+
+.. py:function:: DetectorSim(tray, name, RandomService=None, RunID=None, GCDFile=None, KeepMCHits=False, KeepPropagatedMCTree=False, KeepMCPulses=False, SkipNoiseGenerator=False, LowMem=False, InputPESeriesMapName='I3MCPESeriesMap', BeaconLaunches=True, TimeShiftSkipKeys=[], FilterTrigger=True)
+
+   Read photon-propagated (MCPE) files, simulate noise, PTM response, DOMLaunches, and trigger.
+
+   :param RandomService: the name of a random service to be used by the tank response
+   :param RunID: Number of run that will be writtend to I3EventHeader
+   :param GCDFile: path to GCD file to read first
+   :param KeepMCHits: keep MCPEs in frame
+   :param KeepPropagatedMCTree: keep MCTree with all in-ice propagated secondaries. These take a lot of space compared un propagated tree.
+   :param KeepMCPulses: keep I3MCPulseSeriesMap in frame.
+   :param SkipNoiseGenerator: do not run Vuvuzela.
+   :param LowMem: reduce peak memory use by repeatedly merging hits as they are generated.  WARNING: Use of this option may slightly reduce precision and drastically increase running time. It is potentially useful for very bright events, and probably harmful for very long events.
+   :param InputPESeriesMapName: name of input I3MCPESeriesMap object.
+   :param BeaconLaunches: add beacon lauches.
+   :param TimeShiftSkipKeys: list of keys that should be time-shifted. Default: shift all Time-like objects.
+   :param FilterTrigger: remove events that don't pass any trigger.
+
+
+.. py:function:: DetectorSegment(tray, name, If=lambda f: True, gcdfile='', mctype='corsika_weighted', MCPESeriesMapName='I3MCPESeriesMap', detector_label='IC86:2012', runtrigger=True, filtertrigger=True, stats={}, basicHisto=False, icetop=False, genie=False, prescale=1, uselineartree=True, lowmem=False, BeaconLaunches=True, TimeShiftSkipKeys=[], GeneratedEfficiency=0.0, SampleEfficiency=0.0, RunID=None, KeepMCHits=False, KeepPropagatedMCTree=False, KeepMCPulses=False)
+
+   Run IC86 detector simulation
+
+

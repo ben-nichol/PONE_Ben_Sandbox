@@ -1,0 +1,253 @@
+PONE_Ben_Sandbox.Utilities.DOMUtility
+=====================================
+
+.. py:module:: PONE_Ben_Sandbox.Utilities.DOMUtility
+
+.. autoapi-nested-parse::
+
+   !
+   DOM Utilities is a collection of functions and variables for the DOMs.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.Utilities.DOMUtility.DOMProperties
+   PONE_Ben_Sandbox.Utilities.DOMUtility.Geant4PMTAcceptance
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.Utilities.DOMUtility.NoPMTKey
+   PONE_Ben_Sandbox.Utilities.DOMUtility.AddPMTKey
+
+
+Module Contents
+---------------
+
+.. py:function:: NoPMTKey(domkey)
+
+.. py:function:: AddPMTKey(domkey, ipmt)
+
+.. py:class:: DOMProperties(PMTAcceptanceFile=os.getenv('PONESRCDIR') + '/data/ang_acceptance_16_all.npy', PMTQEFile=os.getenv('PONESRCDIR') + '/data/PMTQE.txt')
+
+   .. py:attribute:: PMTacceptance
+      :value: []
+
+
+
+   .. py:attribute:: PMTMaxacceptance
+      :value: []
+
+
+
+   .. py:attribute:: Totalacceptance
+      :value: []
+
+
+
+   .. py:attribute:: PMTDirection
+      :value: []
+
+
+
+   .. py:attribute:: maxAngularAcceptance
+      :value: 0.0
+
+
+
+   .. py:attribute:: averageAngularAcceptance
+      :value: 0.0
+
+
+
+   .. py:attribute:: maxQE
+      :value: 0.0
+
+
+
+   .. py:attribute:: PMTQE
+      :value: []
+
+
+
+   .. py:method:: _LoadPMTAcceptance_txt(infile)
+
+
+   .. py:method:: _LoadPMTAcceptance_npy(infile)
+
+
+   .. py:method:: _LoadPMTAcceptance(infile)
+
+
+   .. py:method:: GetPMTDirection(pmtid)
+
+
+   .. py:method:: _LoadPMTQETable(infile=os.getenv('PONESRCDIR') + '/data/PMTQE.txt')
+
+
+   .. py:method:: GetCLSimQETable(binning=3.0 * I3Units.nanometer, factor=1.0)
+
+
+   .. py:method:: MakePMTAcceptancePlots(directory)
+
+
+   .. py:method:: MakeQEPlot(directory)
+
+
+   .. py:method:: GetPMTQE(wl)
+
+
+   .. py:method:: GetPMTQEnm(wl)
+
+
+   .. py:method:: GetMaxTotalAcceptance()
+
+
+   .. py:method:: GetAverageTotalAcceptance()
+
+
+   .. py:method:: GetMaxAngularAcceptance()
+
+
+   .. py:method:: GetMaxPMTQE()
+
+
+   .. py:method:: GetNPMTs()
+
+
+   .. py:method:: GetPMTScaledAcceptance(pmt, theta, phi)
+
+
+.. py:class:: Geant4PMTAcceptance(fname=os.getenv('PONESRCDIR') + '/data/pmt_acc.npz')
+
+   Class representing the PMT acceptance derived from Geant4 simulations.
+
+   .. attribute:: acc_pmt_grp_1
+
+      Acceptance of PMT group 1.
+
+      :type: ndarray
+
+   .. attribute:: acc_pmt_grp_2
+
+      Acceptance of PMT group 2.
+
+      :type: ndarray
+
+   .. attribute:: wavelengths
+
+      Wavelengths.
+
+      :type: ndarray
+
+   .. attribute:: qe_table
+
+      Quantum efficiency table.
+
+      :type: ndarray
+
+   .. attribute:: rayleigh_1
+
+      Rayleigh distribution for PMT group 1.
+
+      :type: Rayleigh
+
+   .. attribute:: rayleigh_2
+
+      Rayleigh distribution for PMT group 2.
+
+      :type: Rayleigh
+
+   .. attribute:: pmt_positions
+
+      PMT positions.
+
+      :type: ndarray
+
+   .. method:: make_clsim_weighting_func(binning)
+
+      Creates a CLSim weighting function.
+
+   .. method:: get_qe(wl)
+
+      Retrieves the quantum efficiency for a given wavelength.
+
+   .. method:: check_pmt_hit(rel_hit_positions, hit_wavelengths, hit_weights, with_qe)
+
+      Checks if a PMT is hit.
+      
+      
+
+
+   .. py:attribute:: acc_pmt_grp_1
+
+
+   .. py:attribute:: acc_pmt_grp_2
+
+
+   .. py:attribute:: wavelengths
+
+
+   .. py:attribute:: qe_table
+
+
+   .. py:attribute:: rayleigh_1
+
+
+   .. py:attribute:: rayleigh_2
+
+
+   .. py:attribute:: pmt_positions
+
+
+   .. py:method:: make_clsim_weighting_func(binning=2.0, with_qe=True, wl_bounds=(290, 800))
+
+      Creates a CLSim weighting function.
+
+      :param binning: Binning size in nanometers.
+      :type binning: float
+
+      :returns: CLSim weighting function.
+      :rtype: clsim_table (I3CLSimFunctionFromTable)
+
+
+
+   .. py:method:: get_qe(wl)
+
+      Retrieves the quantum efficiency for a given wavelength.
+
+      :param wl: Wavelength.
+      :type wl: float
+
+      :returns: Quantum efficiency.
+      :rtype: qe (float)
+
+
+
+   .. py:method:: check_pmt_hit(rel_hit_positions, hit_wavelengths, hit_weights, with_qe=True)
+
+      Checks if a PMT is hit.
+
+      :param rel_hit_positions: Relative hit positions.
+      :type rel_hit_positions: ndarray
+      :param hit_wavelengths: Hit wavelengths.
+      :type hit_wavelengths: ndarray
+      :param hit_weights: Hit weights.
+      :type hit_weights: ndarray
+      :param with_qe: Flag indicating whether to consider quantum efficiency.
+      :type with_qe: bool
+
+      :returns: PMT hit IDs.
+      :rtype: pmt_hit_ids (ndarray)
+
+      :raises ValueError: If the probability to hit any PMT is greater than 1.
+
+
+

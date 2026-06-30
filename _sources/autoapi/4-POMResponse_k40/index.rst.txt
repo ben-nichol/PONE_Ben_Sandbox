@@ -1,0 +1,66 @@
+4-POMResponse_k40
+=================
+
+.. py:module:: 4-POMResponse_k40
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   4-POMResponse_k40.parser
+   4-POMResponse_k40.tray
+   4-POMResponse_k40.args
+   4-POMResponse_k40.photon_series
+   4-POMResponse_k40.tray
+   4-POMResponse_k40.dropstrings
+   4-POMResponse_k40.randomService
+   4-POMResponse_k40.infile
+   4-POMResponse_k40.outfile
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   4-POMResponse_k40.HitCountCheck
+
+
+Module Contents
+---------------
+
+.. py:data:: parser
+
+.. py:class:: HitCountCheck(context)
+
+   Bases: :py:obj:`icecube.icetray.I3Module`
+
+
+   .. py:method:: Configure()
+
+
+   .. py:method:: DAQ(frame)
+
+
+.. py:data:: tray
+
+.. py:data:: args
+
+.. py:data:: photon_series
+   :value: 'I3Photons'
+
+
+.. py:data:: tray
+
+.. py:data:: dropstrings
+   :value: []
+
+
+.. py:data:: randomService
+
+.. py:data:: infile
+
+.. py:data:: outfile
+

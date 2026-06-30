@@ -1,0 +1,37 @@
+DOMTrigger
+==========
+
+.. py:module:: DOMTrigger
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   DOMTrigger.DOMTrigger
+
+
+Module Contents
+---------------
+
+.. py:class:: DOMTrigger(context)
+
+   Bases: :py:obj:`icecube.icetray.I3ConditionalModule`
+
+
+   Simple Implementation of the PMT response.
+
+
+   .. py:method:: Configure()
+
+
+   .. py:method:: Geometry(frame)
+
+
+   .. py:method:: Simulation(frame)
+
+
+   .. py:method:: DAQ(frame)
+
+

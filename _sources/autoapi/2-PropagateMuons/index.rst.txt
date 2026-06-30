@@ -1,0 +1,28 @@
+2-PropagateMuons
+================
+
+.. py:module:: 2-PropagateMuons
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   2-PropagateMuons.parser
+   2-PropagateMuons.args
+   2-PropagateMuons.tray
+   2-PropagateMuons.randomService
+
+
+Module Contents
+---------------
+
+.. py:data:: parser
+
+.. py:data:: args
+
+.. py:data:: tray
+
+.. py:data:: randomService
+

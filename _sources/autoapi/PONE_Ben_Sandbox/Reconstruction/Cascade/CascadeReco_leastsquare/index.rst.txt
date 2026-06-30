@@ -1,0 +1,47 @@
+PONE_Ben_Sandbox.Reconstruction.Cascade.CascadeReco_leastsquare
+===============================================================
+
+.. py:module:: PONE_Ben_Sandbox.Reconstruction.Cascade.CascadeReco_leastsquare
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.Reconstruction.Cascade.CascadeReco_leastsquare.CascadeReco
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.Reconstruction.Cascade.CascadeReco_leastsquare.LikelihoodFunctor
+   PONE_Ben_Sandbox.Reconstruction.Cascade.CascadeReco_leastsquare.DirectionFit
+   PONE_Ben_Sandbox.Reconstruction.Cascade.CascadeReco_leastsquare.GetDistances
+
+
+Module Contents
+---------------
+
+.. py:function:: LikelihoodFunctor(data, domsUsed, _minpos)
+
+.. py:function:: DirectionFit(data, domsUsed, _vertex)
+
+.. py:function:: GetDistances(pulse_series, geo_doms, mindoms)
+
+.. py:class:: CascadeReco(context)
+
+   Bases: :py:obj:`icecube.icetray.I3ConditionalModule`
+
+
+   .. py:method:: Configure()
+
+
+   .. py:method:: Geometry(frame)
+
+
+   .. py:method:: Physics(frame)
+
+

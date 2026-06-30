@@ -1,0 +1,335 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>test-pocam &mdash; PONE offline  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=fd3f3429" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="resolution" href="../resolution/index.html" />
+    <link rel="prev" title="DOMTrigger" href="../DOMTrigger/index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            PONE offline
+              <img src="../../_static/simple_logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../conf/index.html">conf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../stubs/index.html">stubs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pocam/index.html">pocam</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../frames/index.html">frames</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../k40test/index.html">k40test</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../make_hdf/index.html">make_hdf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../geometry/index.html">geometry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../3-AtmFlux/index.html">3-AtmFlux</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../TimingFit/index.html">TimingFit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../DOMTrigger/index.html">DOMTrigger</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">test-pocam</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#attributes">Attributes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-contents">Module Contents</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#test-pocam.usage"><code class="docutils literal notranslate"><span class="pre">usage</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#test-pocam.parser"><code class="docutils literal notranslate"><span class="pre">parser</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#test-pocam.geometry"><code class="docutils literal notranslate"><span class="pre">geometry</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#test-pocam.gframe"><code class="docutils literal notranslate"><span class="pre">gframe</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#test-pocam.geo"><code class="docutils literal notranslate"><span class="pre">geo</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#test-pocam.flasher_key"><code class="docutils literal notranslate"><span class="pre">flasher_key</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#test-pocam.flasher_position"><code class="docutils literal notranslate"><span class="pre">flasher_position</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#test-pocam.flasher_photons"><code class="docutils literal notranslate"><span class="pre">flasher_photons</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#test-pocam.flasher_width"><code class="docutils literal notranslate"><span class="pre">flasher_width</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#test-pocam.flasher_pulse_type"><code class="docutils literal notranslate"><span class="pre">flasher_pulse_type</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#test-pocam.dom_properties"><code class="docutils literal notranslate"><span class="pre">dom_properties</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#test-pocam.wl_acceptance_max"><code class="docutils literal notranslate"><span class="pre">wl_acceptance_max</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#test-pocam.wl_acceptance"><code class="docutils literal notranslate"><span class="pre">wl_acceptance</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#test-pocam.dom_radius"><code class="docutils literal notranslate"><span class="pre">dom_radius</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#test-pocam.dom_oversize"><code class="docutils literal notranslate"><span class="pre">dom_oversize</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#test-pocam.optical_medium"><code class="docutils literal notranslate"><span class="pre">optical_medium</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#test-pocam.randomService"><code class="docutils literal notranslate"><span class="pre">randomService</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#test-pocam.tray"><code class="docutils literal notranslate"><span class="pre">tray</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../resolution/index.html">resolution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../PONE_Phase1/index.html">PONE_Phase1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../run_linefit/index.html">run_linefit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../4-GetWeights/index.html">4-GetWeights</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../test-flashers/index.html">test-flashers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../GenerateOneOM/index.html">GenerateOneOM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../4-POMResponse/index.html">4-POMResponse</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../3-EmitPhotons/index.html">3-EmitPhotons</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../1-GenSimpleMC/index.html">1-GenSimpleMC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../LeptonWeighter/index.html">LeptonWeighter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../GenerateEvents/index.html">GenerateEvents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../makeMediumSTRAW/index.html">makeMediumSTRAW</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generate_tables/index.html">generate_tables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../DetectorTrigger/index.html">DetectorTrigger</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../Generate6String/index.html">Generate6String</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../1-GenerateMuons/index.html">1-GenerateMuons</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../PONE_Ben_Sandbox/index.html">PONE_Ben_Sandbox</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../submit-isotropic/index.html">submit-isotropic</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../2-PropagateMuons/index.html">2-PropagateMuons</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../3-EmitPhotons_k40/index.html">3-EmitPhotons_k40</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../4-POMResponse_k40/index.html">4-POMResponse_k40</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../3-GetEventWeights/index.html">3-GetEventWeights</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../TrackReco_leasesquare/index.html">TrackReco_leasesquare</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../2-WriteGeneratorConfig/index.html">2-WriteGeneratorConfig</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../changing_geometry_example/index.html">changing_geometry_example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../GenerateNStringGCD_Cluster/index.html">GenerateNStringGCD_Cluster</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../GenerateNSringGCD_Homogeneous/index.html">GenerateNSringGCD_Homogeneous</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../MakePoneMediumPropertiesBenchmark/index.html">MakePoneMediumPropertiesBenchmark</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../MakePoneMediumPropertiesSpeculative/index.html">MakePoneMediumPropertiesSpeculative</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../MakePoneMediumPropertiesConservative/index.html">MakePoneMediumPropertiesConservative</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../MakePoneMediumPropertiesSpeculativeExtendedRange/index.html">MakePoneMediumPropertiesSpeculativeExtendedRange</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../MakePoneMediumPropertiesConservativeExtendedRange/index.html">MakePoneMediumPropertiesConservativeExtendedRange</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">PONE offline</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">API Reference</a></li>
+      <li class="breadcrumb-item active">test-pocam</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/autoapi/test-pocam/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-test-pocam">
+<span id="test-pocam"></span><h1>test-pocam<a class="headerlink" href="#module-test-pocam" title="Link to this heading"></a></h1>
+<section id="attributes">
+<h2>Attributes<a class="headerlink" href="#attributes" title="Link to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#test-pocam.usage" title="test-pocam.usage"><code class="xref py py-obj docutils literal notranslate"><span class="pre">usage</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#test-pocam.parser" title="test-pocam.parser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parser</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#test-pocam.geometry" title="test-pocam.geometry"><code class="xref py py-obj docutils literal notranslate"><span class="pre">geometry</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#test-pocam.gframe" title="test-pocam.gframe"><code class="xref py py-obj docutils literal notranslate"><span class="pre">gframe</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#test-pocam.geo" title="test-pocam.geo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">geo</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#test-pocam.flasher_key" title="test-pocam.flasher_key"><code class="xref py py-obj docutils literal notranslate"><span class="pre">flasher_key</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#test-pocam.flasher_position" title="test-pocam.flasher_position"><code class="xref py py-obj docutils literal notranslate"><span class="pre">flasher_position</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#test-pocam.flasher_photons" title="test-pocam.flasher_photons"><code class="xref py py-obj docutils literal notranslate"><span class="pre">flasher_photons</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#test-pocam.flasher_width" title="test-pocam.flasher_width"><code class="xref py py-obj docutils literal notranslate"><span class="pre">flasher_width</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#test-pocam.flasher_pulse_type" title="test-pocam.flasher_pulse_type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">flasher_pulse_type</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#test-pocam.dom_properties" title="test-pocam.dom_properties"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dom_properties</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#test-pocam.wl_acceptance_max" title="test-pocam.wl_acceptance_max"><code class="xref py py-obj docutils literal notranslate"><span class="pre">wl_acceptance_max</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#test-pocam.wl_acceptance" title="test-pocam.wl_acceptance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">wl_acceptance</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#test-pocam.dom_radius" title="test-pocam.dom_radius"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dom_radius</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#test-pocam.dom_oversize" title="test-pocam.dom_oversize"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dom_oversize</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#test-pocam.optical_medium" title="test-pocam.optical_medium"><code class="xref py py-obj docutils literal notranslate"><span class="pre">optical_medium</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#test-pocam.randomService" title="test-pocam.randomService"><code class="xref py py-obj docutils literal notranslate"><span class="pre">randomService</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#test-pocam.tray" title="test-pocam.tray"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tray</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
+<dl class="py data">
+<dt class="sig sig-object py" id="test-pocam.usage">
+<span class="sig-prename descclassname"><span class="pre">test-pocam.</span></span><span class="sig-name descname"><span class="pre">usage</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'usage:</span> <span class="pre">%prog</span> <span class="pre">[options]</span> <span class="pre">inputfile'</span></em><a class="headerlink" href="#test-pocam.usage" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="test-pocam.parser">
+<span class="sig-prename descclassname"><span class="pre">test-pocam.</span></span><span class="sig-name descname"><span class="pre">parser</span></span><a class="headerlink" href="#test-pocam.parser" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="test-pocam.geometry">
+<span class="sig-prename descclassname"><span class="pre">test-pocam.</span></span><span class="sig-name descname"><span class="pre">geometry</span></span><a class="headerlink" href="#test-pocam.geometry" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="test-pocam.gframe">
+<span class="sig-prename descclassname"><span class="pre">test-pocam.</span></span><span class="sig-name descname"><span class="pre">gframe</span></span><a class="headerlink" href="#test-pocam.gframe" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="test-pocam.geo">
+<span class="sig-prename descclassname"><span class="pre">test-pocam.</span></span><span class="sig-name descname"><span class="pre">geo</span></span><a class="headerlink" href="#test-pocam.geo" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="test-pocam.flasher_key">
+<span class="sig-prename descclassname"><span class="pre">test-pocam.</span></span><span class="sig-name descname"><span class="pre">flasher_key</span></span><a class="headerlink" href="#test-pocam.flasher_key" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="test-pocam.flasher_position">
+<span class="sig-prename descclassname"><span class="pre">test-pocam.</span></span><span class="sig-name descname"><span class="pre">flasher_position</span></span><a class="headerlink" href="#test-pocam.flasher_position" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="test-pocam.flasher_photons">
+<span class="sig-prename descclassname"><span class="pre">test-pocam.</span></span><span class="sig-name descname"><span class="pre">flasher_photons</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10000000.0</span></em><a class="headerlink" href="#test-pocam.flasher_photons" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="test-pocam.flasher_width">
+<span class="sig-prename descclassname"><span class="pre">test-pocam.</span></span><span class="sig-name descname"><span class="pre">flasher_width</span></span><a class="headerlink" href="#test-pocam.flasher_width" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="test-pocam.flasher_pulse_type">
+<span class="sig-prename descclassname"><span class="pre">test-pocam.</span></span><span class="sig-name descname"><span class="pre">flasher_pulse_type</span></span><a class="headerlink" href="#test-pocam.flasher_pulse_type" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="test-pocam.dom_properties">
+<span class="sig-prename descclassname"><span class="pre">test-pocam.</span></span><span class="sig-name descname"><span class="pre">dom_properties</span></span><a class="headerlink" href="#test-pocam.dom_properties" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="test-pocam.wl_acceptance_max">
+<span class="sig-prename descclassname"><span class="pre">test-pocam.</span></span><span class="sig-name descname"><span class="pre">wl_acceptance_max</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.0</span></em><a class="headerlink" href="#test-pocam.wl_acceptance_max" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="test-pocam.wl_acceptance">
+<span class="sig-prename descclassname"><span class="pre">test-pocam.</span></span><span class="sig-name descname"><span class="pre">wl_acceptance</span></span><a class="headerlink" href="#test-pocam.wl_acceptance" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="test-pocam.dom_radius">
+<span class="sig-prename descclassname"><span class="pre">test-pocam.</span></span><span class="sig-name descname"><span class="pre">dom_radius</span></span><a class="headerlink" href="#test-pocam.dom_radius" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="test-pocam.dom_oversize">
+<span class="sig-prename descclassname"><span class="pre">test-pocam.</span></span><span class="sig-name descname"><span class="pre">dom_oversize</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.0</span></em><a class="headerlink" href="#test-pocam.dom_oversize" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="test-pocam.optical_medium">
+<span class="sig-prename descclassname"><span class="pre">test-pocam.</span></span><span class="sig-name descname"><span class="pre">optical_medium</span></span><a class="headerlink" href="#test-pocam.optical_medium" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="test-pocam.randomService">
+<span class="sig-prename descclassname"><span class="pre">test-pocam.</span></span><span class="sig-name descname"><span class="pre">randomService</span></span><a class="headerlink" href="#test-pocam.randomService" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="test-pocam.tray">
+<span class="sig-prename descclassname"><span class="pre">test-pocam.</span></span><span class="sig-name descname"><span class="pre">tray</span></span><a class="headerlink" href="#test-pocam.tray" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../DOMTrigger/index.html" class="btn btn-neutral float-left" title="DOMTrigger" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../resolution/index.html" class="btn btn-neutral float-right" title="resolution" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, PONE Collaboration.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

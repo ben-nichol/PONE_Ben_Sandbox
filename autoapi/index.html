@@ -1,0 +1,330 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API Reference &mdash; PONE offline  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=fd3f3429" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="conf" href="conf/index.html" />
+    <link rel="prev" title="Welcome to the PONE offline documentation" href="../index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            PONE offline
+              <img src="../_static/simple_logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="conf/index.html">conf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="stubs/index.html">stubs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pocam/index.html">pocam</a></li>
+<li class="toctree-l2"><a class="reference internal" href="frames/index.html">frames</a></li>
+<li class="toctree-l2"><a class="reference internal" href="k40test/index.html">k40test</a></li>
+<li class="toctree-l2"><a class="reference internal" href="make_hdf/index.html">make_hdf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="geometry/index.html">geometry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3-AtmFlux/index.html">3-AtmFlux</a></li>
+<li class="toctree-l2"><a class="reference internal" href="TimingFit/index.html">TimingFit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="DOMTrigger/index.html">DOMTrigger</a></li>
+<li class="toctree-l2"><a class="reference internal" href="test-pocam/index.html">test-pocam</a></li>
+<li class="toctree-l2"><a class="reference internal" href="resolution/index.html">resolution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PONE_Phase1/index.html">PONE_Phase1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_linefit/index.html">run_linefit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="4-GetWeights/index.html">4-GetWeights</a></li>
+<li class="toctree-l2"><a class="reference internal" href="test-flashers/index.html">test-flashers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="GenerateOneOM/index.html">GenerateOneOM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="4-POMResponse/index.html">4-POMResponse</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3-EmitPhotons/index.html">3-EmitPhotons</a></li>
+<li class="toctree-l2"><a class="reference internal" href="1-GenSimpleMC/index.html">1-GenSimpleMC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="LeptonWeighter/index.html">LeptonWeighter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="GenerateEvents/index.html">GenerateEvents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="makeMediumSTRAW/index.html">makeMediumSTRAW</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generate_tables/index.html">generate_tables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="DetectorTrigger/index.html">DetectorTrigger</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Generate6String/index.html">Generate6String</a></li>
+<li class="toctree-l2"><a class="reference internal" href="1-GenerateMuons/index.html">1-GenerateMuons</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PONE_Ben_Sandbox/index.html">PONE_Ben_Sandbox</a></li>
+<li class="toctree-l2"><a class="reference internal" href="submit-isotropic/index.html">submit-isotropic</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2-PropagateMuons/index.html">2-PropagateMuons</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3-EmitPhotons_k40/index.html">3-EmitPhotons_k40</a></li>
+<li class="toctree-l2"><a class="reference internal" href="4-POMResponse_k40/index.html">4-POMResponse_k40</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3-GetEventWeights/index.html">3-GetEventWeights</a></li>
+<li class="toctree-l2"><a class="reference internal" href="TrackReco_leasesquare/index.html">TrackReco_leasesquare</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2-WriteGeneratorConfig/index.html">2-WriteGeneratorConfig</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changing_geometry_example/index.html">changing_geometry_example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="GenerateNStringGCD_Cluster/index.html">GenerateNStringGCD_Cluster</a></li>
+<li class="toctree-l2"><a class="reference internal" href="GenerateNSringGCD_Homogeneous/index.html">GenerateNSringGCD_Homogeneous</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MakePoneMediumPropertiesBenchmark/index.html">MakePoneMediumPropertiesBenchmark</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MakePoneMediumPropertiesSpeculative/index.html">MakePoneMediumPropertiesSpeculative</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MakePoneMediumPropertiesConservative/index.html">MakePoneMediumPropertiesConservative</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MakePoneMediumPropertiesSpeculativeExtendedRange/index.html">MakePoneMediumPropertiesSpeculativeExtendedRange</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MakePoneMediumPropertiesConservativeExtendedRange/index.html">MakePoneMediumPropertiesConservativeExtendedRange</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">PONE offline</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">API Reference</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/autoapi/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="api-reference">
+<h1>API Reference<a class="headerlink" href="#api-reference" title="Link to this heading"></a></h1>
+<p>This page contains auto-generated API reference documentation <a class="footnote-reference brackets" href="#f1" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="conf/index.html">conf</a></li>
+<li class="toctree-l1"><a class="reference internal" href="stubs/index.html">stubs</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="stubs/I3Units/index.html">stubs.I3Units</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="pocam/index.html">pocam</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="pocam/generatePOCAM/index.html">pocam.generatePOCAM</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="frames/index.html">frames</a></li>
+<li class="toctree-l1"><a class="reference internal" href="k40test/index.html">k40test</a></li>
+<li class="toctree-l1"><a class="reference internal" href="make_hdf/index.html">make_hdf</a></li>
+<li class="toctree-l1"><a class="reference internal" href="geometry/index.html">geometry</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-AtmFlux/index.html">3-AtmFlux</a></li>
+<li class="toctree-l1"><a class="reference internal" href="TimingFit/index.html">TimingFit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="DOMTrigger/index.html">DOMTrigger</a></li>
+<li class="toctree-l1"><a class="reference internal" href="test-pocam/index.html">test-pocam</a></li>
+<li class="toctree-l1"><a class="reference internal" href="resolution/index.html">resolution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="PONE_Phase1/index.html">PONE_Phase1</a></li>
+<li class="toctree-l1"><a class="reference internal" href="run_linefit/index.html">run_linefit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="4-GetWeights/index.html">4-GetWeights</a></li>
+<li class="toctree-l1"><a class="reference internal" href="test-flashers/index.html">test-flashers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="GenerateOneOM/index.html">GenerateOneOM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="4-POMResponse/index.html">4-POMResponse</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-EmitPhotons/index.html">3-EmitPhotons</a></li>
+<li class="toctree-l1"><a class="reference internal" href="1-GenSimpleMC/index.html">1-GenSimpleMC</a></li>
+<li class="toctree-l1"><a class="reference internal" href="LeptonWeighter/index.html">LeptonWeighter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="GenerateEvents/index.html">GenerateEvents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="makeMediumSTRAW/index.html">makeMediumSTRAW</a></li>
+<li class="toctree-l1"><a class="reference internal" href="generate_tables/index.html">generate_tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="DetectorTrigger/index.html">DetectorTrigger</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Generate6String/index.html">Generate6String</a></li>
+<li class="toctree-l1"><a class="reference internal" href="1-GenerateMuons/index.html">1-GenerateMuons</a></li>
+<li class="toctree-l1"><a class="reference internal" href="PONE_Ben_Sandbox/index.html">PONE_Ben_Sandbox</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="PONE_Ben_Sandbox/DOM/index.html">PONE_Ben_Sandbox.DOM</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/DOM/DOMAcceptance/index.html">PONE_Ben_Sandbox.DOM.DOMAcceptance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/DOM/DOMSimFunctions/index.html">PONE_Ben_Sandbox.DOM.DOMSimFunctions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/DOM/FunctionClasses/index.html">PONE_Ben_Sandbox.DOM.FunctionClasses</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/DOM/MCPEConverter/index.html">PONE_Ben_Sandbox.DOM.MCPEConverter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/DOM/NoiseGenerator/index.html">PONE_Ben_Sandbox.DOM.NoiseGenerator</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/DOM/OMAcceptance/index.html">PONE_Ben_Sandbox.DOM.OMAcceptance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/DOM/PONEDOMLauncher/index.html">PONE_Ben_Sandbox.DOM.PONEDOMLauncher</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/DOM/PONEDOMLauncher_test/index.html">PONE_Ben_Sandbox.DOM.PONEDOMLauncher_test</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/DOM/WaveformBuilder/index.html">PONE_Ben_Sandbox.DOM.WaveformBuilder</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/DOM/domlaunchertest/index.html">PONE_Ben_Sandbox.DOM.domlaunchertest</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/DOM/makeDOMModelFiles/index.html">PONE_Ben_Sandbox.DOM.makeDOMModelFiles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/DOM/pulseshape/index.html">PONE_Ben_Sandbox.DOM.pulseshape</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="PONE_Ben_Sandbox/Flasher/index.html">PONE_Ben_Sandbox.Flasher</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/Flasher/Helper/index.html">PONE_Ben_Sandbox.Flasher.Helper</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="PONE_Ben_Sandbox/Flasher/Helper/DeleteEmitterHits/index.html">PONE_Ben_Sandbox.Flasher.Helper.DeleteEmitterHits</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/Flasher/Isotropic/index.html">PONE_Ben_Sandbox.Flasher.Isotropic</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="PONE_Ben_Sandbox/Flasher/Isotropic/GenerateIsotropic/index.html">PONE_Ben_Sandbox.Flasher.Isotropic.GenerateIsotropic</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PONE_Ben_Sandbox/Flasher/Isotropic/isotropic/index.html">PONE_Ben_Sandbox.Flasher.Isotropic.isotropic</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="PONE_Ben_Sandbox/GCD/index.html">PONE_Ben_Sandbox.GCD</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/GCD/Generate_GCD/index.html">PONE_Ben_Sandbox.GCD.Generate_GCD</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/GCD/LatticeCalculator/index.html">PONE_Ben_Sandbox.GCD.LatticeCalculator</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/GCD/gcdHelpers/index.html">PONE_Ben_Sandbox.GCD.gcdHelpers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/GCD/grid_snap/index.html">PONE_Ben_Sandbox.GCD.grid_snap</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="PONE_Ben_Sandbox/Generators/index.html">PONE_Ben_Sandbox.Generators</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/Generators/AtmosphericMuons/index.html">PONE_Ben_Sandbox.Generators.AtmosphericMuons</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/Generators/GenerateMuons/index.html">PONE_Ben_Sandbox.Generators.GenerateMuons</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/Generators/MUPAGEImporter/index.html">PONE_Ben_Sandbox.Generators.MUPAGEImporter</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="PONE_Ben_Sandbox/NoiseGenHelpers/index.html">PONE_Ben_Sandbox.NoiseGenHelpers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PONE_Ben_Sandbox/NoiseGenerators/index.html">PONE_Ben_Sandbox.NoiseGenerators</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/NoiseGenerators/DarkNoise/index.html">PONE_Ben_Sandbox.NoiseGenerators.DarkNoise</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/NoiseGenerators/K40Characterization/index.html">PONE_Ben_Sandbox.NoiseGenerators.K40Characterization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/NoiseGenerators/K40Noise/index.html">PONE_Ben_Sandbox.NoiseGenerators.K40Noise</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/NoiseGenerators/NoiseUtility/index.html">PONE_Ben_Sandbox.NoiseGenerators.NoiseUtility</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="PONE_Ben_Sandbox/PulseCleaning/index.html">PONE_Ben_Sandbox.PulseCleaning</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/PulseCleaning/CausalHits/index.html">PONE_Ben_Sandbox.PulseCleaning.CausalHits</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/PulseCleaning/ClusterSelect/index.html">PONE_Ben_Sandbox.PulseCleaning.ClusterSelect</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/PulseCleaning/RecoPulseGenerator/index.html">PONE_Ben_Sandbox.PulseCleaning.RecoPulseGenerator</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/PulseCleaning/SignificantHitPulseCleaning/index.html">PONE_Ben_Sandbox.PulseCleaning.SignificantHitPulseCleaning</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/PulseCleaning/TimeShifted/index.html">PONE_Ben_Sandbox.PulseCleaning.TimeShifted</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="PONE_Ben_Sandbox/Reconstruction/index.html">PONE_Ben_Sandbox.Reconstruction</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/Reconstruction/Cascade/index.html">PONE_Ben_Sandbox.Reconstruction.Cascade</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="PONE_Ben_Sandbox/Reconstruction/Cascade/CascadeReco/index.html">PONE_Ben_Sandbox.Reconstruction.Cascade.CascadeReco</a></li>
+<li class="toctree-l4"><a class="reference internal" href="PONE_Ben_Sandbox/Reconstruction/Cascade/CascadeReco_leastsquare/index.html">PONE_Ben_Sandbox.Reconstruction.Cascade.CascadeReco_leastsquare</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/Reconstruction/Linefit/index.html">PONE_Ben_Sandbox.Reconstruction.Linefit</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="PONE_Ben_Sandbox/Reconstruction/Linefit/LineFitReco/index.html">PONE_Ben_Sandbox.Reconstruction.Linefit.LineFitReco</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/Reconstruction/NuTau/index.html">PONE_Ben_Sandbox.Reconstruction.NuTau</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="PONE_Ben_Sandbox/Reconstruction/NuTau/TauCurveFit/index.html">PONE_Ben_Sandbox.Reconstruction.NuTau.TauCurveFit</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/Reconstruction/Track/index.html">PONE_Ben_Sandbox.Reconstruction.Track</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="PONE_Ben_Sandbox/Reconstruction/Track/TrackReco/index.html">PONE_Ben_Sandbox.Reconstruction.Track.TrackReco</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/Reconstruction/TrackLimits/index.html">PONE_Ben_Sandbox.Reconstruction.TrackLimits</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="PONE_Ben_Sandbox/Reconstruction/TrackLimits/StartStop/index.html">PONE_Ben_Sandbox.Reconstruction.TrackLimits.StartStop</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="PONE_Ben_Sandbox/Utilities/index.html">PONE_Ben_Sandbox.Utilities</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/Utilities/DOMUtility/index.html">PONE_Ben_Sandbox.Utilities.DOMUtility</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/Utilities/GeoUtility/index.html">PONE_Ben_Sandbox.Utilities.GeoUtility</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/Utilities/MixturePDF/index.html">PONE_Ben_Sandbox.Utilities.MixturePDF</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/Utilities/NuTauPeakShapes/index.html">PONE_Ben_Sandbox.Utilities.NuTauPeakShapes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/Utilities/OpticalParameters/index.html">PONE_Ben_Sandbox.Utilities.OpticalParameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/Utilities/PMTAcceptance/index.html">PONE_Ben_Sandbox.Utilities.PMTAcceptance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/Utilities/POMModel/index.html">PONE_Ben_Sandbox.Utilities.POMModel</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/Utilities/POMUtility/index.html">PONE_Ben_Sandbox.Utilities.POMUtility</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/Utilities/PandelPDFs/index.html">PONE_Ben_Sandbox.Utilities.PandelPDFs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/Utilities/RecoUtility/index.html">PONE_Ben_Sandbox.Utilities.RecoUtility</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="PONE_Ben_Sandbox/dom_acceptance/index.html">PONE_Ben_Sandbox.dom_acceptance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PONE_Ben_Sandbox/githubtest/index.html">PONE_Ben_Sandbox.githubtest</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PONE_Ben_Sandbox/makeenv/index.html">PONE_Ben_Sandbox.makeenv</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PONE_Ben_Sandbox/segments/index.html">PONE_Ben_Sandbox.segments</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/segments/Calibration/index.html">PONE_Ben_Sandbox.segments.Calibration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/segments/DetectorSim/index.html">PONE_Ben_Sandbox.segments.DetectorSim</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/segments/GenerateAirShowers/index.html">PONE_Ben_Sandbox.segments.GenerateAirShowers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/segments/GenerateCosmicRayMuons/index.html">PONE_Ben_Sandbox.segments.GenerateCosmicRayMuons</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/segments/GenerateFlashers/index.html">PONE_Ben_Sandbox.segments.GenerateFlashers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/segments/GenerateIceTopShowers/index.html">PONE_Ben_Sandbox.segments.GenerateIceTopShowers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/segments/GenerateNeutrinos/index.html">PONE_Ben_Sandbox.segments.GenerateNeutrinos</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/segments/GenerateNoiseTriggers/index.html">PONE_Ben_Sandbox.segments.GenerateNoiseTriggers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/segments/HybridPhotonicsCLSim/index.html">PONE_Ben_Sandbox.segments.HybridPhotonicsCLSim</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/segments/MultiDomEffSample/index.html">PONE_Ben_Sandbox.segments.MultiDomEffSample</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/segments/Polyplopia/index.html">PONE_Ben_Sandbox.segments.Polyplopia</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PONE_Ben_Sandbox/segments/PropagateMuons/index.html">PONE_Ben_Sandbox.segments.PropagateMuons</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="submit-isotropic/index.html">submit-isotropic</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-PropagateMuons/index.html">2-PropagateMuons</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-EmitPhotons_k40/index.html">3-EmitPhotons_k40</a></li>
+<li class="toctree-l1"><a class="reference internal" href="4-POMResponse_k40/index.html">4-POMResponse_k40</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-GetEventWeights/index.html">3-GetEventWeights</a></li>
+<li class="toctree-l1"><a class="reference internal" href="TrackReco_leasesquare/index.html">TrackReco_leasesquare</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-WriteGeneratorConfig/index.html">2-WriteGeneratorConfig</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changing_geometry_example/index.html">changing_geometry_example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="GenerateNStringGCD_Cluster/index.html">GenerateNStringGCD_Cluster</a></li>
+<li class="toctree-l1"><a class="reference internal" href="GenerateNSringGCD_Homogeneous/index.html">GenerateNSringGCD_Homogeneous</a></li>
+<li class="toctree-l1"><a class="reference internal" href="MakePoneMediumPropertiesBenchmark/index.html">MakePoneMediumPropertiesBenchmark</a></li>
+<li class="toctree-l1"><a class="reference internal" href="MakePoneMediumPropertiesSpeculative/index.html">MakePoneMediumPropertiesSpeculative</a></li>
+<li class="toctree-l1"><a class="reference internal" href="MakePoneMediumPropertiesConservative/index.html">MakePoneMediumPropertiesConservative</a></li>
+<li class="toctree-l1"><a class="reference internal" href="MakePoneMediumPropertiesSpeculativeExtendedRange/index.html">MakePoneMediumPropertiesSpeculativeExtendedRange</a></li>
+<li class="toctree-l1"><a class="reference internal" href="MakePoneMediumPropertiesConservativeExtendedRange/index.html">MakePoneMediumPropertiesConservativeExtendedRange</a></li>
+</ul>
+</div>
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="f1" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
+<p>Created with <a class="reference external" href="https://github.com/readthedocs/sphinx-autoapi">sphinx-autoapi</a></p>
+</aside>
+</aside>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../index.html" class="btn btn-neutral float-left" title="Welcome to the PONE offline documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="conf/index.html" class="btn btn-neutral float-right" title="conf" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, PONE Collaboration.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

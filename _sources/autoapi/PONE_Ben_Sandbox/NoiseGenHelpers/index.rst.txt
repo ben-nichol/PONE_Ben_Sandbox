@@ -1,0 +1,328 @@
+PONE_Ben_Sandbox.NoiseGenHelpers
+================================
+
+.. py:module:: PONE_Ben_Sandbox.NoiseGenHelpers
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.NoiseGenHelpers.myQuaternion
+   PONE_Ben_Sandbox.NoiseGenHelpers.K40
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.NoiseGenHelpers.unpickle
+   PONE_Ben_Sandbox.NoiseGenHelpers.makePhoton
+   PONE_Ben_Sandbox.NoiseGenHelpers.getMeanEventRate
+
+
+Module Contents
+---------------
+
+.. py:function:: unpickle(filePath)
+
+   Unpickle the file at the given file path
+   This is used to unpickle the noise characterization class
+
+   :param filePath  - string path to the pickled file:
+
+
+.. py:function:: makePhoton(position, direction, time, wavelength, minorID)
+
+   Returns an I3Photon with the passed attributes
+
+   Parameters:
+   position    - (np.array) - xyz coordinates for photon hit position
+   direction   - (np.array) - xyz coordinates for photon incident direction
+   time        - (float) - Hit timestamp
+   wavelength  - (float) - Wavelength of the incident photon
+   minorID     - (int) - Minor ID of the particle
+
+
+.. py:function:: getMeanEventRate(s=3.482, frameLen=10000)
+
+   Returns the mean event rate of K40 detections
+
+   :param frameLen  - Length of frames used in simulation [ns]: Only change if there has been a new
+                                                                K40 noise characterization
+   :param s         - Ocean salinity [%]:
+
+   Comments:
+
+   The simulation that this noise characterization is based on was only
+   run at a salinity of (3.482%). The salinity impacts the number of
+   events seen in each frame which is poisson distributed with a mean of
+   25.4 events per 10 us frame. (!!!This is using the KM3NeT DOM!!!)
+
+   I think if we want to have salinity as an input parameter to the noise
+   generator we might be able to get away with adjusting this mean.
+
+   Based on the current simulation input parameters, the activity of the
+   K40 in the Cascadia Basin is 12.1223 decays /ms /m3.
+   (!!! The above might be closer to 12.1290 !!!)
+
+   This corresponds to 0.121223 decays /10us /m3
+
+   For the 50 m radius spherical world volume used,
+   this is a total of 63472.214 decays /10us
+
+   Our DOM on average detects 25.4 decays /10us which we can say
+   corresponds to an efficiency of 0.04 %
+
+   Hence, if we want to adjust the salinity, we can recalculate the
+   total number of decays over some time and thus the mean we
+   should expect get detected.
+
+
+.. py:class:: myQuaternion(axis, angle)
+
+   My own simple quaternion class for rotations
+
+
+   .. py:attribute:: u
+
+
+   .. py:attribute:: s
+
+
+   .. py:method:: rotate(v)
+
+      Applies this quaternion on a vector and returns the rotated vector
+
+      :param v - np.array of a vector that should be rotated:
+
+
+
+   .. py:method:: printQ()
+
+
+.. py:class:: K40(dD, sP, nP, bN, sD, pD, eAD, wls, aDv, sID, tDiff)
+
+   Class for holding and sampling K40 distributions
+   Binnings for distributions are hard coded here whereas the distributions
+   themselves are passed in when the class is created
+
+
+   .. py:attribute:: dBs
+
+
+   .. py:attribute:: dBCentres
+
+
+   .. py:attribute:: linLBins
+
+
+   .. py:attribute:: linLBinCentres
+
+
+   .. py:attribute:: linAngBins
+
+
+   .. py:attribute:: linAngBinCentres
+
+
+   .. py:attribute:: linStdvBins
+
+
+   .. py:attribute:: linStdvBinCentres
+
+
+   .. py:attribute:: tDBs
+
+
+   .. py:attribute:: tDBCentres
+
+
+   .. py:attribute:: wlBins
+
+
+   .. py:attribute:: wlBinCentres
+
+
+   .. py:attribute:: angDevBins
+
+
+   .. py:attribute:: angDevBinCentres
+
+
+   .. py:attribute:: singleIncAngBins
+
+
+   .. py:attribute:: singleIncAngBinCentres
+
+
+   .. py:attribute:: bigHitBins
+
+
+   .. py:attribute:: bigHitBinCentres
+
+
+   .. py:attribute:: zenDZBins
+      :value: [0, 10, 20, 30, 40, 50, 60, 70, 80, 90]
+
+
+
+   .. py:attribute:: zenDistBins
+      :value: [0, 2, 4, 6, 10, 50]
+
+
+
+   .. py:attribute:: angDevZBins
+      :value: [0, 30, 60, 90]
+
+
+
+   .. py:attribute:: dDist
+
+
+   .. py:attribute:: sProbs
+
+
+   .. py:attribute:: nPProbs
+
+
+   .. py:attribute:: bigHitN
+
+
+   .. py:attribute:: linSpreadDist
+
+
+   .. py:attribute:: linPointDist
+
+
+   .. py:attribute:: eventAngDist
+
+
+   .. py:attribute:: wlDists
+
+
+   .. py:attribute:: angDevDist
+
+
+   .. py:attribute:: singleIncDist
+
+
+   .. py:attribute:: tDiffs
+
+
+   .. py:method:: getBin(val, bins)
+
+      Returns the number(index) of the bin that the given value falls into
+
+
+
+   .. py:method:: smear(val, bins)
+
+      Returns a given value smeared by a random number within half the distribution bin size
+
+
+
+   .. py:method:: getDir(num, dim=3)
+
+      Generates an array of unit vector in a random direction for a given number of spatial dimensions
+
+
+
+   .. py:method:: getD(num)
+
+      Returns an array of distances to a K40 decay and the corresponding index
+
+
+
+   .. py:method:: getS(dIndex)
+
+      Returns the number of scatters based on distance to decay
+
+
+
+   .. py:method:: getNumPs(ds, num)
+
+      Returns an array of the number of photons based on distance to decay
+
+
+
+   .. py:method:: getLinPoints(nPs)
+
+      Returns the start and end points of the hit line on a projected 2d circle
+      as a function of the number of photons in the event
+
+
+
+   .. py:method:: getOffsetRIndex(start, end)
+
+      Returns an offset index based on the closest radial approach from a line to the
+      centre of the circle.
+
+
+
+   .. py:method:: getOffsetDIndex(d2d)
+
+      Returns an offset index based on the distance to decay used for generating
+      points along a line.
+
+
+
+   .. py:method:: getStdv(offsetDIndex)
+
+      Returns the transverse standard deviation for points along a line
+      given an offsetDIndex reffering to the distance to the decay
+
+
+
+   .. py:method:: getLinPos(offsetRIndex)
+
+      Returns the normalized position of a hit along a given line given
+      an offsetRIndex reffering to the radial distance between the
+      line and the centre of the projected circle
+
+
+
+   .. py:method:: getWl(d)
+
+      Returns a photon wavelength based on distance to decay
+
+
+
+   .. py:method:: getDevAng(z, s)
+
+      Returns the deviation of incident angle from the direct line for a
+      photon with a zenith of <= 90
+
+
+
+   .. py:method:: getIncDirNear(hitPos, dist, angDev)
+
+      Returns the incident direction of a photon with a zenith of < 90 given
+      the position of the photon, the distance to the decay, and the incident
+      deviation from the direct line
+
+
+
+   .. py:method:: getSingleInc()
+
+      Returns a unit vector representing the incident angle for a
+      single photon hit
+
+
+
+   .. py:method:: getNextTime(t, s, lowerT, upperT)
+
+      Returns the subsequent time of a hit based on the time of the
+      previous hit as well as # scatters (Framelength in ns)
+
+
+
+   .. py:method:: getFrameEvents(frameLength, eRate)
+
+      Returns a list of event times within a frame of a given length (in ns)
+      and an event rate in (events/ns)
+
+
+

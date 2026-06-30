@@ -1,0 +1,49 @@
+PONE_Ben_Sandbox.Reconstruction.Linefit.LineFitReco
+===================================================
+
+.. py:module:: PONE_Ben_Sandbox.Reconstruction.Linefit.LineFitReco
+
+.. autoapi-nested-parse::
+
+   SimAnalysis contains helper functions commonly used when writing
+   scripts to analyze results from simulation sets. Mainly, it allows
+   to easily decompose geometries into smaller sets by specifying a list
+   of omkeys, and allows to impose harder cuts on simulations so that different
+   geometries/cuts could be tried out without running the simulation again.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.Reconstruction.Linefit.LineFitReco.LineFitReco
+
+
+Module Contents
+---------------
+
+.. py:class:: LineFitReco(context)
+
+   Bases: :py:obj:`icecube.icetray.I3ConditionalModule`
+
+
+   .. py:method:: Configure()
+
+
+   .. py:method:: Geometry(frame)
+
+
+   .. py:method:: passFrame(frame)
+
+
+   .. py:method:: getLinefitDataPoints(frame)
+
+
+   .. py:method:: fitLeastSquaresLine(x, y)
+
+
+   .. py:method:: Physics(frame)
+
+

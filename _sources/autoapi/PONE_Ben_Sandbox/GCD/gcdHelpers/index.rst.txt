@@ -1,0 +1,210 @@
+PONE_Ben_Sandbox.GCD.gcdHelpers
+===============================
+
+.. py:module:: PONE_Ben_Sandbox.GCD.gcdHelpers
+
+.. autoapi-nested-parse::
+
+   a few helper functions that will be commonly used when making
+   GCD files to test prototype geometries
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.GCD.gcdHelpers.pom_properties
+   PONE_Ben_Sandbox.GCD.gcdHelpers.pmt_vectors
+   PONE_Ben_Sandbox.GCD.gcdHelpers.PMT_orientations
+   PONE_Ben_Sandbox.GCD.gcdHelpers.cdfile
+   PONE_Ben_Sandbox.GCD.gcdHelpers.cdframe
+   PONE_Ben_Sandbox.GCD.gcdHelpers.calib
+   PONE_Ben_Sandbox.GCD.gcdHelpers.start_time
+   PONE_Ben_Sandbox.GCD.gcdHelpers.end_time
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.GCD.gcdHelpers.makeCalibrationObject
+   PONE_Ben_Sandbox.GCD.gcdHelpers.makeDSObject
+   PONE_Ben_Sandbox.GCD.gcdHelpers.generateCFrame
+   PONE_Ben_Sandbox.GCD.gcdHelpers.generateDFrame
+   PONE_Ben_Sandbox.GCD.gcdHelpers.makePartialGeometry
+   PONE_Ben_Sandbox.GCD.gcdHelpers.AddPOM
+   PONE_Ben_Sandbox.GCD.gcdHelpers.AddPCAL
+   PONE_Ben_Sandbox.GCD.gcdHelpers.generateGeometry
+   PONE_Ben_Sandbox.GCD.gcdHelpers.generateGFrame
+
+
+Module Contents
+---------------
+
+.. py:data:: pom_properties
+
+.. py:data:: pmt_vectors
+
+.. py:data:: PMT_orientations
+
+.. py:data:: cdfile
+
+.. py:data:: cdframe
+
+.. py:data:: calib
+
+.. py:data:: start_time
+
+.. py:data:: end_time
+
+.. py:function:: makeCalibrationObject(geometry, empty=False)
+
+   Creates a calibration with all the correct OMKeys.
+
+   :param geometry: The I3Geometry object inputted to the frame.
+   :param empty: If True, returns an empty I3Calibration. Defaults to False.
+   :type empty: bool, optional
+
+   :returns: An I3Calibration object to be used in the GCD file.
+   :rtype: I3Calibration
+
+
+.. py:function:: makeDSObject(geometry, empty=False)
+
+   Creates a detector status with all the correct OMKeys.
+
+   :param geometry: The I3Geometry object inputted to the frame.
+   :param empty: If True, returns an empty I3DetectorStatus. Defaults to False.
+   :type empty: bool, optional
+
+   :returns: An I3DetectorStatus object to be used in the GCD file.
+   :rtype: I3DetectorStatus
+
+
+.. py:function:: generateCFrame(geometry, empty=False)
+
+   Creates a frame with all the needed fields in a C frame.
+
+   :param geometry: The I3Geometry object inputted to the frame.
+   :param empty: If True, creates frame with empty calibration. Defaults to False.
+   :type empty: bool, optional
+
+   :returns: An I3Frame object to be used as the C frame.
+   :rtype: I3Frame
+
+
+.. py:function:: generateDFrame(geometry, empty=False)
+
+   Creates a frame with all the needed fields in a D frame.
+
+   :param geometry: The I3Geometry object inputted to the frame.
+   :param empty: If True, creates frame with empty detector status. Defaults to False.
+   :type empty: bool, optional
+
+   :returns: An I3Frame object to be used as the D frame.
+   :rtype: I3Frame
+
+
+.. py:function:: makePartialGeometry(denseGeometry, domsUsed)
+
+   Decomposes a geometry into a new geometry with only the DOMs specified.
+
+   :param denseGeometry: An I3Geometry object representing the dense geometry.
+   :type denseGeometry: I3Geometry
+   :param domsUsed: A list of OMKey objects representing the DOMs to be
+                    included in the new geometry.
+   :type domsUsed: list
+
+   :returns: A new I3Geometry object containing only the DOMs in domsUsed.
+   :rtype: I3Geometry
+
+   :raises ValueError: If an OMKey in domsUsed is not in denseGeometry.
+
+
+.. py:function:: AddPOM(geomap, position, string, om, separation=0.0785, pom_radius=0.2159)
+
+   Adds a POM to a I3OMGeoMap object at a specified location and IDs.
+
+   POM consists of two spheres with correct PMT orientations.
+   PMTs 1-8 are on face oriented in the +x direction.
+
+   :param geomap: Object which will have the POM added to it.
+   :type geomap: dataclasses.I3OMGeoMap
+   :param position: [x,y,z] position of the centre of the POM.
+   :type position: array-like
+   :param string: String ID that the POM will be added to.
+   :type string: int
+   :param om: OM ID that the POM will be added to.
+   :type om: int
+   :param separation: Separation of the centre of the two
+                      hemispheres in meters. Defaults to 0.0785.
+   :type separation: float, optional
+   :param pom_radius: Radius of each hemisphere in meters.
+                      Defaults to 0.2159.
+   :type pom_radius: float, optional
+
+
+.. py:function:: AddPCAL(geomap, position, string, om, separation=0.0785, pcal_radius=0.2159)
+
+   Adds a PCAL to a I3OMGeoMap object at a specified location and IDs.
+
+   PCAL consists of two spheres with correct PMT orientations.
+   PMTs 1-4 are on face oriented in the +x direction.
+
+   :param geomap: Object which will have the PCAL added to it.
+   :type geomap: dataclasses.I3OMGeoMap
+   :param position: [x,y,z] position of the centre of the PCAL.
+   :type position: array-like
+   :param string: String ID that the PCAL will be added to.
+   :type string: int
+   :param om: OM ID that the PCAL will be added to.
+   :type om: int
+   :param separation: Separation of the centre of the two
+                      hemispheres in meters. Defaults to 0.0785.
+   :type separation: float, optional
+   :param pcal_radius: Radius of each hemisphere in meters.
+                       Defaults to 0.2159.
+   :type pcal_radius: float, optional
+
+
+.. py:function:: generateGeometry(xpositions, ypositions, depth, omsequence)
+
+   Creates an I3OMGeoMap object from x,y coordinates and other parameters.
+
+   :param xpositions: List of x positions for strings.
+   :type xpositions: list
+   :param ypositions: List of y positions for strings.
+   :type ypositions: list
+   :param depth: Array of depths for OMs.
+   :type depth: array
+   :param omsequence: List defining the OM sequence (POM/PCAL).
+   :type omsequence: list
+
+   :returns: Map of Optical Modules (OMs).
+   :rtype: I3OMGeoMap
+
+   :raises Exception: If unknown optical module type is specified.
+
+
+.. py:function:: generateGFrame(xpositions, ypositions, depthlist, omsequence, domradius)
+
+   Creates a geometry frame with all the needed fields in a G frame.
+
+   :param xpositions: List of x positions for strings.
+   :type xpositions: list
+   :param ypositions: List of y positions for strings.
+   :type ypositions: list
+   :param depthlist: List of depths for OMs.
+   :type depthlist: list
+   :param omsequence: List defining the OM sequence (POM/PCAL).
+   :type omsequence: list
+   :param domradius: Radius of the optical modules.
+   :type domradius: float
+
+   :returns: An I3Frame object to be used as the G frame.
+   :rtype: I3Frame
+
+

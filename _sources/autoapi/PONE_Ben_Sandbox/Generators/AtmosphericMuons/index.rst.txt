@@ -1,0 +1,49 @@
+PONE_Ben_Sandbox.Generators.AtmosphericMuons
+============================================
+
+.. py:module:: PONE_Ben_Sandbox.Generators.AtmosphericMuons
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.Generators.AtmosphericMuons.MuonGenerator
+   PONE_Ben_Sandbox.Generators.AtmosphericMuons.MuonReweighter
+
+
+Module Contents
+---------------
+
+.. py:class:: MuonGenerator(context)
+
+   Bases: :py:obj:`icecube.icetray.I3Module`
+
+
+   Creates atmospheric muons with energy/angle distributions from a CSV file. For each frame, one muon is generated.
+
+
+   .. py:method:: Configure()
+
+
+   .. py:method:: DAQ(frame)
+
+
+.. py:class:: MuonReweighter(context)
+
+   Bases: :py:obj:`MuonGenerator`
+
+
+   Reweights muons created with MuonGenerator. Takes CSV file with new flux, and adds I3Double to each frame with new muon weight.
+
+
+   .. py:method:: Configure()
+
+
+   .. py:method:: Simulation(frame)
+
+
+   .. py:method:: DAQ(frame)
+
+

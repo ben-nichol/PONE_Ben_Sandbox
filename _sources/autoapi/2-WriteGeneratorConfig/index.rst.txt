@@ -1,0 +1,31 @@
+2-WriteGeneratorConfig
+======================
+
+.. py:module:: 2-WriteGeneratorConfig
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   2-WriteGeneratorConfig.input_files
+   2-WriteGeneratorConfig.outputName
+   2-WriteGeneratorConfig.output_lic
+   2-WriteGeneratorConfig.output_h5
+   2-WriteGeneratorConfig.tray
+
+
+Module Contents
+---------------
+
+.. py:data:: input_files
+
+.. py:data:: outputName
+
+.. py:data:: output_lic
+
+.. py:data:: output_h5
+
+.. py:data:: tray
+

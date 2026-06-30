@@ -1,0 +1,70 @@
+PONE_Ben_Sandbox.Utilities.MixturePDF
+=====================================
+
+.. py:module:: PONE_Ben_Sandbox.Utilities.MixturePDF
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.Utilities.MixturePDF.asymmetric_gauss_pdf
+   PONE_Ben_Sandbox.Utilities.MixturePDF.gamma_pdf
+   PONE_Ben_Sandbox.Utilities.MixturePDF.uniform_weight
+   PONE_Ben_Sandbox.Utilities.MixturePDF.gamma_weight
+   PONE_Ben_Sandbox.Utilities.MixturePDF.anorm0_weight
+   PONE_Ben_Sandbox.Utilities.MixturePDF.anorm1_weight
+   PONE_Ben_Sandbox.Utilities.MixturePDF.anorm2_weight
+   PONE_Ben_Sandbox.Utilities.MixturePDF.anorm0_mu
+   PONE_Ben_Sandbox.Utilities.MixturePDF.anorm1_mu
+   PONE_Ben_Sandbox.Utilities.MixturePDF.anorm2_mu
+   PONE_Ben_Sandbox.Utilities.MixturePDF.anorm0_r
+   PONE_Ben_Sandbox.Utilities.MixturePDF.anorm1_r
+   PONE_Ben_Sandbox.Utilities.MixturePDF.anorm2_r
+   PONE_Ben_Sandbox.Utilities.MixturePDF.anorm0_sigma
+   PONE_Ben_Sandbox.Utilities.MixturePDF.anorm1_sigma
+   PONE_Ben_Sandbox.Utilities.MixturePDF.anorm2_sigma
+   PONE_Ben_Sandbox.Utilities.MixturePDF.gamma_scale
+   PONE_Ben_Sandbox.Utilities.MixturePDF.mixture_model_pdf
+
+
+Module Contents
+---------------
+
+.. py:function:: asymmetric_gauss_pdf(x, mu, sigma, r)
+
+.. py:function:: gamma_pdf(x, k, theta)
+
+.. py:function:: uniform_weight(d)
+
+.. py:function:: gamma_weight(d)
+
+.. py:function:: anorm0_weight(d)
+
+.. py:function:: anorm1_weight(d)
+
+.. py:function:: anorm2_weight(d)
+
+.. py:function:: anorm0_mu(d)
+
+.. py:function:: anorm1_mu(d)
+
+.. py:function:: anorm2_mu(d)
+
+.. py:function:: anorm0_r(d)
+
+.. py:function:: anorm1_r(d)
+
+.. py:function:: anorm2_r(d)
+
+.. py:function:: anorm0_sigma(d)
+
+.. py:function:: anorm1_sigma(d)
+
+.. py:function:: anorm2_sigma(d)
+
+.. py:function:: gamma_scale(d)
+
+.. py:function:: mixture_model_pdf(t_res, dist, tmin=-200.0, tmax=2000.0)
+

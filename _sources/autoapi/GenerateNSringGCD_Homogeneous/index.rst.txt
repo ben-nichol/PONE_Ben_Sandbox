@@ -1,0 +1,57 @@
+GenerateNSringGCD_Homogeneous
+=============================
+
+.. py:module:: GenerateNSringGCD_Homogeneous
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   GenerateNSringGCD_Homogeneous.parser
+   GenerateNSringGCD_Homogeneous.args
+   GenerateNSringGCD_Homogeneous.outfileName
+   GenerateNSringGCD_Homogeneous.outfile
+   GenerateNSringGCD_Homogeneous.scaled_xpositions
+   GenerateNSringGCD_Homogeneous.scaled_ypositions
+   GenerateNSringGCD_Homogeneous.sp
+   GenerateNSringGCD_Homogeneous.depthlist
+   GenerateNSringGCD_Homogeneous.omsequence
+   GenerateNSringGCD_Homogeneous.gframe
+   GenerateNSringGCD_Homogeneous.geometry
+   GenerateNSringGCD_Homogeneous.cframe
+   GenerateNSringGCD_Homogeneous.dframe
+
+
+Module Contents
+---------------
+
+.. py:data:: parser
+
+.. py:data:: args
+
+.. py:data:: outfileName
+
+.. py:data:: outfile
+
+.. py:data:: scaled_xpositions
+
+.. py:data:: scaled_ypositions
+
+.. py:data:: sp
+   :value: 50.0
+
+
+.. py:data:: depthlist
+
+.. py:data:: omsequence
+
+.. py:data:: gframe
+
+.. py:data:: geometry
+
+.. py:data:: cframe
+
+.. py:data:: dframe
+

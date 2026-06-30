@@ -1,0 +1,32 @@
+make_hdf
+========
+
+.. py:module:: make_hdf
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   make_hdf.infile
+   make_hdf.hdf_filename
+   make_hdf.all_i3_files
+   make_hdf.tray
+
+
+Module Contents
+---------------
+
+.. py:data:: infile
+   :value: '/project/6061446/cmiller/example_data/jp_linefit.i3.zst'
+
+
+.. py:data:: hdf_filename
+   :value: '/scratch/jpyanez/test.hdf'
+
+
+.. py:data:: all_i3_files
+
+.. py:data:: tray
+

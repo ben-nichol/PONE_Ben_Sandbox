@@ -1,0 +1,25 @@
+MakePoneMediumPropertiesConservative
+====================================
+
+.. py:module:: MakePoneMediumPropertiesConservative
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   MakePoneMediumPropertiesConservative.GetPetzoldScatteringCosAngleDistribution
+   MakePoneMediumPropertiesConservative.GetPoneScatteringCosAngleDistribution
+   MakePoneMediumPropertiesConservative.MakePoneMediumProperties
+
+
+Module Contents
+---------------
+
+.. py:function:: GetPetzoldScatteringCosAngleDistribution()
+
+.. py:function:: GetPoneScatteringCosAngleDistribution()
+
+.. py:function:: MakePoneMediumProperties()
+

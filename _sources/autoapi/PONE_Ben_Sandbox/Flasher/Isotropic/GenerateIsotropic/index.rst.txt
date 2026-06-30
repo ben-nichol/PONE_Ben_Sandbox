@@ -1,0 +1,52 @@
+PONE_Ben_Sandbox.Flasher.Isotropic.GenerateIsotropic
+====================================================
+
+.. py:module:: PONE_Ben_Sandbox.Flasher.Isotropic.GenerateIsotropic
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.Flasher.Isotropic.GenerateIsotropic.GenerateIsotropic
+   PONE_Ben_Sandbox.Flasher.Isotropic.GenerateIsotropic.GenerateIsotropicHemisphere
+
+
+Module Contents
+---------------
+
+.. py:class:: GenerateIsotropic(context)
+
+   Bases: :py:obj:`icecube.icetray.I3Module`
+
+
+   Generate an isotropic photon flash into a DAQ Frame.
+
+
+   .. py:method:: Configure()
+
+
+   .. py:method:: generate_pulse(flasher_position, photon_direction, pulse_type, number_of_photons, pulse_width)
+
+
+   .. py:method:: DAQ(frame)
+
+
+.. py:class:: GenerateIsotropicHemisphere(context)
+
+   Bases: :py:obj:`icecube.icetray.I3Module`
+
+
+   Generate an isotropic photon flash into a DAQ Frame.
+
+
+   .. py:method:: Configure()
+
+
+   .. py:method:: generate_pulse(flasher_position, photon_direction, pulse_type, number_of_photons, pulse_width)
+
+
+   .. py:method:: DAQ(frame)
+
+

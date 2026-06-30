@@ -1,0 +1,156 @@
+PONE_Ben_Sandbox.segments.GenerateCosmicRayMuons
+================================================
+
+.. py:module:: PONE_Ben_Sandbox.segments.GenerateCosmicRayMuons
+
+.. autoapi-nested-parse::
+
+   Tray segments for MuonGun simulations
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.segments.GenerateCosmicRayMuons.GenerateCosmicRayMuons
+   PONE_Ben_Sandbox.segments.GenerateCosmicRayMuons.GenerateSingleMuons
+   PONE_Ben_Sandbox.segments.GenerateCosmicRayMuons.GenerateNaturalRateMuons
+
+
+Module Contents
+---------------
+
+.. py:function:: GenerateCosmicRayMuons(tray, name, mctree_name='I3MCTree_preMuonProp', num_events=1, flux_model='Hoerandel5_atmod12_SIBYLL', gamma_index=2.0, energy_offset=700.0, energy_min=10000.0, energy_max=10000000.0, cylinder_length=1600.0, cylinder_radius=800.0, cylinder_x=0.0, cylinder_y=0.0, cylinder_z=0.0, inner_cylinder_length=500.0, inner_cylinder_radius=150.0, inner_cylinder_x=46.3, inner_cylinder_y=-34.9, inner_cylinder_z=-300.0, use_inner_cylinder=False)
+
+   Generate atmospheric muons with MuonGun
+
+   This segment generates atm. muons with MuonGun; it is intended to be
+   used within :class:`icecube.simprod.modules.MuonGunGenerator`.
+
+   .. note::
+       Only single muons are generated, no bundles. For a effective
+       generation, the in-ice muon scpectrum is approximated with
+       :math:`dP/dE_{\mu} \approx (E_{\mu} + b)^{-\gamma}`.
+
+   :param str mctree_name:
+       Output name for :cpp:class:`I3MCTree`
+   :param int num_events:
+       Number of events to generate
+   :param str flux_model:
+       Name of primary cosmic-ray flux parametrization
+   :param float gamma_index:
+       Spectral index :math:`\gamma` of power-law approximation
+   :param float energy_offset:
+       Energy offset :math:`b` of power-law approximation
+   :param float energy_min:
+       Minimum generated energy in GeV
+   :param float energy_max:
+       Maximum generated energy in GeV
+   :param float cylinder_length:
+       Length of injection cylinder in m
+   :param float cylinder_radius:
+       Radius of injection cylinder in m
+   :param float cylinder_x:
+       Cartesian coordinates :math:`(x, y, z)` of injection cylinder's
+       center in m
+   :param float cylinder_y:
+       Cartesian coordinates :math:`(x, y, z)` of injection cylinder's
+       center in m
+   :param float cylinder_z:
+       Cartesian coordinates :math:`(x, y, z)` of injection cylinder's
+       center in m
+   :param float inner_cylinder_length:
+       Length of inner injection cylinder in m; relevant for DeepCore
+       simulations.
+   :param float inner_cylinder_radius:
+       Radius of inner injection cylinder in m; relevant for DeepCore
+       simulations.
+   :param float inner_cylinder_x:
+       Cartesian coordinates :math:`(x, y, z)` of inner injection
+       cylinder's center in m; relevant for DeepCore simulations.
+   :param float inner_cylinder_y:
+       Cartesian coordinates :math:`(x, y, z)` of inner injection
+       cylinder's center in m; relevant for DeepCore simulations.
+   :param float inner_cylinder_z:
+       Cartesian coordinates :math:`(x, y, z)` of inner injection
+       cylinder's center in m; relevant for DeepCore simulations.
+   :param bool use_inner_cylinder:
+       Use inner injection cylinder together with constant surface
+       scaling function; relevant for DeepCore simulations.
+
+
+
+.. py:function:: GenerateSingleMuons(tray, name, Surface=None, GCDFile=None, GeometryMargin=60.0 * icecube.icetray.I3Units.m, NumEvents=100, FromEnergy=10.0 * icecube.icetray.I3Units.TeV, ToEnergy=10.0 * icecube.icetray.I3Units.PeV, BreakEnergy=1.0 * icecube.icetray.I3Units.TeV, GammaIndex=2.0, ZenithRange=[0.0, 180.0 * icecube.icetray.I3Units.deg])
+
+   Generate single muons with MuonGun
+
+   This segment injects single muons with MuonGun isotropically. This
+   useful for calculating effective areas.
+
+   .. note::
+       For a effective generation, the in-ice muon scpectrum is
+       approximated with
+       :math:`dP/dE_{\mu} \approx (E_{\mu} + b)^{-\gamma}`.
+
+   :param icecube.MuonGun.SamplingSurface Surface:
+       Injection surface; if not specified and if `GCDFile` is
+       ``None``, a cylinder with a length of 1600 m and a radius of
+       800 m is used.
+   :param str GCDFile:
+       Path to geometry file; if specified, the injection surface will
+       be an :class:`icecube.MuonGun.ExtrudedPolygon` around the
+       in-ice DOMs. Remote file locations are supported via
+       :class:`icecube.dataio.I3FileStager`.
+   :param float GeometryMargin:
+       If `GCDFile` is specified, this margin (in meters) is used to
+       expand the convex hull around the in-ice DOMs.
+   :param int NumEvents:
+       Number of events to generate
+   :param float FromEnergy:
+       Minimum generated energy in GeV
+   :param float ToEnergy:
+       Maximum generated energy in GeV
+   :param float GammaIndex:
+       Spectral index :math:`\gamma` of power-law approximation
+   :param float BreakEnergy:
+       Energy offset :math:`b` of power-law approximation
+   :param list ZenithRange:
+       Zenith angle range in radians for isotropic injection
+
+
+
+.. py:function:: GenerateNaturalRateMuons(tray, name, mctree_name='I3MCTree_preMuonProp', flux_model='GaisserH4a_atmod12_SIBYLL', Surface=None, GCDFile=None, GeometryMargin=60.0 * icecube.icetray.I3Units.m, NumEvents=100)
+
+   Generate single muons with MuonGun
+
+   This segment injects single muons with MuonGun isotropically. This
+   useful for calculating effective areas.
+
+   .. note::
+       For a effective generation, the in-ice muon scpectrum is
+       approximated with
+       :math:`dP/dE_{\mu} \approx (E_{\mu} + b)^{-\gamma}`.
+
+   :param str mctree_name:
+       Output name for :cpp:class:`I3MCTree`
+   :param str flux_model:
+       Name of primary cosmic-ray flux parametrization
+   :param icecube.MuonGun.SamplingSurface Surface:
+       Injection surface; if not specified and if `GCDFile` is
+       ``None``, a cylinder with a length of 1600 m and a radius of
+       800 m is used.
+   :param str GCDFile:
+       Path to geometry file; if specified, the injection surface will
+       be an :class:`icecube.MuonGun.ExtrudedPolygon` around the
+       in-ice DOMs. Remote file locations are supported via
+       :class:`icecube.dataio.I3FileStager`.
+   :param float GeometryMargin:
+       If `GCDFile` is specified, this margin (in meters) is used to
+       expand the convex hull around the in-ice DOMs.
+   :param int NumEvents:
+       Number of events to generate
+
+
+

@@ -1,0 +1,42 @@
+1-GenerateMuons
+===============
+
+.. py:module:: 1-GenerateMuons
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   1-GenerateMuons.parser
+   1-GenerateMuons.args
+   1-GenerateMuons.emin
+   1-GenerateMuons.emax
+   1-GenerateMuons.numEvents
+   1-GenerateMuons.tray
+   1-GenerateMuons.randomService
+   1-GenerateMuons.injector_list
+
+
+Module Contents
+---------------
+
+.. py:data:: parser
+
+.. py:data:: args
+
+.. py:data:: emin
+
+.. py:data:: emax
+
+.. py:data:: numEvents
+
+.. py:data:: tray
+
+.. py:data:: randomService
+
+.. py:data:: injector_list
+   :value: []
+
+

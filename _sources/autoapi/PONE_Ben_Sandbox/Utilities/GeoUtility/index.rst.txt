@@ -1,0 +1,19 @@
+PONE_Ben_Sandbox.Utilities.GeoUtility
+=====================================
+
+.. py:module:: PONE_Ben_Sandbox.Utilities.GeoUtility
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.Utilities.GeoUtility.get_geo_from_gcd
+
+
+Module Contents
+---------------
+
+.. py:function:: get_geo_from_gcd(gcd)
+

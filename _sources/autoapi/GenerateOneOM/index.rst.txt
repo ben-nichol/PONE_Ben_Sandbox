@@ -1,0 +1,58 @@
+GenerateOneOM
+=============
+
+.. py:module:: GenerateOneOM
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   GenerateOneOM.parser
+   GenerateOneOM.args
+   GenerateOneOM.outfileName
+   GenerateOneOM.outfile
+   GenerateOneOM.xpositions
+   GenerateOneOM.ypositions
+   GenerateOneOM.depthlist
+   GenerateOneOM.omsequence
+   GenerateOneOM.gframe
+   GenerateOneOM.geometry
+   GenerateOneOM.cframe
+   GenerateOneOM.dframe
+
+
+Module Contents
+---------------
+
+.. py:data:: parser
+
+.. py:data:: args
+
+.. py:data:: outfileName
+
+.. py:data:: outfile
+
+.. py:data:: xpositions
+   :value: [0.0]
+
+
+.. py:data:: ypositions
+   :value: [0.0]
+
+
+.. py:data:: depthlist
+
+.. py:data:: omsequence
+   :value: ['mDOM', 'mDOM', 'mDOM']
+
+
+.. py:data:: gframe
+
+.. py:data:: geometry
+
+.. py:data:: cframe
+
+.. py:data:: dframe
+

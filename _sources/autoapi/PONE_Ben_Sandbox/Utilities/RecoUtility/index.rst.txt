@@ -1,0 +1,31 @@
+PONE_Ben_Sandbox.Utilities.RecoUtility
+======================================
+
+.. py:module:: PONE_Ben_Sandbox.Utilities.RecoUtility
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.Utilities.RecoUtility.rand_dir
+   PONE_Ben_Sandbox.Utilities.RecoUtility.ComputeGeoTime
+   PONE_Ben_Sandbox.Utilities.RecoUtility.GetGeoTime
+   PONE_Ben_Sandbox.Utilities.RecoUtility.GetGeoTimeandEmission
+   PONE_Ben_Sandbox.Utilities.RecoUtility.GetPhotonTravelTime
+
+
+Module Contents
+---------------
+
+.. py:function:: rand_dir(initdir, alpha)
+
+.. py:function:: ComputeGeoTime(position, vert, direction)
+
+.. py:function:: GetGeoTime(position, vert, direction)
+
+.. py:function:: GetGeoTimeandEmission(position, vert, direction)
+
+.. py:function:: GetPhotonTravelTime(position, vert)
+

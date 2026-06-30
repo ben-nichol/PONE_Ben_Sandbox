@@ -1,0 +1,31 @@
+PONE_Ben_Sandbox.PulseCleaning.TimeShifted
+==========================================
+
+.. py:module:: PONE_Ben_Sandbox.PulseCleaning.TimeShifted
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.PulseCleaning.TimeShifted.timeShift
+
+
+Module Contents
+---------------
+
+.. py:class:: timeShift(context)
+
+   Bases: :py:obj:`icecube.icetray.I3ConditionalModule`
+
+
+   Shifting the timestamps of I3MCPEs to start at 7200 ns
+
+
+   .. py:method:: Configure()
+
+
+   .. py:method:: DAQ(frame)
+
+

@@ -1,0 +1,82 @@
+PONE_Phase1
+===========
+
+.. py:module:: PONE_Phase1
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   PONE_Phase1.parser
+   PONE_Phase1.args
+   PONE_Phase1.outfileName
+   PONE_Phase1.outfile
+   PONE_Phase1.geomap
+   PONE_Phase1.geometry
+   PONE_Phase1.gframe
+   PONE_Phase1.modgeomap
+   PONE_Phase1.mkey
+   PONE_Phase1.subdetec
+   PONE_Phase1.mkey
+   PONE_Phase1.cframe
+   PONE_Phase1.dframe
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   PONE_Phase1.generateGeometry
+
+
+Module Contents
+---------------
+
+.. py:data:: parser
+
+.. py:data:: args
+
+.. py:data:: outfileName
+
+.. py:data:: outfile
+
+.. py:function:: generateGeometry(nCircles, DPS, strings, npmts, max_radius)
+
+   Generate geometry for PONE Phase 1 detector configuration.
+
+   :param nCircles: Number of concentric circles
+   :type nCircles: int
+   :param DPS: DOMs per string
+   :type DPS: int
+   :param strings: Number of strings per circle
+   :type strings: list
+   :param npmts: Number of PMTs per mDOM
+   :type npmts: int
+   :param max_radius: Maximum radius for outermost circle in meters
+   :type max_radius: float
+
+   :returns: Geometry map for all optical modules
+   :rtype: I3OMGeoMap
+
+
+.. py:data:: geomap
+
+.. py:data:: geometry
+
+.. py:data:: gframe
+
+.. py:data:: modgeomap
+
+.. py:data:: mkey
+
+.. py:data:: subdetec
+
+.. py:data:: mkey
+
+.. py:data:: cframe
+
+.. py:data:: dframe
+

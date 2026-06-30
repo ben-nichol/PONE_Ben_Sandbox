@@ -1,0 +1,124 @@
+3-AtmFlux
+=========
+
+.. py:module:: 3-AtmFlux
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   3-AtmFlux.units
+   3-AtmFlux.NUM_NEUTRINOS
+   3-AtmFlux.E_MIN_GEV
+   3-AtmFlux.E_MAX_GEV
+   3-AtmFlux.FLUX_SPECTRUM_INDEX
+   3-AtmFlux.NEUTRINO_TYPE
+   3-AtmFlux.INCLUDE_INTERACTIONS
+   3-AtmFlux.THETA_12
+   3-AtmFlux.THETA_13
+   3-AtmFlux.THETA_23
+   3-AtmFlux.DM2_21
+   3-AtmFlux.DM2_31
+   3-AtmFlux.H_MAX_KM
+   3-AtmFlux.GSL_STEP
+   3-AtmFlux.REL_ERROR
+   3-AtmFlux.ABS_ERROR
+   3-AtmFlux.N0
+   3-AtmFlux.OUTPUT_FILE
+   3-AtmFlux.E_min
+   3-AtmFlux.E_max
+   3-AtmFlux.E_nodes
+   3-AtmFlux.Z_nodes
+   3-AtmFlux.nus
+   3-AtmFlux.E_range
+   3-AtmFlux.Z_range
+   3-AtmFlux.inistate
+
+
+Module Contents
+---------------
+
+.. py:data:: units
+
+.. py:data:: NUM_NEUTRINOS
+   :value: 3
+
+
+.. py:data:: E_MIN_GEV
+   :value: 100.0
+
+
+.. py:data:: E_MAX_GEV
+   :value: 1000000.0
+
+
+.. py:data:: FLUX_SPECTRUM_INDEX
+   :value: -2.0
+
+
+.. py:data:: NEUTRINO_TYPE
+
+.. py:data:: INCLUDE_INTERACTIONS
+   :value: False
+
+
+.. py:data:: THETA_12
+   :value: 0.563942
+
+
+.. py:data:: THETA_13
+   :value: 0.154085
+
+
+.. py:data:: THETA_23
+   :value: 0.785398
+
+
+.. py:data:: DM2_21
+   :value: 7.65e-05
+
+
+.. py:data:: DM2_31
+   :value: 0.00247
+
+
+.. py:data:: H_MAX_KM
+   :value: 500.0
+
+
+.. py:data:: GSL_STEP
+
+.. py:data:: REL_ERROR
+   :value: 1e-05
+
+
+.. py:data:: ABS_ERROR
+   :value: 1e-05
+
+
+.. py:data:: N0
+   :value: 1e+18
+
+
+.. py:data:: OUTPUT_FILE
+   :value: 'AtmFlux_output.h5'
+
+
+.. py:data:: E_min
+
+.. py:data:: E_max
+
+.. py:data:: E_nodes
+
+.. py:data:: Z_nodes
+
+.. py:data:: nus
+
+.. py:data:: E_range
+
+.. py:data:: Z_range
+
+.. py:data:: inistate
+

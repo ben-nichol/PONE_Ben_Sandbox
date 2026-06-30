@@ -1,0 +1,44 @@
+PONE_Ben_Sandbox.Reconstruction.Cascade.CascadeReco
+===================================================
+
+.. py:module:: PONE_Ben_Sandbox.Reconstruction.Cascade.CascadeReco
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.Reconstruction.Cascade.CascadeReco.CascadeReco
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.Reconstruction.Cascade.CascadeReco.LikelihoodFunctor
+   PONE_Ben_Sandbox.Reconstruction.Cascade.CascadeReco.GetVertexTime
+
+
+Module Contents
+---------------
+
+.. py:function:: LikelihoodFunctor(data, domsUsed, _tau)
+
+.. py:function:: GetVertexTime(pulse_series, geo_doms)
+
+.. py:class:: CascadeReco(context)
+
+   Bases: :py:obj:`icecube.icetray.I3ConditionalModule`
+
+
+   .. py:method:: Configure()
+
+
+   .. py:method:: Geometry(frame)
+
+
+   .. py:method:: Physics(frame)
+
+

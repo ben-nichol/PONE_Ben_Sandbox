@@ -1,0 +1,74 @@
+Generate6String
+===============
+
+.. py:module:: Generate6String
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   Generate6String.parser
+   Generate6String.args
+   Generate6String.outfileName
+   Generate6String.outfile
+   Generate6String.offset
+   Generate6String.anglediff
+   Generate6String.neighbourangles
+   Generate6String.xpositions
+   Generate6String.ypositions
+   Generate6String.sp
+   Generate6String.depthlist
+   Generate6String.scaled_xpositions
+   Generate6String.scaled_ypositions
+   Generate6String.omsequence
+   Generate6String.gframe
+   Generate6String.geometry
+   Generate6String.cframe
+   Generate6String.dframe
+
+
+Module Contents
+---------------
+
+.. py:data:: parser
+
+.. py:data:: args
+
+.. py:data:: outfileName
+
+.. py:data:: outfile
+
+.. py:data:: offset
+   :value: 0.0
+
+
+.. py:data:: anglediff
+
+.. py:data:: neighbourangles
+
+.. py:data:: xpositions
+
+.. py:data:: ypositions
+
+.. py:data:: sp
+   :value: 50.0
+
+
+.. py:data:: depthlist
+
+.. py:data:: scaled_xpositions
+
+.. py:data:: scaled_ypositions
+
+.. py:data:: omsequence
+
+.. py:data:: gframe
+
+.. py:data:: geometry
+
+.. py:data:: cframe
+
+.. py:data:: dframe
+

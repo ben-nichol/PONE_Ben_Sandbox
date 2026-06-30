@@ -1,0 +1,31 @@
+PONE_Ben_Sandbox.PulseCleaning.RecoPulseGenerator
+=================================================
+
+.. py:module:: PONE_Ben_Sandbox.PulseCleaning.RecoPulseGenerator
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.PulseCleaning.RecoPulseGenerator.merge_recoPulse
+
+
+Module Contents
+---------------
+
+.. py:class:: merge_recoPulse(context)
+
+   Bases: :py:obj:`icecube.icetray.I3ConditionalModule`
+
+
+   Merging MCPEs within 3 nanoseconds. Creating I3RecoPulseSeriesMap from MCPEs.
+
+
+   .. py:method:: Configure()
+
+
+   .. py:method:: DAQ(frame)
+
+

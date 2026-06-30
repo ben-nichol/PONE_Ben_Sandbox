@@ -1,0 +1,99 @@
+submit-isotropic
+================
+
+.. py:module:: submit-isotropic
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   submit-isotropic.user
+   submit-isotropic.out_dir
+   submit-isotropic.singularity
+   submit-isotropic.container
+   submit-isotropic.mem
+   submit-isotropic.submit
+   submit-isotropic.gcd
+   submit-isotropic.script
+   submit-isotropic.angular
+   submit-isotropic.tag
+   submit-isotropic.args
+   submit-isotropic.iter_keys
+   submit-isotropic.iter_list
+   submit-isotropic.iters
+   submit-isotropic.t_str
+   submit-isotropic.out_folder
+   submit-isotropic.folders
+   submit-isotropic.out_f
+   submit-isotropic.out_sub
+   submit-isotropic.out_job
+   submit-isotropic.out_log
+   submit-isotropic.out_error
+   submit-isotropic.out_out
+   submit-isotropic.out_sim
+   submit-isotropic.args_temp
+
+
+Module Contents
+---------------
+
+.. py:data:: user
+
+.. py:data:: out_dir
+
+.. py:data:: singularity
+   :value: '/data/p-one/icetray_offline_lw.sif'
+
+
+.. py:data:: container
+
+.. py:data:: mem
+   :value: 8
+
+
+.. py:data:: submit
+   :value: True
+
+
+.. py:data:: gcd
+
+.. py:data:: script
+
+.. py:data:: angular
+
+.. py:data:: tag
+   :value: 'isotropic-angular-acc-test'
+
+
+.. py:data:: args
+
+.. py:data:: iter_keys
+
+.. py:data:: iter_list
+
+.. py:data:: iters
+
+.. py:data:: t_str
+
+.. py:data:: out_folder
+
+.. py:data:: folders
+
+.. py:data:: out_f
+
+.. py:data:: out_sub
+
+.. py:data:: out_job
+
+.. py:data:: out_log
+
+.. py:data:: out_error
+
+.. py:data:: out_out
+
+.. py:data:: out_sim
+
+.. py:data:: args_temp
+

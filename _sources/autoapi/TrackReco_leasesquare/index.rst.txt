@@ -1,0 +1,44 @@
+TrackReco_leasesquare
+=====================
+
+.. py:module:: TrackReco_leasesquare
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   TrackReco_leasesquare.TrackReco_leastsquare
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   TrackReco_leasesquare.MinimizerFunctor
+   TrackReco_leasesquare.GetDeltaT
+
+
+Module Contents
+---------------
+
+.. py:function:: MinimizerFunctor(data, domsUsed, _minpos)
+
+.. py:function:: GetDeltaT(pulse_series, geo_doms, mindoms)
+
+.. py:class:: TrackReco_leastsquare(context)
+
+   Bases: :py:obj:`icecube.icetray.I3ConditionalModule`
+
+
+   .. py:method:: Configure()
+
+
+   .. py:method:: Geometry(frame)
+
+
+   .. py:method:: Physics(frame)
+
+

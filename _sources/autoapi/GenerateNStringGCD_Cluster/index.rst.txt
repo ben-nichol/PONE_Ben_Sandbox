@@ -1,0 +1,76 @@
+GenerateNStringGCD_Cluster
+==========================
+
+.. py:module:: GenerateNStringGCD_Cluster
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   GenerateNStringGCD_Cluster.parser
+   GenerateNStringGCD_Cluster.args
+   GenerateNStringGCD_Cluster.outfileName
+   GenerateNStringGCD_Cluster.outfile
+   GenerateNStringGCD_Cluster.final_xpositions
+   GenerateNStringGCD_Cluster.final_ypositions
+   GenerateNStringGCD_Cluster.final_x
+   GenerateNStringGCD_Cluster.mean_x
+   GenerateNStringGCD_Cluster.mean_y
+   GenerateNStringGCD_Cluster.final_xpositions
+   GenerateNStringGCD_Cluster.final_ypositions
+   GenerateNStringGCD_Cluster.sp
+   GenerateNStringGCD_Cluster.depthlist
+   GenerateNStringGCD_Cluster.omsequence
+   GenerateNStringGCD_Cluster.gframe
+   GenerateNStringGCD_Cluster.geometry
+   GenerateNStringGCD_Cluster.cframe
+   GenerateNStringGCD_Cluster.dframe
+
+
+Module Contents
+---------------
+
+.. py:data:: parser
+
+.. py:data:: args
+
+.. py:data:: outfileName
+
+.. py:data:: outfile
+
+.. py:data:: final_xpositions
+   :value: []
+
+
+.. py:data:: final_ypositions
+   :value: []
+
+
+.. py:data:: final_x
+
+.. py:data:: mean_x
+
+.. py:data:: mean_y
+
+.. py:data:: final_xpositions
+
+.. py:data:: final_ypositions
+
+.. py:data:: sp
+   :value: 50.0
+
+
+.. py:data:: depthlist
+
+.. py:data:: omsequence
+
+.. py:data:: gframe
+
+.. py:data:: geometry
+
+.. py:data:: cframe
+
+.. py:data:: dframe
+

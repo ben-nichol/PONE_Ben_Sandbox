@@ -1,0 +1,67 @@
+PONE_Ben_Sandbox.Utilities.OpticalParameters
+============================================
+
+.. py:module:: PONE_Ben_Sandbox.Utilities.OpticalParameters
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.Utilities.OpticalParameters.c
+   PONE_Ben_Sandbox.Utilities.OpticalParameters.lambda_s
+   PONE_Ben_Sandbox.Utilities.OpticalParameters.lambda_a
+   PONE_Ben_Sandbox.Utilities.OpticalParameters.tau
+   PONE_Ben_Sandbox.Utilities.OpticalParameters.indextable
+   PONE_Ben_Sandbox.Utilities.OpticalParameters.n
+   PONE_Ben_Sandbox.Utilities.OpticalParameters.theta_c
+   PONE_Ben_Sandbox.Utilities.OpticalParameters.c_n
+   PONE_Ben_Sandbox.Utilities.OpticalParameters.ngroup
+   PONE_Ben_Sandbox.Utilities.OpticalParameters.c_ngroup
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.Utilities.OpticalParameters.GetIndex
+   PONE_Ben_Sandbox.Utilities.OpticalParameters.GetGroupIndex
+
+
+Module Contents
+---------------
+
+.. py:data:: c
+   :value: 0.299792458
+
+
+.. py:data:: lambda_s
+   :value: 120.0
+
+
+.. py:data:: lambda_a
+   :value: 35
+
+
+.. py:data:: tau
+   :value: 50.0
+
+
+.. py:data:: indextable
+
+.. py:function:: GetIndex(wl=450.0)
+
+.. py:data:: n
+
+.. py:data:: theta_c
+
+.. py:data:: c_n
+
+.. py:function:: GetGroupIndex(wl=450.0)
+
+.. py:data:: ngroup
+
+.. py:data:: c_ngroup
+

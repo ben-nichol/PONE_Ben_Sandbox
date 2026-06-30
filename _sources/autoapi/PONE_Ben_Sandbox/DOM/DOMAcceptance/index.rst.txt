@@ -1,0 +1,39 @@
+PONE_Ben_Sandbox.DOM.DOMAcceptance
+==================================
+
+.. py:module:: PONE_Ben_Sandbox.DOM.DOMAcceptance
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.DOM.DOMAcceptance.DOMAcceptance
+
+
+Module Contents
+---------------
+
+.. py:class:: DOMAcceptance(context)
+
+   Bases: :py:obj:`icecube.icetray.I3ConditionalModule`
+
+
+   Icetray module that separates I3Photons from CLSim into
+   their respective PMTs and applies a POM acceptance cut.
+   Writes the surviving photons back into the frame as I3RecoPulses
+
+
+   .. py:method:: Configure()
+
+
+   .. py:method:: split_pmts(photon_map, drop_strings=[])
+
+      Split photon hits into PMTs on the OMs
+
+
+
+   .. py:method:: DAQ(frame)
+
+

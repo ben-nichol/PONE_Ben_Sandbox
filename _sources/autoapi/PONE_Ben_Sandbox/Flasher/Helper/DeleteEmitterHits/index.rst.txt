@@ -1,0 +1,31 @@
+PONE_Ben_Sandbox.Flasher.Helper.DeleteEmitterHits
+=================================================
+
+.. py:module:: PONE_Ben_Sandbox.Flasher.Helper.DeleteEmitterHits
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.Flasher.Helper.DeleteEmitterHits.DeleteEmitterHits
+
+
+Module Contents
+---------------
+
+.. py:class:: DeleteEmitterHits(context)
+
+   Bases: :py:obj:`icecube.icetray.I3Module`
+
+
+   Generate an isotropic photon flash into a DAQ Frame.
+
+
+   .. py:method:: Configure()
+
+
+   .. py:method:: DAQ(frame)
+
+

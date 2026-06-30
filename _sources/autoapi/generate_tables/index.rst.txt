@@ -1,0 +1,19 @@
+generate_tables
+===============
+
+.. py:module:: generate_tables
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   generate_tables.file_lock_path
+
+
+Module Contents
+---------------
+
+.. py:data:: file_lock_path
+

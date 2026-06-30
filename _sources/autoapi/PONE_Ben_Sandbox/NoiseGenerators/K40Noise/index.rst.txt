@@ -1,0 +1,85 @@
+PONE_Ben_Sandbox.NoiseGenerators.K40Noise
+=========================================
+
+.. py:module:: PONE_Ben_Sandbox.NoiseGenerators.K40Noise
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.NoiseGenerators.K40Noise.K40Noise
+
+
+Module Contents
+---------------
+
+.. py:class:: K40Noise(context)
+
+   Bases: :py:obj:`icecube.icetray.I3ConditionalModule`
+
+
+   Icetray module that create a pulse map for
+   k40 noise
+
+
+   .. py:method:: Configure()
+
+
+   .. py:method:: random_choice(values, probabilities, number_samples)
+
+      Reproduces numpy.random.choice to sample from a
+      given arbitrary probability histogram but using
+      an I3RandomService rather than numpy random.
+      Assumes probabilities are passed as a numpy array
+
+
+
+   .. py:method:: get_event_times(event_rate, lower_bound, upper_bound)
+
+      Returns an array of coincidence times within
+      a frame given the expected event rate (events/ns)
+      and lower and upper time bounds (ns)
+
+
+
+   .. py:method:: get_photon_times(initial_time, num_photons, photon_time_distribution)
+
+      Returns an array of photon arrival times based on the
+      number of photons and initial event time
+
+
+
+   .. py:method:: distribute_pmts(generated_pmts, hflip, vflip, rotation)
+
+      Function that takes a list of generated PMT indices
+      including a home PMT and applies a random rotation
+      and flip to them so that they can be evenly distributed
+      over all the PMTs on the module
+
+      hflip   : boolean for horizontal flip
+      vflip   : boolean for vertical flip
+      rotation: int 0-3 representing 0, 90, 180, 270 degree rotation
+
+
+
+   .. py:method:: sample_pmts(characterization, num_to_generate, photon_times)
+
+      Samples pmt combinations and distributes pmts across the module.
+      Also calculates the hit time at each PMT
+
+
+
+   .. py:method:: generate_k40_hits(characterization, lower_bound, upper_bound)
+
+      Generate the k40 noise MCPE map
+
+
+
+   .. py:method:: Geometry(frame)
+
+
+   .. py:method:: DAQ(frame)
+
+

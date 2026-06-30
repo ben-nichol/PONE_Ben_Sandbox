@@ -1,0 +1,19 @@
+PONE_Ben_Sandbox.segments.GenerateFlashers
+==========================================
+
+.. py:module:: PONE_Ben_Sandbox.segments.GenerateFlashers
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.segments.GenerateFlashers.GenerateFlashers
+
+
+Module Contents
+---------------
+
+.. py:function:: GenerateFlashers(frame, FlashString=63, FlashDOM=20, FlashBrightness=127, FlashWidth=124, FlashTime=0, FlashMask=1, FlasherInfoName='I3FlasherInfo')
+

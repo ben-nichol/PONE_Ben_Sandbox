@@ -1,0 +1,21 @@
+PONE_Ben_Sandbox.DOM.domlaunchertest
+====================================
+
+.. py:module:: PONE_Ben_Sandbox.DOM.domlaunchertest
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.DOM.domlaunchertest.inputFile
+
+
+Module Contents
+---------------
+
+.. py:data:: inputFile
+   :value: '/project/rpp-nahee/bjnichol/pone_offline/Examples/dataio/maytest/gen_003.i3.zst'
+
+

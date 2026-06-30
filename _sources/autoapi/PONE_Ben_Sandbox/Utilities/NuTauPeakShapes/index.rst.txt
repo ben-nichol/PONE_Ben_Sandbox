@@ -1,0 +1,54 @@
+PONE_Ben_Sandbox.Utilities.NuTauPeakShapes
+==========================================
+
+.. py:module:: PONE_Ben_Sandbox.Utilities.NuTauPeakShapes
+
+.. autoapi-nested-parse::
+
+   Functions commonly used for likelihood analysis
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.Utilities.NuTauPeakShapes.gaussian
+   PONE_Ben_Sandbox.Utilities.NuTauPeakShapes.biGauss
+   PONE_Ben_Sandbox.Utilities.NuTauPeakShapes.double_peak
+   PONE_Ben_Sandbox.Utilities.NuTauPeakShapes.log_likelihood_biGauss
+   PONE_Ben_Sandbox.Utilities.NuTauPeakShapes.log_likelihood_doublePeak
+   PONE_Ben_Sandbox.Utilities.NuTauPeakShapes.expGauss
+   PONE_Ben_Sandbox.Utilities.NuTauPeakShapes.expDoublePeak
+   PONE_Ben_Sandbox.Utilities.NuTauPeakShapes.log_likelihood_expGauss
+   PONE_Ben_Sandbox.Utilities.NuTauPeakShapes.log_likelihood_expDoublePeak
+   PONE_Ben_Sandbox.Utilities.NuTauPeakShapes.likelihood_ratio_doublePeak
+   PONE_Ben_Sandbox.Utilities.NuTauPeakShapes.likelihood_ratio_biGauss
+
+
+Module Contents
+---------------
+
+.. py:function:: gaussian(x, pos, wid, amp)
+
+.. py:function:: biGauss(x, pos, wid, r, amp)
+
+.. py:function:: double_peak(x, pos1, wid1, r1, amp1, pos2, wid2, r2, amp2)
+
+.. py:function:: log_likelihood_biGauss(theta, n, x, debug)
+
+.. py:function:: log_likelihood_doublePeak(theta, n, x, debug)
+
+.. py:function:: expGauss(x, pos, wid, k, amp)
+
+.. py:function:: expDoublePeak(x, pos1, wid1, k1, amp1, pos2, wid2, k2, amp2)
+
+.. py:function:: log_likelihood_expGauss(theta, n, x, debug)
+
+.. py:function:: log_likelihood_expDoublePeak(theta, n, x, debug)
+
+.. py:function:: likelihood_ratio_doublePeak(x, n, pos1, wid1, r1, amp1, pos2, wid2, r2, amp2)
+
+.. py:function:: likelihood_ratio_biGauss(x, n, pos, wid, r, amp)
+

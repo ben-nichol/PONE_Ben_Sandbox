@@ -1,0 +1,53 @@
+PONE_Ben_Sandbox.segments.GenerateNeutrinos
+===========================================
+
+.. py:module:: PONE_Ben_Sandbox.segments.GenerateNeutrinos
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.segments.GenerateNeutrinos.GenerateNeutrinos
+   PONE_Ben_Sandbox.segments.GenerateNeutrinos.SelectNeutrino
+   PONE_Ben_Sandbox.segments.GenerateNeutrinos.GenerateAtmosphericNeutrinos
+
+
+Module Contents
+---------------
+
+.. py:function:: GenerateNeutrinos(tray, name, RandomService=None, RunID=None, NumEvents=100, SimMode='Full', VTXGenMode='NuGen', InjectionMode='Surface', CylinderParams=[0, 0, 0, 0, 0], AutoExtendMuonVolume=True, Flavor='', NuTypes=['NuMu', 'NuMuBar'], PrimaryTypeRatio=[1, 1], GammaIndex=2.0, FromEnergy=1.0 * I3Units.TeV, ToEnergy=10.0 * I3Units.PeV, ZenithRange=[0, 180 * I3Units.degree], AzimuthRange=[0, 360 * I3Units.degree], UseDifferentialXsection=True, CrossSections='csms_differential_v1.0', CrossSectionsPath=None, ZenithSamplingMode='ANGEMU', ParamsMap=dict())
+
+.. py:function:: SelectNeutrino(tray, name, Propagators=None, AutoExtendMuonVolume=False, EnergyBiasPower=1, FlavorBias=[30, 1, 1], CylinderRadius=600 * I3Units.m, CylinderHeight=1200 * I3Units.m, CrossSections='csms')
+
+   Select a neutrino to interact, and add neutrino propagators to the context.
+
+   :param AutoExtendMuonVolume: allow :math:`\nu_{\mu}` to interact far before they reach the detector
+   :param EnergyBiasPower: select a neutrino from the bundle with probability proportional to E^power
+   :param FlavorBias: scale selection probability for :math:`\nu_{e}/\nu_{\mu}/\nu_{\tau}`
+                      by these factors. The default value is appropriate for equal sampling
+                      of conventional atmospheric :math:`\nu_{e}/\nu_{\mu}`.
+   :param CylinderRadius: radius of upright-cylinder target volume
+   :param CylinderHeight: full height of simulation volume
+   :param CrossSections: cross-section tables to use ('cteq5', 'css', or 'csms')
+
+
+.. py:function:: GenerateAtmosphericNeutrinos(tray, name, Files, GCDFile='', AutoExtendMuonVolume=False, EnergyBiasPower=1, FlavorBias=[30, 1, 1], CylinderRadius=600 * I3Units.m, CylinderHeight=1200 * I3Units.m, CrossSections='csms', NEvents=-1, MakeNeutrino=True)
+
+   Read CORSIKA showers containing neutrinos, and force exactly one neutrino to interact.
+
+   NB: this segment is deprecated. Use GenerateAirShowers, SelectNeutrino, and PropagateMuons instead.
+
+   :param Files: a list of CORSIKA files to read
+   :param GCDFile: I3 file with GCD information to read in before the CORSIKA files
+   :param AutoExtendMuonVolume: allow :math:`\nu_{\mu}` to interact far before they reach the detector
+   :param EnergyBiasPower: select a neutrino from the bundle with probability proportional to E^power
+   :param FlavorBias: scale selection probability for :math:`\nu_{e}/\nu_{\mu}/\nu_{\tau}`
+                      by these factors. The default value is appropriate for equal sampling
+                      of conventional atmospheric :math:`\nu_{e}/\nu_{\mu}`.
+   :param CylinderRadius: radius of upright-cylinder target volume
+   :param CylinderHeight: full height of simulation volume
+   :param CrossSections: cross-section tables to use ('cteq5', 'css', or 'csms')
+
+

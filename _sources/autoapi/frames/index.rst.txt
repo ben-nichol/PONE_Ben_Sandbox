@@ -1,0 +1,156 @@
+frames
+======
+
+.. py:module:: frames
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   frames.Acoustic
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   frames.injectFrame
+   frames.injectCalibrationFrame
+   frames.injectDetectorStatusFrame
+   frames.injectAcousticFrame
+   frames.createGeometryFromAcoustic
+   frames.interpolateGeometryFromAcoustic
+   frames.CreateSeparateGCD
+
+
+Module Contents
+---------------
+
+.. py:data:: Acoustic
+
+.. py:class:: injectFrame(context)
+
+   Bases: :py:obj:`icecube.icetray.I3Module`
+
+
+   Parent module to inject new geometry, calibration and detector status frames into an existing icetray stream. To use this module, define a child that implements an inject(self) function.
+
+
+   .. py:attribute:: ctr
+      :value: 0
+
+
+
+   .. py:method:: Process()
+
+
+.. py:class:: injectCalibrationFrame(context)
+
+   Bases: :py:obj:`injectFrame`
+
+
+   Module to inject new calibration frames into icetray stream.
+
+
+   .. py:method:: Inject()
+
+
+.. py:class:: injectDetectorStatusFrame(context)
+
+   Bases: :py:obj:`injectFrame`
+
+
+   Module to inject new detector status frames into icetray stream.
+
+
+   .. py:method:: Inject()
+
+
+.. py:class:: injectAcousticFrame(context)
+
+   Bases: :py:obj:`injectFrame`
+
+
+   Module to inject new acoustic frames into icetray stream. These dummy acoustic frames do not contain any acoustic data, but a tilted geometry that can be copied to a geometry frame. The parameters of this module are inherited from injectFrame and createTiltGeometry.
+
+
+   .. py:attribute:: parameters
+
+
+   .. py:method:: Inject()
+
+
+.. py:class:: createGeometryFromAcoustic
+
+   Bases: :py:obj:`icecube.icetray.I3Module`
+
+
+   Dummy module to illustrate the injection of new geometry frames after each acoustic frame.
+   This module just copies geometry data from the existing acoustic frames into new geometry frames.
+   In a more realistic scenario, this module would implement triangulation calculations based on acoustic receiver data.
+
+
+   .. py:method:: Process()
+
+
+.. py:class:: interpolateGeometryFromAcoustic(context)
+
+   Bases: :py:obj:`icecube.icetray.I3Module`
+
+
+   Dummy module to illustrate geometry interpolations. Once an acoustic frame is received, all arriving frames are stored in a queue until another acoustic frame arrives. Then the queue is emptied while new geometry frames are injected. The geometry in these new geometry frames is a simple linear interpolation in x,y,x of the geometry defined in the acoustic frames.
+
+
+   .. py:attribute:: initial_AFrame
+      :value: None
+
+
+
+   .. py:attribute:: final_AFrame
+      :value: None
+
+
+
+   .. py:attribute:: frame_queue
+      :value: []
+
+
+
+   .. py:method:: EmptyQueue()
+
+
+   .. py:method:: DropInterpolatedGFrame(scale)
+
+
+   .. py:method:: Process()
+
+
+   .. py:method:: Finish()
+
+
+.. py:class:: CreateSeparateGCD(context)
+
+   Bases: :py:obj:`icecube.icetray.I3Module`
+
+
+   To use this module, define your own module that inherits from this module and defines it's own InsertModule function, where the module to be wrapped is inserted into the wrapper tray.
+
+
+   .. py:attribute:: G
+
+
+   .. py:attribute:: C
+
+
+   .. py:attribute:: D
+
+
+   .. py:method:: InsertModule(wrapper_tray, gcdfile)
+
+
+   .. py:method:: Process()
+
+

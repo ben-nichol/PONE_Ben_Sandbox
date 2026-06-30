@@ -1,0 +1,28 @@
+4-GetWeights
+============
+
+.. py:module:: 4-GetWeights
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   4-GetWeights.parse_args
+   4-GetWeights.check_nusquids_support
+   4-GetWeights.get_weight
+   4-GetWeights.main
+
+
+Module Contents
+---------------
+
+.. py:function:: parse_args()
+
+.. py:function:: check_nusquids_support()
+
+.. py:function:: get_weight(event, weighter)
+
+.. py:function:: main()
+

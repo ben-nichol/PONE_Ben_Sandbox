@@ -1,0 +1,115 @@
+k40test
+=======
+
+.. py:module:: k40test
+
+.. autoapi-nested-parse::
+
+   Script that generates an I3 file of input particles
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   k40test.usage
+   k40test.parser
+   k40test.BR_BETA
+   k40test.BR_EC
+   k40test.EC_FRACTION
+   k40test.GAMMA_ENERGY_MEV
+   k40test.CHERENKOV_THRESHOLD_MEV
+   k40test.decay_rate_m_ms
+   k40test.world_volume_m
+   k40test.event_rate_ms
+   k40test.expected_frame_events
+   k40test.frame
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   k40test.GetMeanEventRate
+   k40test.GetElectronEnergies
+   k40test.GetDecayTimes
+   k40test.GetDecayPositions
+   k40test.GetDecayDirection
+
+
+Module Contents
+---------------
+
+.. py:data:: usage
+   :value: 'usage: %prog [options]'
+
+
+.. py:data:: parser
+
+.. py:function:: GetMeanEventRate(salinity=3.482)
+
+   Returns the expected K40 decay rate as a function of
+   ocean salinity %.
+
+   The returned rate is in [decays / ms / m3]
+
+
+.. py:function:: GetElectronEnergies(number_of_electrons)
+
+   Returns an array of energies [MeV] sampled from
+   the decay electron energy spectrum
+
+
+.. py:function:: GetDecayTimes(frame_length_ms, event_rate, expected_total_events)
+
+   Returns an array of times [ns] of decay events
+   within the given frame length [ms] according to the
+   given event rate and expected total number of events.
+
+
+.. py:function:: GetDecayPositions(number_of_decays, radius=options.RADIUS)
+
+   Returns an array of xyz coordinates corresponding to
+   decay positions. There are sampled uniformly through
+   a spherical volume with the given radius [m].
+
+
+.. py:function:: GetDecayDirection(number_of_decays)
+
+   Returns an array of xyz coordinates corresponding to
+   decay direction unit vectors sampled uniformly in 3 space.
+
+
+.. py:data:: BR_BETA
+   :value: 0.8928
+
+
+.. py:data:: BR_EC
+   :value: 0.1067
+
+
+.. py:data:: EC_FRACTION
+   :value: 0.10675337668834417
+
+
+.. py:data:: GAMMA_ENERGY_MEV
+   :value: 1.46083
+
+
+.. py:data:: CHERENKOV_THRESHOLD_MEV
+   :value: 0.7
+
+
+.. py:data:: decay_rate_m_ms
+
+.. py:data:: world_volume_m
+
+.. py:data:: event_rate_ms
+
+.. py:data:: expected_frame_events
+
+.. py:data:: frame
+

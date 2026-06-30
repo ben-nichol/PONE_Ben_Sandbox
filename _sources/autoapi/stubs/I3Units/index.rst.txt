@@ -1,0 +1,36 @@
+stubs.I3Units
+=============
+
+.. py:module:: stubs.I3Units
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   stubs.I3Units.TeV
+   stubs.I3Units.PeV
+   stubs.I3Units.degrees
+   stubs.I3Units.bar
+
+
+Module Contents
+---------------
+
+.. py:data:: TeV
+   :value: 1.0
+
+
+.. py:data:: PeV
+   :value: 1.0
+
+
+.. py:data:: degrees
+   :value: 1.0
+
+
+.. py:data:: bar
+   :value: 1.0
+
+

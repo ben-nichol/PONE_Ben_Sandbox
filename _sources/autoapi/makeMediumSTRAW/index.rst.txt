@@ -1,0 +1,314 @@
+makeMediumSTRAW
+===============
+
+.. py:module:: makeMediumSTRAW
+
+.. autoapi-nested-parse::
+
+   uses properties from "Transmission of light in deep sea water at the
+   site of the Antares neutrino telescope" Paper (in
+   propagationMediumModels/documentation/ANTARTESWaterProperties.pdf)
+   to create the files clsim takes to construct the propagation medium
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   makeMediumSTRAW.outfilepath
+   makeMediumSTRAW.edaVals
+   makeMediumSTRAW.eda
+   makeMediumSTRAW.scatteringL
+   makeMediumSTRAW.averageAngle
+   makeMediumSTRAW.effectiveScatteringL
+   makeMediumSTRAW.effScatteringCoeff
+   makeMediumSTRAW.absorptionCoeff
+   makeMediumSTRAW.wavelengths
+   makeMediumSTRAW.header
+   makeMediumSTRAW.domRadius
+   makeMediumSTRAW.efficiencyCorr
+   makeMediumSTRAW.functionShape
+   makeMediumSTRAW.averageAngle
+   makeMediumSTRAW.configArray
+   makeMediumSTRAW.outfile
+   makeMediumSTRAW.scatLSS
+   makeMediumSTRAW.absLSS
+   makeMediumSTRAW.alpha
+   makeMediumSTRAW.kappa
+   makeMediumSTRAW.b_e_400
+   makeMediumSTRAW.a_e_400
+   makeMediumSTRAW.x
+   makeMediumSTRAW.y
+   makeMediumSTRAW.x
+   makeMediumSTRAW.y
+   makeMediumSTRAW.A
+   makeMediumSTRAW.B
+   makeMediumSTRAW.configArray
+   makeMediumSTRAW.outfile
+   makeMediumSTRAW.min_depth
+   makeMediumSTRAW.max_depth
+   makeMediumSTRAW.spacing
+   makeMediumSTRAW.num_elements
+   makeMediumSTRAW.depth
+   makeMediumSTRAW.b_e
+   makeMediumSTRAW.a_e
+   makeMediumSTRAW.dT
+   makeMediumSTRAW.outfile
+   makeMediumSTRAW.line
+
+
+Module Contents
+---------------
+
+.. py:data:: outfilepath
+   :value: '/home/users/akatil/P-ONE/medium/STRAW_Andy_20200328_MattewEta_VB/'
+
+
+.. py:data:: edaVals
+
+.. py:data:: eda
+
+.. py:data:: scatteringL
+
+.. py:data:: averageAngle
+
+.. py:data:: effectiveScatteringL
+
+.. py:data:: effScatteringCoeff
+
+.. py:data:: absorptionCoeff
+
+.. py:data:: wavelengths
+
+.. py:data:: header
+   :value: Multiline-String
+
+   .. raw:: html
+
+      <details><summary>Show Value</summary>
+
+   .. code-block:: python
+
+      """# configuration file
+      """
+
+   .. raw:: html
+
+      </details>
+
+
+
+.. py:data:: domRadius
+   :value: Multiline-String
+
+   .. raw:: html
+
+      <details><summary>Show Value</summary>
+
+   .. code-block:: python
+
+      """	# over-R: DOM radius "oversize" scaling factor
+      """
+
+   .. raw:: html
+
+      </details>
+
+
+
+.. py:data:: efficiencyCorr
+   :value: Multiline-String
+
+   .. raw:: html
+
+      <details><summary>Show Value</summary>
+
+   .. code-block:: python
+
+      """	# overall DOM efficiency correction
+      """
+
+   .. raw:: html
+
+      </details>
+
+
+
+.. py:data:: functionShape
+   :value: Multiline-String
+
+   .. raw:: html
+
+      <details><summary>Show Value</summary>
+
+   .. code-block:: python
+
+      """	# 0=HG; 1=SAM (scattering function shape parameter)
+      """
+
+   .. raw:: html
+
+      </details>
+
+
+
+.. py:data:: averageAngle
+   :value: Multiline-String
+
+   .. raw:: html
+
+      <details><summary>Show Value</summary>
+
+   .. code-block:: python
+
+      """	# g=<cos(theta)> (formula from ANTARES paper)
+      """
+
+   .. raw:: html
+
+      </details>
+
+
+
+.. py:data:: configArray
+
+.. py:data:: outfile
+
+.. py:data:: scatLSS
+
+.. py:data:: absLSS
+
+.. py:data:: alpha
+   :value: Multiline-String
+
+   .. raw:: html
+
+      <details><summary>Show Value</summary>
+
+   .. code-block:: python
+
+      """		# scattering wavelength dependence power law exponent
+      """
+
+   .. raw:: html
+
+      </details>
+
+
+
+.. py:data:: kappa
+   :value: Multiline-String
+
+   .. raw:: html
+
+      <details><summary>Show Value</summary>
+
+   .. code-block:: python
+
+      """		# absorption wavelength dependence power law exponent
+      """
+
+   .. raw:: html
+
+      </details>
+
+
+
+.. py:data:: b_e_400
+
+.. py:data:: a_e_400
+
+.. py:data:: x
+
+.. py:data:: y
+
+.. py:data:: x
+
+.. py:data:: y
+
+.. py:data:: A
+   :value: Multiline-String
+
+   .. raw:: html
+
+      <details><summary>Show Value</summary>
+
+   .. code-block:: python
+
+      """		# absorption exponential component multiple - ignored
+      """
+
+   .. raw:: html
+
+      </details>
+
+
+
+.. py:data:: B
+   :value: Multiline-String
+
+   .. raw:: html
+
+      <details><summary>Show Value</summary>
+
+   .. code-block:: python
+
+      """		# absorption exponential component exponent multiple - ignored
+      """
+
+   .. raw:: html
+
+      </details>
+
+
+
+.. py:data:: configArray
+
+.. py:data:: outfile
+
+.. py:data:: min_depth
+   :value: 1000
+
+
+.. py:data:: max_depth
+   :value: 2800
+
+
+.. py:data:: spacing
+   :value: 10
+
+
+.. py:data:: num_elements
+   :value: 1
+
+
+.. py:data:: depth
+
+.. py:data:: b_e
+
+.. py:data:: a_e
+
+.. py:data:: dT
+
+.. py:data:: outfile
+
+.. py:data:: line
+   :value: Multiline-String
+
+   .. raw:: html
+
+      <details><summary>Show Value</summary>
+
+   .. code-block:: python
+
+      """   
+      """
+
+   .. raw:: html
+
+      </details>
+
+
+

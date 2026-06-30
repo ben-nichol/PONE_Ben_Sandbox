@@ -1,0 +1,34 @@
+PONE_Ben_Sandbox.NoiseGenerators.NoiseUtility
+=============================================
+
+.. py:module:: PONE_Ben_Sandbox.NoiseGenerators.NoiseUtility
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   PONE_Ben_Sandbox.NoiseGenerators.NoiseUtility.get_noise_time_bounds
+   PONE_Ben_Sandbox.NoiseGenerators.NoiseUtility.get_mcpe_map
+
+
+Module Contents
+---------------
+
+.. py:function:: get_noise_time_bounds(mcpe_map, noise_time_padding_before, noise_time_padding_after)
+
+   Get the upper and lower time bounds to set a time
+   window for noise generation.
+
+   NOTE: If the mcpe map is empty, this will return a
+   lower bound that is larger than the upper bound which
+   should eventually result in an empty pulse map
+
+
+.. py:function:: get_mcpe_map(pulse_map, drop_strings=[], drop_oms=[])
+
+   Read a split pmt pulse map from the frame and
+   return an OM wide mcpe map of hit times and PMTs
+
+
